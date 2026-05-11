@@ -1,0 +1,114 @@
+----------------------------------------------------------------------
+-- Predictive Maintenance
+-- Step 3: Equipment health scoring and maintenance alerts
+----------------------------------------------------------------------
+
+USE SCHEMA SF_SOLUTIONS.PRED_MAINT_ANALYTICS;
+
+----------------------------------------------------------------------
+-- Equipment health score (0-100, lower = higher risk)
+----------------------------------------------------------------------
+CREATE OR REPLACE VIEW EQUIPMENT_HEALTH_SCORE AS
+WITH recent_anomalies AS (
+    SELECT
+        EQUIPMENT_ID,
+        COUNT_IF(IS_ANOMALY = TRUE) AS ANOMALY_COUNT_30D,
+        AVG(DISTANCE) AS AVG_ANOMALY_DISTANCE
+    FROM SF_SOLUTIONS.PRED_MAINT_ML.ANOMALY_RESULTS
+    WHERE READING_DATE >= DATEADD(DAY, -30, CURRENT_DATE())
+    GROUP BY EQUIPMENT_ID
+),
+latest_readings AS (
+    SELECT
+        EQUIPMENT_ID,
+        AVG(TEMPERATURE_C) AS RECENT_AVG_TEMP,
+        AVG(VIBRATION_MM_S) AS RECENT_AVG_VIBRATION,
+        AVG(CURRENT_AMPS) AS RECENT_AVG_CURRENT
+    FROM SF_SOLUTIONS.PRED_MAINT_RAW.SENSOR_READINGS
+    WHERE READING_TIME >= DATEADD(DAY, -7, CURRENT_TIMESTAMP())
+    GROUP BY EQUIPMENT_ID
+),
+maintenance_info AS (
+    SELECT
+        e.EQUIPMENT_ID,
+        e.EQUIPMENT_NAME,
+        e.EQUIPMENT_TYPE,
+        e.PLANT,
+        e.LINE,
+        e.EXPECTED_LIFE_HOURS,
+        e.LAST_MAINTENANCE_DATE,
+        DATEDIFF(DAY, e.LAST_MAINTENANCE_DATE, CURRENT_DATE()) AS DAYS_SINCE_MAINTENANCE,
+        SUM(CASE WHEN m.MAINTENANCE_TYPE = 'Corrective' THEN 1 ELSE 0 END) AS CORRECTIVE_COUNT_1Y,
+        SUM(COALESCE(m.DOWNTIME_HOURS, 0)) AS TOTAL_DOWNTIME_1Y
+    FROM SF_SOLUTIONS.PRED_MAINT_RAW.EQUIPMENT e
+    LEFT JOIN SF_SOLUTIONS.PRED_MAINT_RAW.MAINTENANCE_LOG m
+        ON e.EQUIPMENT_ID = m.EQUIPMENT_ID
+        AND m.MAINTENANCE_DATE >= DATEADD(YEAR, -1, CURRENT_DATE())
+    GROUP BY 1, 2, 3, 4, 5, 6, 7
+)
+SELECT
+    mi.EQUIPMENT_ID,
+    mi.EQUIPMENT_NAME,
+    mi.EQUIPMENT_TYPE,
+    mi.PLANT,
+    mi.LINE,
+    mi.DAYS_SINCE_MAINTENANCE,
+    mi.CORRECTIVE_COUNT_1Y,
+    mi.TOTAL_DOWNTIME_1Y,
+    COALESCE(ra.ANOMALY_COUNT_30D, 0) AS ANOMALY_COUNT_30D,
+    lr.RECENT_AVG_VIBRATION,
+    lr.RECENT_AVG_TEMP,
+    GREATEST(0, LEAST(100, ROUND(
+        100
+        - (COALESCE(ra.ANOMALY_COUNT_30D, 0) * 5)
+        - (mi.CORRECTIVE_COUNT_1Y * 10)
+        - (CASE WHEN mi.DAYS_SINCE_MAINTENANCE > 90 THEN 15 ELSE 0 END)
+        - (CASE WHEN COALESCE(ra.AVG_ANOMALY_DISTANCE, 0) > 2 THEN 20 ELSE 0 END)
+    ))) AS HEALTH_SCORE,
+    CASE
+        WHEN COALESCE(ra.ANOMALY_COUNT_30D, 0) >= 5 OR mi.CORRECTIVE_COUNT_1Y >= 3 THEN 'CRITICAL'
+        WHEN COALESCE(ra.ANOMALY_COUNT_30D, 0) >= 3 OR mi.DAYS_SINCE_MAINTENANCE > 120 THEN 'WARNING'
+        WHEN COALESCE(ra.ANOMALY_COUNT_30D, 0) >= 1 OR mi.DAYS_SINCE_MAINTENANCE > 90 THEN 'MONITOR'
+        ELSE 'HEALTHY'
+    END AS STATUS,
+    CURRENT_TIMESTAMP() AS SCORED_AT
+FROM maintenance_info mi
+LEFT JOIN recent_anomalies ra ON mi.EQUIPMENT_ID = ra.EQUIPMENT_ID
+LEFT JOIN latest_readings lr ON mi.EQUIPMENT_ID = lr.EQUIPMENT_ID;
+
+----------------------------------------------------------------------
+-- Active maintenance alerts
+----------------------------------------------------------------------
+CREATE OR REPLACE VIEW MAINTENANCE_ALERTS AS
+SELECT *
+FROM EQUIPMENT_HEALTH_SCORE
+WHERE STATUS IN ('CRITICAL', 'WARNING')
+ORDER BY HEALTH_SCORE ASC;
+
+----------------------------------------------------------------------
+-- Plant-level summary dashboard
+----------------------------------------------------------------------
+CREATE OR REPLACE VIEW PLANT_HEALTH_SUMMARY AS
+SELECT
+    PLANT,
+    COUNT(*) AS TOTAL_EQUIPMENT,
+    COUNT_IF(STATUS = 'HEALTHY') AS HEALTHY,
+    COUNT_IF(STATUS = 'MONITOR') AS MONITORING,
+    COUNT_IF(STATUS = 'WARNING') AS WARNINGS,
+    COUNT_IF(STATUS = 'CRITICAL') AS CRITICAL,
+    ROUND(AVG(HEALTH_SCORE), 1) AS AVG_HEALTH_SCORE,
+    SUM(TOTAL_DOWNTIME_1Y) AS TOTAL_DOWNTIME_HOURS
+FROM EQUIPMENT_HEALTH_SCORE
+GROUP BY PLANT;
+
+----------------------------------------------------------------------
+-- Automated daily health check task
+----------------------------------------------------------------------
+CREATE OR REPLACE TASK SF_SOLUTIONS.PRED_MAINT_ANALYTICS.DAILY_HEALTH_CHECK
+    WAREHOUSE = 'COMPUTE_WH'
+    SCHEDULE = 'USING CRON 0 5 * * * America/New_York'
+AS
+    CREATE OR REPLACE TABLE SF_SOLUTIONS.PRED_MAINT_ANALYTICS.DAILY_HEALTH_SNAPSHOT AS
+    SELECT * FROM SF_SOLUTIONS.PRED_MAINT_ANALYTICS.EQUIPMENT_HEALTH_SCORE;
+
+ALTER TASK SF_SOLUTIONS.PRED_MAINT_ANALYTICS.DAILY_HEALTH_CHECK RESUME;
