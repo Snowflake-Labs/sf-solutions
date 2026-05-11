@@ -5,7 +5,7 @@
 | **Solution Name** | Retail Demand Forecasting & Inventory Optimization |
 | **Industry** | Retail / Consumer Packaged Goods (CPG) |
 
-An end-to-end Snowflake solution demonstrating **ML-powered demand forecasting** and **automated inventory replenishment** for retail operations — built to showcase Cloud Agents / Cortex Code capabilities.
+An end-to-end Snowflake solution demonstrating **ML-powered demand forecasting** and **automated inventory replenishment** for retail operations.
 
 ## Architecture
 
@@ -26,29 +26,31 @@ An end-to-end Snowflake solution demonstrating **ML-powered demand forecasting**
 
 ## Quick Start
 
-### 1. Create sample data
+### Step 1. Create sample data
+
+Run the data generation script to populate the database:
+
 ```sql
 -- Run the data generation script
 -- Creates 2+ years of synthetic retail sales (8 stores × 12 products × ~850 days)
+-- English version:
 @data/01_create_sample_data.sql
+
+-- Japanese version (日本市場データ):
+@data/01_create_sample_data_JA.sql
 ```
 
-### 2. Build forecast model
-```sql
--- Trains Snowflake ML Forecasting on weekly demand
-@models/02_build_forecast_model.sql
-```
+### Step 2. Run demo prompts
 
-### 3. Set up inventory alerts
-```sql
--- Creates alert logic + automated daily task
-@models/03_replenishment_alerts.sql
-```
+Once the sample data is created, open Cortex Code and run prompts from the `prompts/` directory.
+The prompts will guide you through building the forecast model, generating predictions, and creating inventory alerts interactively.
 
+- English: [`prompts/demo_prompts.md`](prompts/demo_prompts.md)
+- 日本語: [`prompts/demo_prompts_JA.md`](prompts/demo_prompts_JA.md)
 
-## Demo Prompts
+> **Note:** The files in `models/` (`02_build_forecast_model.sql`, `03_replenishment_alerts.sql`) are reference implementations. The demo prompts will have Cortex Code produce equivalent results interactively.
 
-See [`prompts/demo_prompts.md`](prompts/demo_prompts.md) for curated prompts in **English** and **Japanese** that demonstrate Cloud Agents capabilities across:
+## Demo Prompt Categories
 
 | Category | Demonstrates |
 |----------|-------------|
@@ -61,15 +63,15 @@ See [`prompts/demo_prompts.md`](prompts/demo_prompts.md) for curated prompts in 
 
 | Table | Rows (approx) | Description |
 |-------|---------------|-------------|
-| STORES | 8 | Store dimension (NY, Chicago, LA, SF, Austin, Miami, Seattle) |
-| PRODUCTS | 12 | Product catalog with reorder params & shelf life |
-| DAILY_SALES | ~80,000 | 2023-01 to 2025-04, daily store×product transactions |
-| INVENTORY_SNAPSHOT | 96 | Current stock levels (30% intentionally below reorder point) |
+| STORES | 8 (EN) / 5 (JA) | Store dimension |
+| PRODUCTS | 12 (EN) / 15 (JA) | Product catalog with reorder params & shelf life |
+| DAILY_SALES / SALES_HISTORY | ~80,000 | 2023-01 to 2025-04, daily store×product transactions |
+| INVENTORY_SNAPSHOT / INVENTORY | 96 (EN) / 75 (JA) | Current stock levels (30% intentionally below reorder point) |
 
 ### Sales patterns built into synthetic data:
 - **Day-of-week**: Weekends +30-50% vs weekdays
 - **Monthly seasonality**: Holiday peak (Dec +40%), summer boost, Jan dip
-- **Store volume**: Flagship 2×, Express 0.6× of Standard
+- **Store volume**: Flagship/大型 2×, Express/小型 0.6× of Standard/中型
 - **Growth trend**: +5% YoY
 - **Random noise**: ±15%
 
@@ -84,10 +86,12 @@ See [`prompts/demo_prompts.md`](prompts/demo_prompts.md) for curated prompts in 
 retail-demand-forecasting/
 ├── README.md
 ├── data/
-│   └── 01_create_sample_data.sql        # Synthetic data generation
+│   ├── 01_create_sample_data.sql       # Synthetic data (English / US market)
+│   └── 01_create_sample_data_JA.sql    # Synthetic data (Japanese / JP market)
 ├── models/
-│   ├── 02_build_forecast_model.sql      # ML forecasting
-│   └── 03_replenishment_alerts.sql      # Inventory alert logic
+│   ├── 02_build_forecast_model.sql     # Reference: ML forecasting
+│   └── 03_replenishment_alerts.sql     # Reference: Inventory alert logic
 └── prompts/
-    └── demo_prompts.md                  # EN + JP demo prompts
+    ├── demo_prompts.md                 # Demo prompts (English)
+    └── demo_prompts_JA.md              # Demo prompts (日本語)
 ```
