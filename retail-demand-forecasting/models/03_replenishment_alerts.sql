@@ -1,0 +1,119 @@
+----------------------------------------------------------------------
+-- Retail Demand Forecasting & Inventory Optimization
+-- Step 3: Inventory replenishment alert logic
+----------------------------------------------------------------------
+
+USE SCHEMA SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_ANALYTICS;
+
+----------------------------------------------------------------------
+-- Combine current inventory with forecast to determine replenishment
+----------------------------------------------------------------------
+CREATE OR REPLACE VIEW REPLENISHMENT_ALERTS AS
+WITH next_week_forecast AS (
+    SELECT
+        STORE_ID,
+        PRODUCT_ID,
+        FORECASTED_UNITS,
+        FORECAST_UPPER_95
+    FROM SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_ML.DEMAND_FORECAST
+    WHERE FORECAST_WEEK = (
+        SELECT MIN(FORECAST_WEEK)
+        FROM SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_ML.DEMAND_FORECAST
+    )
+),
+inventory_status AS (
+    SELECT
+        i.STORE_ID,
+        i.PRODUCT_ID,
+        i.PRODUCT_NAME,
+        i.CURRENT_STOCK,
+        i.REORDER_POINT,
+        i.REORDER_QTY,
+        i.SHELF_LIFE_DAYS,
+        i.EARLIEST_EXPIRY_DATE,
+        DATEDIFF(DAY, CURRENT_DATE(), i.EARLIEST_EXPIRY_DATE) AS DAYS_UNTIL_EXPIRY,
+        f.FORECASTED_UNITS AS NEXT_WEEK_DEMAND,
+        f.FORECAST_UPPER_95 AS NEXT_WEEK_DEMAND_HIGH,
+        CASE
+            WHEN i.CURRENT_STOCK <= 0 THEN 0
+            WHEN f.FORECASTED_UNITS > 0 THEN ROUND(i.CURRENT_STOCK * 7.0 / f.FORECASTED_UNITS, 1)
+            ELSE 999
+        END AS DAYS_OF_STOCK_REMAINING
+    FROM SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_RAW.INVENTORY_SNAPSHOT i
+    LEFT JOIN next_week_forecast f
+        ON i.STORE_ID = f.STORE_ID AND i.PRODUCT_ID = f.PRODUCT_ID
+)
+SELECT
+    STORE_ID,
+    PRODUCT_ID,
+    PRODUCT_NAME,
+    CURRENT_STOCK,
+    REORDER_POINT,
+    NEXT_WEEK_DEMAND,
+    NEXT_WEEK_DEMAND_HIGH,
+    DAYS_OF_STOCK_REMAINING,
+    DAYS_UNTIL_EXPIRY,
+    CASE
+        WHEN CURRENT_STOCK <= 0 THEN 'STOCKOUT'
+        WHEN CURRENT_STOCK < REORDER_POINT AND DAYS_OF_STOCK_REMAINING < 3 THEN 'CRITICAL'
+        WHEN CURRENT_STOCK < REORDER_POINT THEN 'REORDER_NOW'
+        WHEN DAYS_OF_STOCK_REMAINING < 7 THEN 'LOW_STOCK'
+        WHEN DAYS_UNTIL_EXPIRY <= 3 THEN 'EXPIRING_SOON'
+        ELSE 'OK'
+    END AS ALERT_LEVEL,
+    CASE
+        WHEN CURRENT_STOCK < REORDER_POINT THEN
+            GREATEST(REORDER_QTY, NEXT_WEEK_DEMAND_HIGH - CURRENT_STOCK + REORDER_POINT)
+        WHEN DAYS_OF_STOCK_REMAINING < 7 THEN
+            NEXT_WEEK_DEMAND_HIGH - CURRENT_STOCK + REORDER_POINT
+        ELSE 0
+    END AS SUGGESTED_ORDER_QTY,
+    CURRENT_TIMESTAMP() AS ALERT_GENERATED_AT
+FROM inventory_status;
+
+----------------------------------------------------------------------
+-- Summary view: alerts requiring action
+----------------------------------------------------------------------
+CREATE OR REPLACE VIEW ACTIVE_ALERTS AS
+SELECT *
+FROM REPLENISHMENT_ALERTS
+WHERE ALERT_LEVEL != 'OK'
+ORDER BY
+    CASE ALERT_LEVEL
+        WHEN 'STOCKOUT' THEN 1
+        WHEN 'CRITICAL' THEN 2
+        WHEN 'REORDER_NOW' THEN 3
+        WHEN 'LOW_STOCK' THEN 4
+        WHEN 'EXPIRING_SOON' THEN 5
+    END,
+    STORE_ID, PRODUCT_ID;
+
+----------------------------------------------------------------------
+-- Alert summary by store (for dashboards)
+----------------------------------------------------------------------
+CREATE OR REPLACE VIEW ALERT_SUMMARY_BY_STORE AS
+SELECT
+    STORE_ID,
+    COUNT_IF(ALERT_LEVEL = 'STOCKOUT') AS STOCKOUTS,
+    COUNT_IF(ALERT_LEVEL = 'CRITICAL') AS CRITICAL_ALERTS,
+    COUNT_IF(ALERT_LEVEL = 'REORDER_NOW') AS REORDER_ALERTS,
+    COUNT_IF(ALERT_LEVEL = 'LOW_STOCK') AS LOW_STOCK_ALERTS,
+    COUNT_IF(ALERT_LEVEL = 'EXPIRING_SOON') AS EXPIRING_ALERTS,
+    SUM(SUGGESTED_ORDER_QTY) AS TOTAL_UNITS_TO_ORDER
+FROM REPLENISHMENT_ALERTS
+WHERE ALERT_LEVEL != 'OK'
+GROUP BY STORE_ID
+ORDER BY STOCKOUTS DESC, CRITICAL_ALERTS DESC;
+
+----------------------------------------------------------------------
+-- Automated alert task (runs daily at 6 AM)
+----------------------------------------------------------------------
+CREATE OR REPLACE TASK SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_ANALYTICS.DAILY_REPLENISHMENT_CHECK
+    WAREHOUSE = 'COMPUTE_WH'
+    SCHEDULE = 'USING CRON 0 6 * * * America/New_York'
+AS
+    CREATE OR REPLACE TABLE SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_ANALYTICS.DAILY_ALERTS AS
+    SELECT * FROM SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_ANALYTICS.ACTIVE_ALERTS;
+
+-- Enable the task
+ALTER TASK SF_SOLUTIONS.RETAIL_DEMAND_FORECAST_ANALYTICS.DAILY_REPLENISHMENT_CHECK RESUME;

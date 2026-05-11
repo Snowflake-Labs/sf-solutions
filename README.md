@@ -8,7 +8,7 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 | # | Solution | Industry | Directory | Key Snowflake Features | Status |
 |---|----------|----------|-----------|----------------------|--------|
-| 1 | **Retail Demand Forecasting & Inventory Optimization** | Retail / CPG | `retail-demand-forecasting/` | Snowflake ML Forecasting, Dynamic Tables, dbt | 📋 Planned |
+| 1 | **Retail Demand Forecasting & Inventory Optimization** | Retail / CPG | `retail-demand-forecasting/` | Snowflake ML Forecasting, Dynamic Tables | ✅ Done |
 | 2 | **Customer Lifetime Value Prediction** | Retail / CPG | `customer-lifetime-value/` | Snowflake ML, Cortex AI Functions, Snowpark | 📋 Planned |
 | 3 | **Predictive Maintenance** | Manufacturing | `predictive-maintenance/` | Anomaly Detection, Streams, Dynamic Tables, Snowpark | 📋 Planned |
 | 4 | **Anti-Money Laundering (AML) Graph Analytics** | Finance, Public Sector | `aml-graph-analytics/` | Graph Analytics, Cortex Search, Streams | 📋 Planned |
@@ -28,7 +28,6 @@ Each solution is self-contained in its own directory with:
 ├── README.md          # Overview, architecture, prerequisites
 ├── data/              # Sample data generation scripts
 ├── models/            # ML model training / SQL logic
-├── dbt_project/       # dbt pipeline (if applicable)
 └── prompts/           # Demo prompts for Cortex Code / Cloud Agents (EN + JP)
 ```
 
@@ -37,4 +36,3 @@ Each solution is self-contained in its own directory with:
 - Snowflake account (Enterprise edition recommended)
 - Appropriate role with CREATE DATABASE / SCHEMA privileges
 - Warehouse (default: `COMPUTE_WH`)
-- dbt-snowflake (for dbt pipelines)
