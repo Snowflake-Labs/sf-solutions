@@ -16,6 +16,7 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 | 6 | **Media Mix Modeling** | Media & Entertainment, Retail | `media-mix-modeling/` | Snowflake ML, Cortex AI Functions, Marketplace | 📋 Planned |
 | 7 | **Cybersecurity IOC Matching** | Public Sector, Technology | `cybersecurity-ioc-matching/` | Cortex Search, Streams, Dynamic Tables | 📋 Planned |
 | 8 | **GraphRAG** | Technology, Cross-Industry | `graphrag/` | Cortex Search, Cortex LLM, SPCS | 📋 Planned |
+| 9 | **Manufacturing Predictive Maintenance** | Manufacturing | `manufacturing-predictive-maintenance/` | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | ✅ Done |
 
 ---
 
