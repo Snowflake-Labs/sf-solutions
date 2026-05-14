@@ -230,6 +230,47 @@ SELECT
 FROM SF_SOLUTIONS.LTV_ML.LTV_PREDICTIONS;
 
 /*************************************************************************************************/
+-- STEP 7: AI-powered segment insights using Cortex AI Functions
+/*************************************************************************************************/
+
+CREATE OR REPLACE TABLE SF_SOLUTIONS.LTV_ML.SEGMENT_INSIGHTS AS
+WITH segment_stats AS (
+    SELECT
+        LTV_SEGMENT,
+        COUNT(*) AS CUSTOMER_COUNT,
+        ROUND(AVG(PREDICTED_LTV), 2) AS AVG_PREDICTED_LTV,
+        ROUND(AVG(TOTAL_SPEND), 2) AS AVG_SPEND,
+        ROUND(AVG(TXN_COUNT), 1) AS AVG_TXNS,
+        ROUND(AVG(MONTHLY_FREQUENCY), 2) AS AVG_FREQ,
+        ROUND(AVG(RECENCY_DAYS), 0) AS AVG_RECENCY,
+        ROUND(AVG(ONLINE_RATIO), 2) AS AVG_ONLINE_RATIO,
+        ROUND(AVG(DISTINCT_CATEGORIES), 1) AS AVG_CATEGORIES
+    FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_SEGMENTS
+    GROUP BY LTV_SEGMENT
+)
+SELECT
+    S.*,
+    SNOWFLAKE.CORTEX.COMPLETE(
+        'mistral-large2',
+        CONCAT(
+            'You are a retail analytics expert. ',
+            'Based on these customer segment statistics, ',
+            'write a 2-sentence business insight and ',
+            '1 actionable recommendation. ',
+            'Segment: ', S.LTV_SEGMENT,
+            ', Customers: ', S.CUSTOMER_COUNT::VARCHAR,
+            ', Avg Predicted LTV: $', S.AVG_PREDICTED_LTV::VARCHAR,
+            ', Avg Historical Spend: $', S.AVG_SPEND::VARCHAR,
+            ', Avg Transactions: ', S.AVG_TXNS::VARCHAR,
+            ', Avg Monthly Frequency: ', S.AVG_FREQ::VARCHAR,
+            ', Avg Recency (days): ', S.AVG_RECENCY::VARCHAR,
+            ', Online Ratio: ', S.AVG_ONLINE_RATIO::VARCHAR,
+            ', Avg Categories: ', S.AVG_CATEGORIES::VARCHAR
+        )
+    ) AS AI_INSIGHT
+FROM segment_stats S;
+
+/*************************************************************************************************/
 -- VERIFICATION
 /*************************************************************************************************/
 
