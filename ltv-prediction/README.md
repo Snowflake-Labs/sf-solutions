@@ -5,11 +5,7 @@
 | **Solution Name** | Customer Lifetime Value Prediction |
 | **Industry** | Retail / CPG |
 
-An end-to-end Snowflake solution that predicts customer lifetime value using **Snowflake ML Regression** — from loading raw transaction data, engineering customer-level features, training a regression model, to segmenting customers into Platinum/Gold/Silver/Bronze tiers.
-
-## Source
-
-This solution uses transaction data from the [Getting Started with Cortex Code for DS/ML](https://github.com/Snowflake-Labs/sfguide-getting-started-with-cortex-code-for-ds-ml) quickstart (MIT License). The ML pipeline and segmentation logic are original.
+An end-to-end Snowflake solution that predicts customer lifetime value using **Snowflake ML Regression** and generates AI-powered segment insights with **Cortex AI Functions** — from loading raw transaction data, engineering customer-level features, training a regression model, segmenting customers into Platinum/Gold/Silver/Bronze tiers, and generating natural language business recommendations per segment.
 
 ## What's Included
 
@@ -19,7 +15,7 @@ This solution uses transaction data from the [Getting Started with Cortex Code f
 |------|--------|----------|
 | **Raw Data** | `LTV_RAW` | Transaction data loaded from S3 (customer_id, timestamp, amount, category, channel) |
 | **Feature Engineering** | `LTV_ANALYTICS` | Customer-level features (13 features), train/test split views, segment view |
-| **ML Predictions** | `LTV_ML` | Regression model predictions with actual vs predicted LTV |
+| **ML Predictions** | `LTV_ML` | Regression model predictions with actual vs predicted LTV, AI-generated segment insights |
 
 ### Key Objects Created
 
@@ -29,6 +25,7 @@ This solution uses transaction data from the [Getting Started with Cortex Code f
 - **13 customer features:** spend, frequency, recency, tenure, channel mix, category diversity
 - **Snowflake ML Regression model** (`LTV_REGRESSION_MODEL`)
 - **Customer segments:** Platinum (top 10%), Gold, Silver, Bronze
+- **AI Segment Insights** via `SNOWFLAKE.CORTEX.COMPLETE()` — LLM-generated business insights and actionable recommendations per segment
 
 ### ML Pipeline
 
@@ -38,6 +35,7 @@ This solution uses transaction data from the [Getting Started with Cortex Code f
 | Train/test split | 80/20 by customer ID hash |
 | Model type | `SNOWFLAKE.ML.REGRESSION` (AutoML) |
 | Segmentation | Percentile-based: P90 / P70 / P40 cutoffs |
+| AI Insights | `SNOWFLAKE.CORTEX.COMPLETE()` generates business insights per segment |
 
 ## Quick Start
 
@@ -46,7 +44,7 @@ This solution uses transaction data from the [Getting Started with Cortex Code f
 Execute `scripts/setup.sql` in a Snowsight SQL Worksheet (requires ACCOUNTADMIN):
 
 ```sql
--- Runs all steps: data load → features → model training → predictions → segments
+-- Runs all steps: data load → features → model training → predictions → segments → AI insights
 -- Takes ~2-5 minutes depending on warehouse size
 ```
 
@@ -75,7 +73,7 @@ ltv-prediction/
 ├── README.md
 ├── manifest.json
 ├── scripts/
-│   ├── setup.sql       # Full setup — data load, features, ML model, segments
+│   ├── setup.sql       # Full setup — data load, features, ML model, segments, AI insights
 │   └── teardown.sql    # Cleanup — drops LTV schemas
 └── prompts/
     ├── demo_prompts.md     # Demo prompts (English)

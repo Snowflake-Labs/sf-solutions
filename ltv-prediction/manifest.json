@@ -3,7 +3,7 @@
   "display_name": "Customer Lifetime Value Prediction",
   "version": "1.0.0",
   "industry": "Retail / CPG",
-  "source": "https://github.com/Snowflake-Labs/sfguide-getting-started-with-cortex-code-for-ds-ml",
+  "source": "",
   "license": "MIT",
   "database": "SF_SOLUTIONS",
   "schemas": ["LTV_RAW", "LTV_ANALYTICS", "LTV_ML"],
@@ -17,6 +17,7 @@
   ],
   "features": [
     "Snowflake ML Regression",
+    "Cortex AI Functions (COMPLETE)",
     "Customer Segmentation",
     "Feature Engineering"
   ]
