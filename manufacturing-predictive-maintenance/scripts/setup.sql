@@ -24,7 +24,11 @@
 USE ROLE ACCOUNTADMIN;
 
 -- assign Query Tag to Session. This helps with performance monitoring and troubleshooting
-ALTER SESSION SET query_tag = '{"origin":"sf_sit-is","name":"product analytics_snowcore_industries_predictive_maintenance_dashboard","version":{"major":1,"minor":0},"attributes":{"is_quickstart":1,"source":"sql"}}';
+ALTER SESSION SET query_tag = '{"origin":"sf_sit-is",'
+    || '"name":"product analytics_snowcore_industries'
+    || '_predictive_maintenance_dashboard",'
+    || '"version":{"major":1,"minor":0},'
+    || '"attributes":{"is_quickstart":1,"source":"sql"}}';
 
 CREATE ROLE IF NOT EXISTS SNOWCORE_INDUSTRIES_ROLE;
 
@@ -491,8 +495,14 @@ CREATE OR REPLACE TABLE AGG_MONTHLY_TRENDS (
 USE SCHEMA SNOWCORE_INDUSTRIES.BRONZE;
 INSERT INTO RAW_EQUIPMENT_MASTER (EQUIPMENT_DATA)
 SELECT PARSE_JSON(column1) FROM VALUES
-('{ "serialNumber": "eq_pump_001", "model": "HydroFlow 5000", "oem": "FlowServe", "installDate": "2022-01-15", "assetType": "Centrifugal Pump", "plant": "Davidson NC"}'),
-('{ "serialNumber": "eq_motor_007", "model": "IronHorse 75HP", "oem": "Siemens", "installDate": "2021-11-20", "assetType": "Induction Motor", "plant": "Davidson NC"}');
+('{ "serialNumber": "eq_pump_001", "model": "HydroFlow 5000",'
+    || ' "oem": "FlowServe", "installDate": "2022-01-15",'
+    || ' "assetType": "Centrifugal Pump",'
+    || ' "plant": "Davidson NC"}'),
+('{ "serialNumber": "eq_motor_007", "model": "IronHorse 75HP",'
+    || ' "oem": "Siemens", "installDate": "2021-11-20",'
+    || ' "assetType": "Induction Motor",'
+    || ' "plant": "Davidson NC"}');
 
 INSERT INTO RAW_IOT_TELEMETRY (RAW_PAYLOAD, SOURCE_TIMESTAMP)
 SELECT PARSE_JSON(column1), column2::TIMESTAMP_NTZ FROM VALUES
@@ -506,7 +516,13 @@ SELECT PARSE_JSON(column1), column2::TIMESTAMP_NTZ FROM VALUES
 
 INSERT INTO RAW_MAINTENANCE_LOGS (LOG_DATA)
 SELECT PARSE_JSON(column1) FROM VALUES
-('{ "workOrderId": "WO-9987", "assetId": "eq_pump_001", "type": "CM", "notes": "High vibration detected. Found bearing misalignment.", "downtimeHours": 4, "laborCost": 600, "partsCost": 250, "failure": true, "date": "2025-09-23"}');
+('{ "workOrderId": "WO-9987", "assetId": "eq_pump_001",'
+    || ' "type": "CM",'
+    || ' "notes": "High vibration detected.'
+    || ' Found bearing misalignment.",'
+    || ' "downtimeHours": 4, "laborCost": 600,'
+    || ' "partsCost": 250, "failure": true,'
+    || ' "date": "2025-09-23"}');
 
 
 -- Insert into SILVER Layer
@@ -543,34 +559,124 @@ INSERT INTO DIM_LINE (LINE_ID, PLANT_ID, LINE_NAME, HOURLY_REVENUE, LINE_UNS_NK)
 -- Manufacturing Processes (3 per line = 18 total processes)
 INSERT INTO DIM_PROCESS (PROCESS_NK, PROCESS_NAME, PROCESS_TYPE, LINE_ID, PROCESS_UNS_NK, DESCRIPTION) VALUES
 -- Production Line A Processes (Davidson Manufacturing)
-('machining_process_a', 'Machining Operations', 'Manufacturing', 101, 'snowcore_industries/davidson_nc/production_line_a/machining_process', 'Primary machining operations including cutting, drilling, and shaping'),
-('assembly_process_a', 'Assembly Operations', 'Assembly', 101, 'snowcore_industries/davidson_nc/production_line_a/assembly_process', 'Component assembly and integration operations'),
-('testing_process_a', 'Quality Testing', 'Testing', 101, 'snowcore_industries/davidson_nc/production_line_a/testing_process', 'Quality control and testing operations'),
+('machining_process_a',
+'Machining Operations',
+'Manufacturing',
+101,
+'snowcore_industries/davidson_nc/production_line_a/machining_process',
+'Primary machining operations including cutting, drilling, and shaping'),
+('assembly_process_a',
+'Assembly Operations',
+'Assembly',
+101,
+'snowcore_industries/davidson_nc/production_line_a/assembly_process',
+'Component assembly and integration operations'),
+('testing_process_a',
+'Quality Testing',
+'Testing',
+101,
+'snowcore_industries/davidson_nc/production_line_a/testing_process',
+'Quality control and testing operations'),
 
 -- Production Line B Processes (Davidson Manufacturing)
-('forming_process_b', 'Metal Forming', 'Manufacturing', 102, 'snowcore_industries/davidson_nc/production_line_b/forming_process', 'Metal forming and shaping operations'),
-('welding_process_b', 'Welding Operations', 'Manufacturing', 102, 'snowcore_industries/davidson_nc/production_line_b/welding_process', 'Welding and joining operations'),
-('finishing_process_b', 'Surface Finishing', 'Manufacturing', 102, 'snowcore_industries/davidson_nc/production_line_b/finishing_process', 'Surface treatment and finishing operations'),
+('forming_process_b',
+'Metal Forming',
+'Manufacturing',
+102,
+'snowcore_industries/davidson_nc/production_line_b/forming_process',
+'Metal forming and shaping operations'),
+('welding_process_b',
+'Welding Operations',
+'Manufacturing',
+102,
+'snowcore_industries/davidson_nc/production_line_b/welding_process',
+'Welding and joining operations'),
+('finishing_process_b',
+'Surface Finishing',
+'Manufacturing',
+102,
+'snowcore_industries/davidson_nc/production_line_b/finishing_process',
+'Surface treatment and finishing operations'),
 
 -- Production Line C Processes (Davidson Manufacturing)
-('molding_process_c', 'Plastic Molding', 'Manufacturing', 103, 'snowcore_industries/davidson_nc/production_line_c/molding_process', 'Plastic injection molding operations'),
-('inspection_process_c', 'Quality Inspection', 'Testing', 103, 'snowcore_industries/davidson_nc/production_line_c/inspection_process', 'Quality inspection and verification'),
-('packaging_process_c', 'Final Packaging', 'Assembly', 103, 'snowcore_industries/davidson_nc/production_line_c/packaging_process', 'Final packaging and preparation'),
+('molding_process_c',
+'Plastic Molding',
+'Manufacturing',
+103,
+'snowcore_industries/davidson_nc/production_line_c/molding_process',
+'Plastic injection molding operations'),
+('inspection_process_c',
+'Quality Inspection',
+'Testing',
+103,
+'snowcore_industries/davidson_nc/production_line_c/inspection_process',
+'Quality inspection and verification'),
+('packaging_process_c',
+'Final Packaging',
+'Assembly',
+103,
+'snowcore_industries/davidson_nc/production_line_c/packaging_process',
+'Final packaging and preparation'),
 
 -- Assembly Line 1 Processes (Charlotte Assembly)
-('robot_assembly_1', 'Robotic Assembly', 'Assembly', 201, 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly', 'Automated robotic assembly operations'),
-('manual_assembly_1', 'Manual Assembly', 'Assembly', 201, 'snowcore_industries/charlotte_nc/assembly_line_1/manual_assembly', 'Manual assembly and hand operations'),
-('quality_check_1', 'Quality Verification', 'Testing', 201, 'snowcore_industries/charlotte_nc/assembly_line_1/quality_check', 'Quality verification and testing'),
+('robot_assembly_1',
+'Robotic Assembly',
+'Assembly',
+201,
+'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly',
+'Automated robotic assembly operations'),
+('manual_assembly_1',
+'Manual Assembly',
+'Assembly',
+201,
+'snowcore_industries/charlotte_nc/assembly_line_1/manual_assembly',
+'Manual assembly and hand operations'),
+('quality_check_1',
+'Quality Verification',
+'Testing',
+201,
+'snowcore_industries/charlotte_nc/assembly_line_1/quality_check',
+'Quality verification and testing'),
 
 -- Assembly Line 2 Processes (Charlotte Assembly)
-('welding_station_2', 'Welding Station', 'Manufacturing', 202, 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station', 'Dedicated welding station operations'),
-('heat_treatment_2', 'Heat Treatment', 'Manufacturing', 202, 'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment', 'Heat treatment and thermal processing'),
-('final_inspection_2', 'Final Inspection', 'Testing', 202, 'snowcore_industries/charlotte_nc/assembly_line_2/final_inspection', 'Final quality inspection and approval'),
+('welding_station_2',
+'Welding Station',
+'Manufacturing',
+202,
+'snowcore_industries/charlotte_nc/assembly_line_2/welding_station',
+'Dedicated welding station operations'),
+('heat_treatment_2',
+'Heat Treatment',
+'Manufacturing',
+202,
+'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment',
+'Heat treatment and thermal processing'),
+('final_inspection_2',
+'Final Inspection',
+'Testing',
+202,
+'snowcore_industries/charlotte_nc/assembly_line_2/final_inspection',
+'Final quality inspection and approval'),
 
 -- Assembly Line 3 Processes (Charlotte Assembly)
-('sorting_process_3', 'Product Sorting', 'Assembly', 203, 'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process', 'Product sorting and classification'),
-('packaging_robot_3', 'Automated Packaging', 'Assembly', 203, 'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot', 'Automated packaging operations'),
-('quality_scan_3', 'Quality Scanning', 'Testing', 203, 'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan', 'Automated quality scanning and verification');
+('sorting_process_3',
+'Product Sorting',
+'Assembly',
+203,
+'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process',
+'Product sorting and classification'),
+('packaging_robot_3',
+'Automated Packaging',
+'Assembly',
+203,
+'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot',
+'Automated packaging operations'),
+('quality_scan_3',
+'Quality Scanning',
+'Testing',
+203,
+'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan',
+'Automated quality scanning and verification');
 
 -- Asset Classifications
 INSERT INTO DIM_ASSET_CLASS (ASSET_CLASS_ID, CLASS_NAME) VALUES
@@ -587,36 +693,245 @@ INSERT INTO DIM_WORK_ORDER_TYPE (WO_TYPE_ID, WO_TYPE_NAME, WO_TYPE_CODE) VALUES
 (4, 'Inspection', 'INSP');
 
 -- Assets (formerly Equipment) - 3 per line across 6 lines = 18 total
-INSERT INTO DIM_ASSET (ASSET_NK, ASSET_NAME, MODEL, OEM_NAME, PROCESS_ID, PROCESS_SEQUENCE, ASSET_CLASS_ID, INSTALLATION_DATE, DOWNTIME_IMPACT_PER_HOUR, ASSET_UNS_NK, SCD_START_DATE, IS_CURRENT) VALUES
+INSERT INTO DIM_ASSET (ASSET_NK,
+ASSET_NAME,
+MODEL,
+OEM_NAME,
+PROCESS_ID,
+PROCESS_SEQUENCE,
+ASSET_CLASS_ID,
+INSTALLATION_DATE,
+DOWNTIME_IMPACT_PER_HOUR,
+ASSET_UNS_NK,
+SCD_START_DATE,
+IS_CURRENT) VALUES
 -- Line 101 Assets (Production Line A) - Machining Process
-('eq_pump_001', 'Primary Coolant Pump', 'HydroFlow 5000', 'FlowServe', 1, 1, 1, '2022-01-15', 7500.00, 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_pump_001', '2022-01-15', TRUE),
-('eq_motor_007', 'Conveyor Drive Motor', 'IronHorse 75HP', 'Siemens', 1, 2, 1, '2021-11-20', 5000.00, 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_motor_007', '2021-11-20', TRUE),
-('eq_comp_101', 'Air Compressor Unit', 'CompMax 200', 'Atlas Copco', 1, 3, 1, '2022-03-10', 6000.00, 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_comp_101', '2022-03-10', TRUE),
+('eq_pump_001',
+'Primary Coolant Pump',
+'HydroFlow 5000',
+'FlowServe',
+1,
+1,
+1,
+'2022-01-15',
+7500.00,
+'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_pump_001',
+'2022-01-15',
+TRUE),
+('eq_motor_007',
+'Conveyor Drive Motor',
+'IronHorse 75HP',
+'Siemens',
+1,
+2,
+1,
+'2021-11-20',
+5000.00,
+'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_motor_007',
+'2021-11-20',
+TRUE),
+('eq_comp_101',
+'Air Compressor Unit',
+'CompMax 200',
+'Atlas Copco',
+1,
+3,
+1,
+'2022-03-10',
+6000.00,
+'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_comp_101',
+'2022-03-10',
+TRUE),
 
 -- Line 102 Assets (Production Line B) - Forming Process
-('eq_pump_102', 'Hydraulic Pump System', 'PowerFlow 3000', 'Bosch Rexroth', 4, 1, 1, '2021-08-15', 4500.00, 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_pump_102', '2021-08-15', TRUE),
-('eq_motor_102', 'Main Drive Motor', 'PowerMax 50HP', 'ABB', 4, 2, 1, '2021-09-20', 4000.00, 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_motor_102', '2021-09-20', TRUE),
-('eq_fan_102', 'Cooling Fan Assembly', 'AeroMax 1200', 'Ziehl-Abegg', 4, 3, 3, '2022-01-05', 2500.00, 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_fan_102', '2022-01-05', TRUE),
+('eq_pump_102',
+'Hydraulic Pump System',
+'PowerFlow 3000',
+'Bosch Rexroth',
+4,
+1,
+1,
+'2021-08-15',
+4500.00,
+'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_pump_102',
+'2021-08-15',
+TRUE),
+('eq_motor_102',
+'Main Drive Motor',
+'PowerMax 50HP',
+'ABB',
+4,
+2,
+1,
+'2021-09-20',
+4000.00,
+'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_motor_102',
+'2021-09-20',
+TRUE),
+('eq_fan_102',
+'Cooling Fan Assembly',
+'AeroMax 1200',
+'Ziehl-Abegg',
+4,
+3,
+3,
+'2022-01-05',
+2500.00,
+'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_fan_102',
+'2022-01-05',
+TRUE),
 
 -- Line 103 Assets (Production Line C) - Molding Process
-('eq_pump_103', 'Process Circulation Pump', 'FlowTech 4000', 'Grundfos', 7, 1, 1, '2021-12-12', 5500.00, 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_pump_103', '2021-12-12', TRUE),
-('eq_motor_103', 'Conveyor Motor Assembly', 'DriveForce 60HP', 'Siemens', 7, 2, 1, '2022-02-18', 4800.00, 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_motor_103', '2022-02-18', TRUE),
-('eq_valve_103', 'Control Valve System', 'PrecisionFlow 500', 'Emerson', 7, 3, 2, '2022-04-22', 3200.00, 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_valve_103', '2022-04-22', TRUE),
+('eq_pump_103',
+'Process Circulation Pump',
+'FlowTech 4000',
+'Grundfos',
+7,
+1,
+1,
+'2021-12-12',
+5500.00,
+'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_pump_103',
+'2021-12-12',
+TRUE),
+('eq_motor_103',
+'Conveyor Motor Assembly',
+'DriveForce 60HP',
+'Siemens',
+7,
+2,
+1,
+'2022-02-18',
+4800.00,
+'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_motor_103',
+'2022-02-18',
+TRUE),
+('eq_valve_103',
+'Control Valve System',
+'PrecisionFlow 500',
+'Emerson',
+7,
+3,
+2,
+'2022-04-22',
+3200.00,
+'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_valve_103',
+'2022-04-22',
+TRUE),
 
 -- Line 201 Assets (Assembly Line 1) - Robot Assembly Process
-('eq_robot_201', 'Assembly Robot Arm', 'FlexArm 6000', 'KUKA', 10, 1, 4, '2021-06-30', 9000.00, 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_robot_201', '2021-06-30', TRUE),
-('eq_motor_201', 'Conveyor Drive System', 'MegaDrive 100HP', 'Schneider Electric', 10, 2, 1, '2021-07-15', 6500.00, 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_motor_201', '2021-07-15', TRUE),
-('eq_press_201', 'Pneumatic Press Unit', 'PowerPress 5000', 'SMC', 10, 3, 2, '2021-08-01', 7200.00, 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_press_201', '2021-08-01', TRUE),
+('eq_robot_201',
+'Assembly Robot Arm',
+'FlexArm 6000',
+'KUKA',
+10,
+1,
+4,
+'2021-06-30',
+9000.00,
+'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_robot_201',
+'2021-06-30',
+TRUE),
+('eq_motor_201',
+'Conveyor Drive System',
+'MegaDrive 100HP',
+'Schneider Electric',
+10,
+2,
+1,
+'2021-07-15',
+6500.00,
+'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_motor_201',
+'2021-07-15',
+TRUE),
+('eq_press_201',
+'Pneumatic Press Unit',
+'PowerPress 5000',
+'SMC',
+10,
+3,
+2,
+'2021-08-01',
+7200.00,
+'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_press_201',
+'2021-08-01',
+TRUE),
 
 -- Line 202 Assets (Assembly Line 2) - Welding Station Process
-('eq_robot_202', 'Welding Robot System', 'WeldMaster Pro', 'Fanuc', 13, 1, 4, '2021-09-10', 8500.00, 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_robot_202', '2021-09-10', TRUE),
-('eq_motor_202', 'Material Handling Motor', 'FlexDrive 80HP', 'Rockwell', 13, 2, 1, '2021-10-05', 5800.00, 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_motor_202', '2021-10-05', TRUE),
-('eq_heat_202', 'Heat Treatment Furnace', 'ThermoPro 3000', 'Despatch', 14, 1, 2, '2021-11-12', 8000.00, 'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment/eq_heat_202', '2021-11-12', TRUE),
+('eq_robot_202',
+'Welding Robot System',
+'WeldMaster Pro',
+'Fanuc',
+13,
+1,
+4,
+'2021-09-10',
+8500.00,
+'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_robot_202',
+'2021-09-10',
+TRUE),
+('eq_motor_202',
+'Material Handling Motor',
+'FlexDrive 80HP',
+'Rockwell',
+13,
+2,
+1,
+'2021-10-05',
+5800.00,
+'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_motor_202',
+'2021-10-05',
+TRUE),
+('eq_heat_202',
+'Heat Treatment Furnace',
+'ThermoPro 3000',
+'Despatch',
+14,
+1,
+2,
+'2021-11-12',
+8000.00,
+'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment/eq_heat_202',
+'2021-11-12',
+TRUE),
 
 -- Line 203 Assets (Assembly Line 3) - Sorting and Packaging Processes
-('eq_robot_203', 'Packaging Robot', 'PackBot 2000', 'ABB Robotics', 16, 1, 4, '2022-01-20', 7800.00, 'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot/eq_robot_203', '2022-01-20', TRUE),
-('eq_motor_203', 'Sorting System Motor', 'SortDrive 45HP', 'Baldor', 15, 1, 1, '2022-02-14', 4200.00, 'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process/eq_motor_203', '2022-02-14', TRUE),
-('eq_scan_203', 'Quality Control Scanner', 'VisionScan Pro', 'Cognex', 18, 1, 4, '2022-03-18', 6200.00, 'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan/eq_scan_203', '2022-03-18', TRUE);
+('eq_robot_203',
+'Packaging Robot',
+'PackBot 2000',
+'ABB Robotics',
+16,
+1,
+4,
+'2022-01-20',
+7800.00,
+'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot/eq_robot_203',
+'2022-01-20',
+TRUE),
+('eq_motor_203',
+'Sorting System Motor',
+'SortDrive 45HP',
+'Baldor',
+15,
+1,
+1,
+'2022-02-14',
+4200.00,
+'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process/eq_motor_203',
+'2022-02-14',
+TRUE),
+('eq_scan_203',
+'Quality Control Scanner',
+'VisionScan Pro',
+'Cognex',
+18,
+1,
+4,
+'2022-03-18',
+6200.00,
+'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan/eq_scan_203',
+'2022-03-18',
+TRUE);
 
 -- Populate Technicians
 INSERT INTO DIM_TECHNICIAN (EMPLOYEE_NK, TECHNICIAN_NAME, CRAFT, SHIFT, HIRE_DATE, IS_ACTIVE) VALUES
@@ -715,98 +1030,188 @@ INSERT INTO FCT_BUDGET (BUDGET_ID, PLANT_ID, YEAR, QUARTER, BUDGET_TYPE, BUDGET_
 INSERT INTO DIM_SENSOR (SENSOR_NK, ASSET_ID, SENSOR_TYPE, UNITS_OF_MEASURE, SENSOR_UNS_NK) VALUES
 -- Asset 1 (Primary Coolant Pump) Sensors
 ('eq_pump_001_vib', 1, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_pump_001/vibration'),
-('eq_pump_001_tmp', 1, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_pump_001/temperature'),
+('eq_pump_001_tmp',
+1,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_pump_001/temperature'),
 ('eq_pump_001_psi', 1, 'Pressure', 'PSI', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_pump_001/pressure'),
 
 -- Asset 2 (Conveyor Drive Motor) Sensors
 ('eq_motor_007_vib', 2, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_motor_007/vibration'),
-('eq_motor_007_tmp', 2, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_motor_007/temperature'),
-('eq_motor_007_rpm', 2, 'Rotational Speed', 'RPM', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_motor_007/rotational_speed'),
+('eq_motor_007_tmp',
+2,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_motor_007/temperature'),
+('eq_motor_007_rpm',
+2,
+'Rotational Speed',
+'RPM',
+'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_motor_007/rotational_speed'),
 
 -- Asset 3 (Air Compressor Unit) Sensors
 ('eq_comp_101_vib', 3, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_comp_101/vibration'),
-('eq_comp_101_tmp', 3, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_comp_101/temperature'),
+('eq_comp_101_tmp',
+3,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_comp_101/temperature'),
 ('eq_comp_101_psi', 3, 'Pressure', 'PSI', 'snowcore_industries/davidson_nc/production_line_a/machining_process/eq_comp_101/pressure'),
 
 -- Asset 4 (Hydraulic Pump System) Sensors
 ('eq_pump_102_vib', 4, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_pump_102/vibration'),
-('eq_pump_102_tmp', 4, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_pump_102/temperature'),
+('eq_pump_102_tmp',
+4,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_pump_102/temperature'),
 ('eq_pump_102_psi', 4, 'Pressure', 'PSI', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_pump_102/pressure'),
 
 -- Asset 5 (Main Drive Motor) Sensors
 ('eq_motor_102_vib', 5, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_motor_102/vibration'),
-('eq_motor_102_tmp', 5, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_motor_102/temperature'),
+('eq_motor_102_tmp',
+5,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_motor_102/temperature'),
 ('eq_motor_102_cur', 5, 'Current', 'Amps', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_motor_102/current'),
 
 -- Asset 6 (Cooling Fan Assembly) Sensors
 ('eq_fan_102_vib', 6, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_fan_102/vibration'),
 ('eq_fan_102_tmp', 6, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_fan_102/temperature'),
-('eq_fan_102_rpm', 6, 'Rotational Speed', 'RPM', 'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_fan_102/rotational_speed'),
+('eq_fan_102_rpm',
+6,
+'Rotational Speed',
+'RPM',
+'snowcore_industries/davidson_nc/production_line_b/forming_process/eq_fan_102/rotational_speed'),
 
 -- Asset 7 (Process Circulation Pump) Sensors
 ('eq_pump_103_vib', 7, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_pump_103/vibration'),
-('eq_pump_103_tmp', 7, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_pump_103/temperature'),
+('eq_pump_103_tmp',
+7,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_pump_103/temperature'),
 ('eq_pump_103_flw', 7, 'Flow Rate', 'GPM', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_pump_103/flow_rate'),
 
 -- Asset 8 (Conveyor Motor Assembly) Sensors
 ('eq_motor_103_vib', 8, 'Vibration', 'mm/s', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_motor_103/vibration'),
-('eq_motor_103_tmp', 8, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_motor_103/temperature'),
+('eq_motor_103_tmp',
+8,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_motor_103/temperature'),
 ('eq_motor_103_trq', 8, 'Torque', 'Nm', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_motor_103/torque'),
 
 -- Asset 9 (Control Valve System) Sensors
 ('eq_valve_103_psi', 9, 'Pressure', 'PSI', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_valve_103/pressure'),
-('eq_valve_103_tmp', 9, 'Temperature', 'Celsius', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_valve_103/temperature'),
+('eq_valve_103_tmp',
+9,
+'Temperature',
+'Celsius',
+'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_valve_103/temperature'),
 ('eq_valve_103_pos', 9, 'Position', 'Percent', 'snowcore_industries/davidson_nc/production_line_c/molding_process/eq_valve_103/position'),
 
 -- Asset 10 (Assembly Robot Arm) Sensors
-('eq_robot_201_tmp', 10, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_robot_201/temperature'),
+('eq_robot_201_tmp',
+10,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_robot_201/temperature'),
 ('eq_robot_201_cur', 10, 'Current', 'Amps', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_robot_201/current'),
 ('eq_robot_201_pos', 10, 'Position', 'Degrees', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_robot_201/position'),
 
 -- Asset 11 (Conveyor Drive System) Sensors
 ('eq_motor_201_vib', 11, 'Vibration', 'mm/s', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_motor_201/vibration'),
-('eq_motor_201_tmp', 11, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_motor_201/temperature'),
+('eq_motor_201_tmp',
+11,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_motor_201/temperature'),
 ('eq_motor_201_cur', 11, 'Current', 'Amps', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_motor_201/current'),
 
 -- Asset 12 (Pneumatic Press Unit) Sensors
 ('eq_press_201_psi', 12, 'Pressure', 'PSI', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_press_201/pressure'),
-('eq_press_201_tmp', 12, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_press_201/temperature'),
+('eq_press_201_tmp',
+12,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_press_201/temperature'),
 ('eq_press_201_for', 12, 'Force', 'kN', 'snowcore_industries/charlotte_nc/assembly_line_1/robot_assembly/eq_press_201/force'),
 
 -- Asset 13 (Welding Robot System) Sensors
-('eq_robot_202_tmp', 13, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_robot_202/temperature'),
+('eq_robot_202_tmp',
+13,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_robot_202/temperature'),
 ('eq_robot_202_cur', 13, 'Current', 'Amps', 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_robot_202/current'),
 ('eq_robot_202_vol', 13, 'Voltage', 'Volts', 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_robot_202/voltage'),
 
 -- Asset 14 (Material Handling Motor) Sensors
 ('eq_motor_202_vib', 14, 'Vibration', 'mm/s', 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_motor_202/vibration'),
-('eq_motor_202_tmp', 14, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_motor_202/temperature'),
+('eq_motor_202_tmp',
+14,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_motor_202/temperature'),
 ('eq_motor_202_spd', 14, 'Speed', 'RPM', 'snowcore_industries/charlotte_nc/assembly_line_2/welding_station/eq_motor_202/speed'),
 
 -- Asset 15 (Heat Treatment Furnace) Sensors
-('eq_heat_202_tmp', 15, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment/eq_heat_202/temperature'),
+('eq_heat_202_tmp',
+15,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment/eq_heat_202/temperature'),
 ('eq_heat_202_gas', 15, 'Gas Flow', 'SCFM', 'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment/eq_heat_202/gas_flow'),
-('eq_heat_202_oxy', 15, 'Oxygen Level', 'Percent', 'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment/eq_heat_202/oxygen_level'),
+('eq_heat_202_oxy',
+15,
+'Oxygen Level',
+'Percent',
+'snowcore_industries/charlotte_nc/assembly_line_2/heat_treatment/eq_heat_202/oxygen_level'),
 
 -- Asset 16 (Packaging Robot) Sensors
-('eq_robot_203_tmp', 16, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot/eq_robot_203/temperature'),
+('eq_robot_203_tmp',
+16,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot/eq_robot_203/temperature'),
 ('eq_robot_203_spd', 16, 'Speed', 'Units/Min', 'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot/eq_robot_203/speed'),
 ('eq_robot_203_pos', 16, 'Position', 'mm', 'snowcore_industries/charlotte_nc/assembly_line_3/packaging_robot/eq_robot_203/position'),
 
 -- Asset 17 (Sorting System Motor) Sensors
 ('eq_motor_203_vib', 17, 'Vibration', 'mm/s', 'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process/eq_motor_203/vibration'),
-('eq_motor_203_tmp', 17, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process/eq_motor_203/temperature'),
+('eq_motor_203_tmp',
+17,
+'Temperature',
+'Celsius',
+'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process/eq_motor_203/temperature'),
 ('eq_motor_203_cur', 17, 'Current', 'Amps', 'snowcore_industries/charlotte_nc/assembly_line_3/sorting_process/eq_motor_203/current'),
 
 -- Asset 18 (Quality Control Scanner) Sensors
 ('eq_scan_203_tmp', 18, 'Temperature', 'Celsius', 'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan/eq_scan_203/temperature'),
-('eq_scan_203_lux', 18, 'Light Intensity', 'Lux', 'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan/eq_scan_203/light_intensity'),
+('eq_scan_203_lux',
+18,
+'Light Intensity',
+'Lux',
+'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan/eq_scan_203/light_intensity'),
 ('eq_scan_203_fps', 18, 'Scan Rate', 'FPS', 'snowcore_industries/charlotte_nc/assembly_line_3/quality_scan/eq_scan_203/scan_rate');
 
 -- Populate Facts using IDs from Dimensions
 -- Asset Telemetry (Hourly readings for all 18 assets from Nov 1, 2024 to current date)
 -- Using a CTE to generate hourly data dynamically
-INSERT INTO FCT_ASSET_TELEMETRY (ASSET_ID, PROCESS_ID, DATE_SK, RECORDED_AT, TEMPERATURE_C, VIBRATION_MM_S, PRESSURE_PSI, HEALTH_SCORE, FAILURE_PROBABILITY, RUL_DAYS, IS_ANOMALOUS)
+INSERT INTO FCT_ASSET_TELEMETRY (ASSET_ID,
+PROCESS_ID,
+DATE_SK,
+RECORDED_AT,
+TEMPERATURE_C,
+VIBRATION_MM_S,
+PRESSURE_PSI,
+HEALTH_SCORE,
+FAILURE_PROBABILITY,
+RUL_DAYS,
+IS_ANOMALOUS)
 WITH date_params AS (
     SELECT 
         '2024-11-01 00:00:00'::TIMESTAMP_NTZ AS start_timestamp,
@@ -851,18 +1256,32 @@ sensor_data AS (
         -- Generate realistic sensor data based on asset type and time (controlled ranges)
         -- Temperature increases only after decay start date
         CASE 
-            WHEN asset_id IN (1,4,7) THEN ROUND(60 + (hour_of_day * 0.5) + (days_since_decay_start * 0.1) + UNIFORM(-3, 7, RANDOM()), 2)  -- Pumps run warmer, gradual degradation
-            WHEN asset_id IN (2,5,8,11,14,17) THEN ROUND(55 + (hour_of_day * 0.3) + (days_since_decay_start * 0.08) + UNIFORM(-2, 6, RANDOM()), 2)  -- Motors
-            WHEN asset_id IN (10,13,16) THEN ROUND(50 + (hour_of_day * 0.2) + (days_since_decay_start * 0.05) + UNIFORM(-2, 4, RANDOM()), 2)  -- Robots
-            WHEN asset_id = 15 THEN ROUND(200 + (hour_of_day * 2) + (days_since_decay_start * 0.5) + UNIFORM(-10, 10, RANDOM()), 2)  -- Furnace much hotter
+            -- Pumps run warmer, gradual degradation
+            WHEN asset_id IN (1,4,7) THEN ROUND(60 + (hour_of_day * 0.5) + (days_since_decay_start * 0.1) + UNIFORM(-3, 7, RANDOM()), 2)
+            -- Motors
+            WHEN asset_id IN (2,
+            5,
+            8,
+            11,
+            14,
+            17) THEN ROUND(55 + (hour_of_day * 0.3) + (days_since_decay_start * 0.08) + UNIFORM(-2,
+            6,
+            RANDOM()),
+            2)
+            -- Robots
+            WHEN asset_id IN (10,13,16) THEN ROUND(50 + (hour_of_day * 0.2) + (days_since_decay_start * 0.05) + UNIFORM(-2, 4, RANDOM()), 2)
+            -- Furnace much hotter
+            WHEN asset_id = 15 THEN ROUND(200 + (hour_of_day * 2) + (days_since_decay_start * 0.5) + UNIFORM(-10, 10, RANDOM()), 2)
             ELSE ROUND(45 + (hour_of_day * 0.4) + (days_since_decay_start * 0.06) + UNIFORM(-2, 3, RANDOM()), 2)  -- Other equipment
         END as temperature_c,
         
         -- Vibration data (rotating equipment has higher vibration) - controlled precision with degradation
         -- Vibration increases only after decay start date
         CASE 
-            WHEN asset_id IN (1,2,4,5,7,8,11,14,17) THEN ROUND(0.3 + (days_since_decay_start * 0.002) + UNIFORM(0, 0.4, RANDOM()), 2)  -- Rotating equipment
-            WHEN asset_id IN (10,13,16) THEN ROUND(0.1 + (days_since_decay_start * 0.001) + UNIFORM(0, 0.2, RANDOM()), 2)  -- Robots (less vibration)
+            -- Rotating equipment
+            WHEN asset_id IN (1,2,4,5,7,8,11,14,17) THEN ROUND(0.3 + (days_since_decay_start * 0.002) + UNIFORM(0, 0.4, RANDOM()), 2)
+            -- Robots (less vibration)
+            WHEN asset_id IN (10,13,16) THEN ROUND(0.1 + (days_since_decay_start * 0.001) + UNIFORM(0, 0.2, RANDOM()), 2)
             ELSE ROUND(0.05 + UNIFORM(0, 0.1, RANDOM()), 2)  -- Static equipment
         END as vibration_mm_s,
         
@@ -938,7 +1357,18 @@ FROM sensor_data;
 -- - Inspections: Every 15 days
 -- - Predictive Maintenance: Every 20 days
 -- - Emergency repairs: Randomly, 5% chance
-INSERT INTO FCT_MAINTENANCE_LOG (ASSET_ID, PROCESS_ID, WO_TYPE_ID, ACTION_DATE_SK, COMPLETED_DATE, DOWNTIME_HOURS, PARTS_COST, LABOR_COST, FAILURE_FLAG, TECHNICIAN_ID, FAILURE_CODE_ID, TECHNICIAN_NOTES)
+INSERT INTO FCT_MAINTENANCE_LOG (ASSET_ID,
+PROCESS_ID,
+WO_TYPE_ID,
+ACTION_DATE_SK,
+COMPLETED_DATE,
+DOWNTIME_HOURS,
+PARTS_COST,
+LABOR_COST,
+FAILURE_FLAG,
+TECHNICIAN_ID,
+FAILURE_CODE_ID,
+TECHNICIAN_NOTES)
 WITH date_params AS (
     SELECT 
         '2024-11-01'::DATE AS start_date,
@@ -1070,7 +1500,14 @@ FROM maint_with_details;
 
 -- Production Log (Daily production data for all assets from Nov 1, 2024 to current date)
 -- Generates daily production metrics with realistic variations and maintenance impacts
-INSERT INTO FCT_PRODUCTION_LOG (ASSET_ID, PROCESS_ID, DATE_SK, PRODUCTION_DATE, PLANNED_RUNTIME_HOURS, ACTUAL_RUNTIME_HOURS, UNITS_PRODUCED, UNITS_SCRAPPED)
+INSERT INTO FCT_PRODUCTION_LOG (ASSET_ID,
+PROCESS_ID,
+DATE_SK,
+PRODUCTION_DATE,
+PLANNED_RUNTIME_HOURS,
+ACTUAL_RUNTIME_HOURS,
+UNITS_PRODUCED,
+UNITS_SCRAPPED)
 WITH date_params AS (
     SELECT 
         '2024-11-01'::DATE AS start_date,
@@ -1303,7 +1740,14 @@ FROM parts_expanded pe;
 USE SCHEMA SNOWCORE_INDUSTRIES.GOLD;
 
 -- AGG_ASSET_HOURLY_HEALTH: Aggregated hourly health metrics from telemetry data
-INSERT INTO AGG_ASSET_HOURLY_HEALTH (HOUR_TIMESTAMP, ASSET_ID, AVG_TEMPERATURE_C, MAX_VIBRATION_MM_S, STDDEV_PRESSURE_PSI, LATEST_HEALTH_SCORE, AVG_FAILURE_PROBABILITY, MIN_RUL_DAYS)
+INSERT INTO AGG_ASSET_HOURLY_HEALTH (HOUR_TIMESTAMP,
+ASSET_ID,
+AVG_TEMPERATURE_C,
+MAX_VIBRATION_MM_S,
+STDDEV_PRESSURE_PSI,
+LATEST_HEALTH_SCORE,
+AVG_FAILURE_PROBABILITY,
+MIN_RUL_DAYS)
 SELECT 
     DATE_TRUNC('HOUR', t.RECORDED_AT) as hour_timestamp,
     t.ASSET_ID,
@@ -1322,7 +1766,16 @@ GROUP BY
 ORDER BY hour_timestamp, asset_id;
 
 -- ML_FEATURE_STORE: Daily feature store for machine learning models
-INSERT INTO ML_FEATURE_STORE (OBSERVATION_DATE_SK, ASSET_ID, AVG_TEMP_LAST_24H, VIBRATION_STDDEV_7D, PRESSURE_TREND_7D, CYCLES_SINCE_LAST_PM, DAYS_SINCE_LAST_FAILURE, OEM_FAILURE_RATE_EST, DOWNTIME_IMPACT_RISK, FAILED_IN_NEXT_7_DAYS)
+INSERT INTO ML_FEATURE_STORE (OBSERVATION_DATE_SK,
+ASSET_ID,
+AVG_TEMP_LAST_24H,
+VIBRATION_STDDEV_7D,
+PRESSURE_TREND_7D,
+CYCLES_SINCE_LAST_PM,
+DAYS_SINCE_LAST_FAILURE,
+OEM_FAILURE_RATE_EST,
+DOWNTIME_IMPACT_RISK,
+FAILED_IN_NEXT_7_DAYS)
 WITH daily_observations AS (
     SELECT DISTINCT
         t.DATE_SK as observation_date_sk,
@@ -1655,7 +2108,9 @@ tables:
           - 2025-09-23T08:00:00.000+0000
     facts:
       - name: AVG_FAILURE_PROBABILITY
-        description: The average probability of an asset failing within a given hour, expressed as a decimal value between 0 and 1, where 0 represents no probability of failure and 1 represents a 100% probability of failure.
+        description: >-
+          The average probability of an asset failing within a given hour, expressed as a decimal value between 0 and 1, where 0
+          represents no probability of failure and 1 represents a 100% probability of failure.
         expr: AVG_FAILURE_PROBABILITY
         data_type: NUMBER(3,2)
         sample_values:
@@ -1671,7 +2126,9 @@ tables:
           - '75.8'
           - '65.2'
       - name: LATEST_HEALTH_SCORE
-        description: The LATEST_HEALTH_SCORE column represents the most recent health score of an asset, measured as a percentage, indicating the asset's current performance and operational status, with higher scores indicating better health.
+        description: >-
+          The LATEST_HEALTH_SCORE column represents the most recent health score of an asset, measured as a percentage,
+          indicating the asset's current performance and operational status, with higher scores indicating better health.
         expr: LATEST_HEALTH_SCORE
         data_type: NUMBER(5,2)
         sample_values:
@@ -1687,7 +2144,9 @@ tables:
           - '0.55'
           - '2.15'
       - name: MIN_RUL_DAYS
-        description: Minimum Remaining Useful Life in Days, representing the estimated number of days until the asset is expected to reach the end of its useful life.
+        description: >-
+          Minimum Remaining Useful Life in Days, representing the estimated number of days until the asset is expected to reach
+          the end of its useful life.
         expr: MIN_RUL_DAYS
         data_type: NUMBER(5,0)
         sample_values:
@@ -1695,7 +2154,9 @@ tables:
           - '364'
           - '400'
       - name: STDDEV_PRESSURE_PSI
-        description: Standard Deviation of Pressure in Pounds per Square Inch, representing the variability of pressure readings for an asset over a one-hour period.
+        description: >-
+          Standard Deviation of Pressure in Pounds per Square Inch, representing the variability of pressure readings for an
+          asset over a one-hour period.
         expr: STDDEV_PRESSURE_PSI
         data_type: FLOAT
         sample_values:
@@ -1717,7 +2178,9 @@ tables:
           - 'TRUE'
     facts:
       - name: ASSET_ID
-        description: Unique identifier for a financial asset, such as a stock, bond, or commodity, used to track and analyze its performance and characteristics within the machine learning feature store.
+        description: >-
+          Unique identifier for a financial asset, such as a stock, bond, or commodity, used to track and analyze its performance
+          and characteristics within the machine learning feature store.
         expr: ASSET_ID
         data_type: NUMBER(38,0)
         sample_values:
@@ -1745,7 +2208,9 @@ tables:
           - '365'
           - '180'
       - name: DOWNTIME_IMPACT_RISK
-        description: The estimated financial impact of downtime on the organization, representing the potential loss in dollars per hour of system unavailability.
+        description: >-
+          The estimated financial impact of downtime on the organization, representing the potential loss in dollars per hour of
+          system unavailability.
         expr: DOWNTIME_IMPACT_RISK
         data_type: NUMBER(12,2)
         sample_values:
@@ -1758,7 +2223,9 @@ tables:
         sample_values:
           - '20250923'
       - name: OEM_FAILURE_RATE_EST
-        description: Estimated rate of failures for original equipment manufacturer (OEM) parts, expressed as a decimal value between 0 and 1, where 0 represents no failures and 1 represents 100% failures.
+        description: >-
+          Estimated rate of failures for original equipment manufacturer (OEM) parts, expressed as a decimal value between 0 and
+          1, where 0 represents no failures and 1 represents 100% failures.
         expr: OEM_FAILURE_RATE_EST
         data_type: FLOAT
         sample_values:
@@ -1771,7 +2238,9 @@ tables:
         sample_values:
           - '2.3'
       - name: VIBRATION_STDDEV_7D
-        description: The standard deviation of vibration measurements over a 7-day period, indicating the variability or consistency of vibration levels over time.
+        description: >-
+          The standard deviation of vibration measurements over a 7-day period, indicating the variability or consistency of
+          vibration levels over time.
         expr: VIBRATION_STDDEV_7D
         data_type: FLOAT
         sample_values:
@@ -1813,14 +2282,18 @@ tables:
           - '2'
     facts:
       - name: OEE_PERCENT
-        description: Overall Equipment Effectiveness percentage (0-100). Calculated as Availability × Performance × Quality. Higher values indicate better equipment utilization.
+        description: >-
+          Overall Equipment Effectiveness percentage (0-100). Calculated as Availability × Performance × Quality. Higher values
+          indicate better equipment utilization.
         expr: OEE_PERCENT
         data_type: NUMBER(5,2)
         sample_values:
           - '85.50'
           - '72.30'
       - name: AVAILABILITY_PERCENT
-        description: Equipment availability percentage (0-100). Calculated as (Actual Runtime / Planned Runtime) × 100. Measures uptime vs planned time.
+        description: >-
+          Equipment availability percentage (0-100). Calculated as (Actual Runtime / Planned Runtime) × 100. Measures uptime vs
+          planned time.
         expr: AVAILABILITY_PERCENT
         data_type: NUMBER(5,2)
         sample_values:
@@ -1927,7 +2400,9 @@ tables:
           - '2'
     facts:
       - name: AVG_OEE_PERCENT
-        description: Average Overall Equipment Effectiveness percentage for the month. Use this to track OEE trends over time. Higher values indicate better overall equipment performance.
+        description: >-
+          Average Overall Equipment Effectiveness percentage for the month. Use this to track OEE trends over time. Higher values
+          indicate better overall equipment performance.
         expr: AVG_OEE_PERCENT
         data_type: NUMBER(5,2)
         sample_values:
@@ -1969,7 +2444,9 @@ tables:
           - '97.50'
           - '95.00'
       - name: TOTAL_MAINTENANCE_COST
-        description: Total maintenance cost for the month in dollars, including both parts and labor costs. Use this to track maintenance spending trends and correlate with OEE.
+        description: >-
+          Total maintenance cost for the month in dollars, including both parts and labor costs. Use this to track maintenance
+          spending trends and correlate with OEE.
         expr: TOTAL_MAINTENANCE_COST
         data_type: NUMBER(12,2)
         sample_values:
@@ -2116,7 +2593,9 @@ tables:
       table: DIM_ASSET
     dimensions:
       - name: ASSET_CLASS_ID
-        description: A unique identifier for the asset class to which the asset belongs, used to categorize and group similar assets for reporting and analysis purposes.
+        description: >-
+          A unique identifier for the asset class to which the asset belongs, used to categorize and group similar assets for
+          reporting and analysis purposes.
         expr: ASSET_CLASS_ID
         data_type: NUMBER(10,0)
         sample_values:
@@ -2136,7 +2615,9 @@ tables:
           - Primary Coolant Pump
           - Conveyor Drive Motor
       - name: ASSET_NK
-        description: Unique identifier for a specific asset, such as a piece of equipment or machinery, used to track and manage its performance, maintenance, and other relevant information.
+        description: >-
+          Unique identifier for a specific asset, such as a piece of equipment or machinery, used to track and manage its
+          performance, maintenance, and other relevant information.
         expr: ASSET_NK
         data_type: VARCHAR(50)
         sample_values:
@@ -2215,7 +2696,9 @@ tables:
       table: DIM_ASSET_CLASS
     dimensions:
       - name: ASSET_CLASS_ID
-        description: Unique identifier for a category of assets, such as stocks, bonds, or real estate, used to classify and group similar assets for investment and reporting purposes.
+        description: >-
+          Unique identifier for a category of assets, such as stocks, bonds, or real estate, used to classify and group similar
+          assets for investment and reporting purposes.
         expr: ASSET_CLASS_ID
         data_type: NUMBER(10,0)
         sample_values:
@@ -2223,7 +2706,10 @@ tables:
           - '2'
           - '3'
       - name: CLASS_NAME
-        description: The type of asset classification, which categorizes assets into distinct groups based on their functional characteristics, such as Static Equipment (e.g. tanks, vessels), Rotating Equipment (e.g. pumps, motors), and Electrical Systems (e.g. electrical panels, switchgear).
+        description: >-
+          The type of asset classification, which categorizes assets into distinct groups based on their functional
+          characteristics, such as Static Equipment (e.g. tanks, vessels), Rotating Equipment (e.g. pumps, motors), and Electrical Systems
+          (e.g. electrical panels, switchgear).
         expr: CLASS_NAME
         data_type: VARCHAR(100)
         sample_values:
@@ -2241,7 +2727,9 @@ tables:
       table: DIM_DATE
     dimensions:
       - name: DATE_SK
-        description: Unique identifier for a specific date, represented in the format YYYYMMDD, used to link date-related data across the data warehouse.
+        description: >-
+          Unique identifier for a specific date, represented in the format YYYYMMDD, used to link date-related data across the
+          data warehouse.
         expr: DATE_SK
         data_type: NUMBER(8,0)
         sample_values:
@@ -2261,7 +2749,9 @@ tables:
         sample_values:
           - September
       - name: QUARTER
-        description: The quarter of the year in which a date falls, with possible values being 1 (January-March), 2 (April-June), 3 (July-September), or 4 (October-December).
+        description: >-
+          The quarter of the year in which a date falls, with possible values being 1 (January-March), 2 (April-June), 3
+          (July-September), or 4 (October-December).
         expr: QUARTER
         data_type: NUMBER(1,0)
         sample_values:
@@ -2370,7 +2860,11 @@ tables:
           - '1'
           - '2'
       - name: SENSOR_NK
-        description: Sensor identifier, uniquely naming each sensor across all equipment, in the format "EQ-[Equipment Type]-[Equipment Number]-[Sensor Type]" where Equipment Type is the type of equipment the sensor is attached to, Equipment Number is the unique identifier of the equipment, and Sensor Type is the type of measurement the sensor is taking (e.g. VIB for vibration, PSI for pressure, TMP for temperature).
+        description: >-
+          Sensor identifier, uniquely naming each sensor across all equipment, in the format "EQ-[Equipment Type]-[Equipment
+          Number]-[Sensor Type]" where Equipment Type is the type of equipment the sensor is attached to, Equipment Number is the unique
+          identifier of the equipment, and Sensor Type is the type of measurement the sensor is taking (e.g. VIB for vibration, PSI for
+          pressure, TMP for temperature).
         expr: SENSOR_NK
         data_type: VARCHAR(50)
         sample_values:
@@ -2412,7 +2906,8 @@ tables:
       table: DIM_WORK_ORDER_TYPE
     dimensions:
       - name: WO_TYPE_CODE
-        description: 'Work Order Type Code, which categorizes work orders into one of three types: Unplanned Emergency (UE), Planned Maintenance (PM), or Planned Project (PP).'
+        description: 'Work Order Type Code, which categorizes work orders into one of three types: Unplanned Emergency (UE), Planned
+          Maintenance (PM), or Planned Project (PP).'
         expr: WO_TYPE_CODE
         data_type: VARCHAR(10)
         sample_values:
@@ -2420,7 +2915,9 @@ tables:
           - PM
           - PP
       - name: WO_TYPE_NAME
-        description: The type of work order, indicating whether it was unplanned and emergency in nature, or planned as part of a preventive or predictive maintenance schedule.
+        description: >-
+          The type of work order, indicating whether it was unplanned and emergency in nature, or planned as part of a preventive
+          or predictive maintenance schedule.
         expr: WO_TYPE_NAME
         data_type: VARCHAR(50)
         sample_values:
@@ -2633,7 +3130,9 @@ tables:
           - '20250922'
           - '20250923'
       - name: IS_ANOMALOUS
-        description: Indicates whether the asset's telemetry data is outside of its normal operating range, suggesting a potential issue or anomaly.
+        description: >-
+          Indicates whether the asset's telemetry data is outside of its normal operating range, suggesting a potential issue or
+          anomaly.
         expr: IS_ANOMALOUS
         data_type: BOOLEAN
         sample_values:
@@ -2658,7 +3157,9 @@ tables:
           - 2025-09-23T08:00:00.000+0000
     facts:
       - name: FAILURE_PROBABILITY
-        description: The probability of an asset failing, expressed as a decimal value between 0 and 1, where 0 represents no chance of failure and 1 represents certainty of failure.
+        description: >-
+          The probability of an asset failing, expressed as a decimal value between 0 and 1, where 0 represents no chance of
+          failure and 1 represents certainty of failure.
         expr: FAILURE_PROBABILITY
         data_type: NUMBER(3,2)
         sample_values:
@@ -2666,7 +3167,10 @@ tables:
           - '0.85'
           - '0.02'
       - name: HEALTH_SCORE
-        description: The HEALTH_SCORE column represents a calculated metric that indicates the overall health or performance of an asset, with higher values indicating better health and lower values indicating potential issues or degradation, allowing for proactive maintenance and optimization.
+        description: >-
+          The HEALTH_SCORE column represents a calculated metric that indicates the overall health or performance of an asset,
+          with higher values indicating better health and lower values indicating potential issues or degradation, allowing for proactive
+          maintenance and optimization.
         expr: HEALTH_SCORE
         data_type: NUMBER(5,2)
         sample_values:
@@ -2763,7 +3267,9 @@ tables:
           - '2'
           - '3'
       - name: TECHNICIAN_NOTES
-        description: Free-form text notes recorded by the technician during maintenance activities, detailing the issues encountered, actions taken, and any other relevant information.
+        description: >-
+          Free-form text notes recorded by the technician during maintenance activities, detailing the issues encountered,
+          actions taken, and any other relevant information.
         expr: TECHNICIAN_NOTES
         data_type: VARCHAR(1000)
         sample_values:
@@ -2789,7 +3295,9 @@ tables:
         sample_values:
           - '4.0'
       - name: LABOR_COST
-        description: The cost of labor incurred during a maintenance activity, representing the total amount paid to personnel for their work.
+        description: >-
+          The cost of labor incurred during a maintenance activity, representing the total amount paid to personnel for their
+          work.
         expr: LABOR_COST
         data_type: NUMBER(10,2)
         sample_values:
@@ -3109,7 +3617,8 @@ use role snowcore_industries_role; -- Use a role appropriate for creating agents
 
 CREATE OR REPLACE AGENT SNOWFLAKE_INTELLIGENCE.AGENTS.PREDICTIVE_MAINTENANCE_ASSISTANT
 WITH PROFILE='{ "display_name": "Predictive Maintenance Analytics" }'
-    COMMENT=$$ An expert predictive maintenance assistant for manufacturing operations, providing insights on asset health, maintenance scheduling, production metrics, and failure prediction. $$
+    COMMENT=$$ An expert predictive maintenance assistant for manufacturing operations, providing insights on asset health, maintenance
+        scheduling, production metrics, and failure prediction. $$
 FROM SPECIFICATION $$
 {
     "models": { "orchestration": "claude-sonnet-4-5" },
@@ -3120,19 +3629,28 @@ FROM SPECIFICATION $$
 
             -   Avoid conversational fillers or hedging language. State numbers clearly with appropriate units and context.
 
-            -   Provide comprehensive analysis that covers context, patterns, risks, and actionable recommendations, but weave these elements together naturally rather than using rigid section headers.
+            -   Provide comprehensive analysis that covers context, patterns, risks, and actionable recommendations, but weave these
+                elements together naturally rather than using rigid section headers.
 
-            -   When presenting metrics, always include interpretation: explain what the numbers mean, how they compare to benchmarks or historical data, and why they matter for operations.
+            -   When presenting metrics, always include interpretation: explain what the numbers mean, how they compare to benchmarks or
+                historical data, and why they matter for operations.
 
             **Analysis Requirements:**
 
-            -   **Context and Metrics**: Clearly state what you're analyzing, the time period, key numbers, and relevant benchmarks. Note any data limitations or coverage issues.
+            -   **Context and Metrics**: Clearly state what you're analyzing, the time period, key numbers, and relevant benchmarks. Note
+                any data limitations or coverage issues.
 
-            -   **Pattern Recognition**: Identify trends (improving/declining/stable) with specific rates of change. Discuss variability, stability, and outliers. Explain relationships between metrics (e.g., health score vs. failure probability, downtime vs. production).
+            -   **Pattern Recognition**: Identify trends (improving/declining/stable) with specific rates of change. Discuss variability,
+                stability, and outliers. Explain relationships between metrics (e.g., health score vs. failure probability, downtime vs.
+                production).
 
-            -   **Risk and Business Impact**: Translate technical metrics into operational consequences. Quantify immediate and future risks with probability estimates. Explain how this affects production, costs, safety, and connected systems. Don't just say \"high risk\" - explain probability and consequences.
+            -   **Risk and Business Impact**: Translate technical metrics into operational consequences. Quantify immediate and future risks
+                with probability estimates. Explain how this affects production, costs, safety, and connected systems. Don't just say \"high
+                risk\" - explain probability and consequences.
 
-            -   **Actionable Recommendations**: Provide specific guidance with timeframes: immediate needs (24-48 hours), short-term actions (next week/month), long-term strategy (3-6 months), and monitoring requirements if a given time frame makes sense for the question.
+            -   **Actionable Recommendations**: Provide specific guidance with timeframes: immediate needs (24-48 hours), short-term actions
+                (next week/month), long-term strategy (3-6 months), and monitoring requirements if a given time frame makes sense for the
+                question.
 
             **Presentation Rules:**
 
@@ -3142,37 +3660,52 @@ FROM SPECIFICATION $$
 
             -   **Comparison/Ranking**: For comparing multiple assets, plants, or production lines, use a **table** or **bar chart**.
 
-            -   **Dual Metric Trends (e.g., OEE vs Cost)**: When comparing two metrics over time (like OEE versus maintenance cost), present the complete data in a table and provide comprehensive written analysis of the relationship. Do NOT generate multiple charts or re-query the data. Focus analysis on correlation patterns, trends, and business insights.
+            -   **Dual Metric Trends (e.g., OEE vs Cost)**: When comparing two metrics over time (like OEE versus maintenance cost), present
+                the complete data in a table and provide comprehensive written analysis of the relationship. Do NOT generate multiple charts
+                or re-query the data. Focus analysis on correlation patterns, trends, and business insights.
 
-            -   **Actionable Output**: For maintenance recommendations or risk assessments, present the answer as an **actionable recommendation** that includes the data used for the calculation.
+            -   **Actionable Output**: For maintenance recommendations or risk assessments, present the answer as an **actionable
+                recommendation** that includes the data used for the calculation.
 
             -   **Chart and Context**: Include context along with charts. Do not simply display a chart.
 
             -   **Single Series Only**: Never plot multiple series. Only ever show one series per chart.
             
-            -   **Data Efficiency**: If a query returns visualization-ready aggregated data (e.g., monthly totals), do NOT run additional queries to re-aggregate. Use the data as-is for analysis and presentation.
+            -   **Data Efficiency**: If a query returns visualization-ready aggregated data (e.g., monthly totals), do NOT run additional
+                queries to re-aggregate. Use the data as-is for analysis and presentation.
 
             **Error Handling:**
 
-            -   **New Asset Data**: When data is unavailable for a new asset or time period, clearly state the data gap and when analysis will be available.
+            -   **New Asset Data**: When data is unavailable for a new asset or time period, clearly state the data gap and when analysis
+                will be available.
 
-            -   **Insufficient Data**: If statistical significance cannot be determined, report the metric but explicitly state the limitation.
+            -   **Insufficient Data**: If statistical significance cannot be determined, report the metric but explicitly state the
+                limitation.
         ",
         "orchestration": "**Role and Scope:**
 
-            You are **Predictive Maintenance Analyst**, the dedicated intelligence assistant for Manufacturing Operations and Maintenance teams. Provide quantitative, data-driven, and actionable insights related to **asset health, maintenance scheduling, failure prediction, and production impact** for manufacturing operations. Your users are maintenance managers, operations analysts, and plant managers who require comprehensive analysis to make maintenance and production decisions.
+            You are **Predictive Maintenance Analyst**, the dedicated intelligence assistant for Manufacturing Operations and Maintenance
+                teams. Provide quantitative, data-driven, and actionable insights related to **asset health, maintenance scheduling, failure
+                prediction, and production impact** for manufacturing operations. Your users are maintenance managers, operations analysts,
+                and plant managers who require comprehensive analysis to make maintenance and production decisions.
 
             **Core Logic & Tool Usage Rules:**
 
-            1.  **Comprehensive Analysis Rule (CRITICAL):** **ALWAYS** provide thorough analysis that includes context, pattern recognition, risk assessment, and actionable recommendations. For any metric query, go beyond the raw number to explain what it means, how it compares to benchmarks, what trends exist, what risks are present, and what actions should be taken.
+            1.  **Comprehensive Analysis Rule (CRITICAL):** **ALWAYS** provide thorough analysis that includes context, pattern recognition,
+                risk assessment, and actionable recommendations. For any metric query, go beyond the raw number to explain what it means,
+                how it compares to benchmarks, what trends exist, what risks are present, and what actions should be taken.
 
             2.  **Tool Selection:**
 
-                * **For asset health, sensor telemetry, maintenance history, production metrics, budget, and failure analysis:** Use the `Predictive_maintenance_analysis` semantic view which contains all predictive maintenance data.
+                * **For asset health, sensor telemetry, maintenance history, production metrics, budget, and failure analysis:** Use the
+                    `Predictive_maintenance_analysis` semantic view which contains all predictive maintenance data.
 
-                * The semantic view includes hourly aggregations for real-time monitoring and daily/weekly aggregations for trend analysis. Use the appropriate time granularity based on the question.
+                * The semantic view includes hourly aggregations for real-time monitoring and daily/weekly aggregations for trend analysis.
+                    Use the appropriate time granularity based on the question.
 
-            3.  **Complex Workflow (Health & Maintenance):** When a user asks a multi-part question involving **asset health assessment** and subsequent **maintenance planning** (e.g., Which assets need immediate maintenance and what should be done?), execute this sequence:
+            3.  **Complex Workflow (Health & Maintenance):** When a user asks a multi-part question involving **asset health assessment**
+                and subsequent **maintenance planning** (e.g., Which assets need immediate maintenance and what should be done?), execute
+                this sequence:
 
                 * Use the semantic view to identify assets with low health scores, high failure probability, or anomaly flags.
 
@@ -3198,16 +3731,20 @@ FROM SPECIFICATION $$
 
                 * OEE (Overall Equipment Effectiveness) = Availability × Performance × Quality (expressed as percentage 0-100).
 
-                * For monthly trend questions (especially OEE vs maintenance cost over time), use the **AGG_MONTHLY_TRENDS** table which provides pre-aggregated monthly data optimized for trend analysis.
+                * For monthly trend questions (especially OEE vs maintenance cost over time), use the **AGG_MONTHLY_TRENDS** table which
+                    provides pre-aggregated monthly data optimized for trend analysis.
 
-                * Data availability: **November 2024 through current date** (13+ months of historical data with hourly telemetry and daily production metrics).
+                * Data availability: **November 2024 through current date** (13+ months of historical data with hourly telemetry and daily
+                    production metrics).
         ",
         "sample_questions": [
             { "question": "What was the total financial impact of unplanned downtime last month?" },
             { "question": "Show me the trend of our OEE versus our total maintenance cost over the last 12 months." },
             { "question": "Which production line has experienced the most maintenance downtime in the last month?" },
-            { "question": "Show me average, min, and max temperature sensor readings by asset ordered by the assets that have had the highest temperature readings." },
-            { "question": "Show me downtime impact per hour and average failure probably by asset, line, and plant and order by the assets that have the highest impact multiplied by average failure probability." }
+            { "question": "Show me average, min, and max temperature sensor readings by asset ordered by the assets that have had the
+                highest temperature readings." },
+            { "question": "Show me downtime impact per hour and average failure probably by asset, line, and plant and order by the assets
+                that have the highest impact multiplied by average failure probability." }
         ]
 
     },
@@ -3224,13 +3761,15 @@ FROM SPECIFICATION $$
                       * Maintenance activities: work orders (preventive, predictive, emergency), downtime hours, labor and parts costs
                       * Production metrics: OEE, actual vs planned runtime, units produced/scrapped
                       * OEE Analytics: Daily and monthly OEE calculations (Availability × Performance × Quality)
-                      * Monthly Trends: Pre-aggregated monthly OEE vs maintenance cost trends (AGG_MONTHLY_TRENDS table - optimized for 12-month trend analysis)
+                      * Monthly Trends: Pre-aggregated monthly OEE vs maintenance cost trends (AGG_MONTHLY_TRENDS table - optimized for
+                          12-month trend analysis)
                       * Budget tracking: OpEx maintenance and CapEx project budgets by plant and quarter
                       * Parts inventory: material usage, costs, supplier information
                       * Technician data: maintenance history, craft specialties, shift assignments
                       * Failure analysis: failure codes with hierarchical classification (Mechanical/Electrical/Operational)
                       * ML features: cycles since last PM, days since last failure, temperature/pressure trends, downtime impact risk
-                      * DATA COVERAGE: November 2024 through current date (13+ months of historical data with hourly telemetry and daily production metrics)
+                      * DATA COVERAGE: November 2024 through current date (13+ months of historical data with hourly telemetry and daily
+                          production metrics)
 
                     KEY ENTITIES:
                     - Assets: 18 manufacturing assets across multiple plants (Davidson, Charlotte)
@@ -3240,10 +3779,23 @@ FROM SPECIFICATION $$
                     - Work Order Types: Unplanned Emergency (UE), Planned Preventive (PM), Planned Predictive (PP)
 
                     REASONING:
-                    This semantic view provides a unified framework for predictive maintenance analytics, enabling comprehensive analysis of asset health trends, maintenance effectiveness, production impact, and cost optimization. The structure supports both real-time monitoring (hourly health aggregations) and strategic planning (budget tracking, failure pattern analysis). The integration of telemetry, maintenance, and production data enables detailed root cause analysis and predictive insights. All data is available for thorough analysis without restrictions on response length or detail level.
+                    This semantic view provides a unified framework for predictive maintenance analytics, enabling comprehensive analysis of
+                        asset health trends, maintenance effectiveness, production impact, and cost optimization. The structure supports
+                        both real-time monitoring (hourly health aggregations) and strategic planning (budget tracking, failure pattern
+                        analysis). The integration of telemetry, maintenance, and production data enables detailed root cause analysis and
+                        predictive insights. All data is available for thorough analysis without restrictions on response length or detail
+                        level.
 
                     DESCRIPTION:
-                    The SNOWCORE_INDUSTRIES_SV semantic view, located in SNOWCORE_INDUSTRIES.GOLD, provides a comprehensive framework for predictive maintenance and manufacturing operations analytics. It captures essential metrics across the entire maintenance lifecycle from asset health monitoring to failure prediction, maintenance execution, and production impact analysis. The view supports various use cases including: proactive maintenance scheduling, failure prediction and prevention, cost optimization, production planning, and workforce management. The structure includes time-series data for trend analysis, dimensional hierarchies for drill-down analysis, and ML-ready features for predictive modeling. This semantic view is designed to support detailed, comprehensive analysis and reporting - there are no limitations on the depth or breadth of analysis that can be performed. All relationships, trends, and patterns should be explored and explained thoroughly.
+                    The SNOWCORE_INDUSTRIES_SV semantic view, located in SNOWCORE_INDUSTRIES.GOLD, provides a comprehensive framework for
+                        predictive maintenance and manufacturing operations analytics. It captures essential metrics across the entire
+                        maintenance lifecycle from asset health monitoring to failure prediction, maintenance execution, and production
+                        impact analysis. The view supports various use cases including: proactive maintenance scheduling, failure prediction
+                        and prevention, cost optimization, production planning, and workforce management. The structure includes time-series
+                        data for trend analysis, dimensional hierarchies for drill-down analysis, and ML-ready features for predictive
+                        modeling. This semantic view is designed to support detailed, comprehensive analysis and reporting - there are no
+                        limitations on the depth or breadth of analysis that can be performed. All relationships, trends, and patterns
+                        should be explored and explained thoroughly.
                 ",
                 "name": "Predictive_maintenance_analysis",
                 "type": "cortex_analyst_text_to_sql"

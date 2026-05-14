@@ -1,0 +1,11 @@
+[project]
+name = "sf-solutions"
+version = "0.1.0"
+description = "Snowflake Industry Solution Accelerators"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "sqruff>=0.38.0",
+]

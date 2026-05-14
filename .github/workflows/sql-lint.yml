@@ -1,0 +1,27 @@
+name: SQL Lint
+
+on:
+  push:
+    branches: [main, "feature/**"]
+    paths:
+      - "**/*.sql"
+      - ".sqruff"
+      - ".github/workflows/sql-lint.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.sql"
+      - ".sqruff"
+      - ".github/workflows/sql-lint.yml"
+
+jobs:
+  sqruff-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Run sqruff lint
+        run: uv run sqruff lint .
