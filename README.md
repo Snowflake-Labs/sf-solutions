@@ -10,12 +10,13 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 |---|----------|----------|-----------|----------------------|--------|
 | 1 | **Retail Demand Forecasting & Inventory Optimization** | Retail / CPG | `retail-demand-forecasting/` | Snowflake ML Forecasting, Dynamic Tables | 📋 Planned |
 | 2 | **Customer Lifetime Value Prediction** | Retail / CPG | `ltv-prediction/` | Snowflake ML Regression, Cortex AI Functions | ✅ Done |
-| 3 | **Anti-Money Laundering (AML) Graph Analytics** | Finance, Public Sector | `aml-graph-analytics/` | Graph Analytics, Cortex Search, Streams | 📋 Planned |
-| 4 | **OMOP CDM (Clinical Data Model)** | Life Science / Healthcare | `omop-cdm/` | Snowpark, Data Sharing, dbt | 📋 Planned |
-| 5 | **Media Mix Modeling** | Media & Entertainment, Retail | `media-mix-modeling/` | Snowflake ML, Cortex AI Functions, Marketplace | 📋 Planned |
-| 6 | **Cybersecurity IOC Matching** | Public Sector, Technology | `cybersecurity-ioc-matching/` | Cortex Search, Streams, Dynamic Tables | 📋 Planned |
-| 7 | **GraphRAG** | Technology, Cross-Industry | `graphrag/` | Cortex Search, Cortex LLM, SPCS | 📋 Planned |
-| 8 | **Manufacturing Predictive Maintenance** | Manufacturing | `manufacturing-predictive-maintenance/` | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | ✅ Done |
+| 3 | **Enterprise Clearing & Settlement Data Platform** | Financial Services | `enterprise-clearing-settlement/` | Dynamic Tables, Medallion Architecture, Data Quality, Streamlit | ✅ Done |
+| 4 | **Anti-Money Laundering (AML) Graph Analytics** | Finance, Public Sector | `aml-graph-analytics/` | Graph Analytics, Cortex Search, Streams | 📋 Planned |
+| 5 | **OMOP CDM (Clinical Data Model)** | Life Science / Healthcare | `omop-cdm/` | Snowpark, Data Sharing, dbt | 📋 Planned |
+| 6 | **Media Mix Modeling** | Media & Entertainment, Retail | `media-mix-modeling/` | Snowflake ML, Cortex AI Functions, Marketplace | 📋 Planned |
+| 7 | **Cybersecurity IOC Matching** | Public Sector, Technology | `cybersecurity-ioc-matching/` | Cortex Search, Streams, Dynamic Tables | 📋 Planned |
+| 8 | **GraphRAG** | Technology, Cross-Industry | `graphrag/` | Cortex Search, Cortex LLM, SPCS | 📋 Planned |
+| 9 | **Manufacturing Predictive Maintenance** | Manufacturing | `manufacturing-predictive-maintenance/` | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | ✅ Done |
 
 ---
 
