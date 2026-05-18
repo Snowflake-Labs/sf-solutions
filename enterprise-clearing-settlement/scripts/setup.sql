@@ -22,7 +22,10 @@
 
 USE ROLE ACCOUNTADMIN;
 
-ALTER SESSION SET query_tag = '{"origin":"sf_sit-is","name":"enterprise_clearing_and_settlement_data_platform","version":{"major":1,"minor":0},"attributes":{"is_quickstart":1,"source":"sql"}}';
+ALTER SESSION SET query_tag = '{"origin":"sf_sit-is",'
+    || '"name":"enterprise_clearing_and_settlement_data_platform",'
+    || '"version":{"major":1,"minor":0},'
+    || '"attributes":{"is_quickstart":1,"source":"sql"}}'
 
 /*************************************************************************************************/
 -- SECTION 1: Database, Schemas, Warehouses, and Stage
@@ -172,9 +175,9 @@ SET TICKER_25 = 'REIT.EXCH'; SET COMPANY_25 = 'Commercial Property Trust';
 
 INSERT INTO SF_SOLUTIONS.CLEARING_SETTLEMENT_RAW.SETTLEMENT_TRANSACTIONS
 SELECT 
-    UUID_STRING() as transaction_id,
-    DATEADD(day, -UNIFORM(0, 180, RANDOM()), CURRENT_DATE()) as trade_date,
-    DATEADD(day, UNIFORM(1, 3, RANDOM()), trade_date) as settlement_date,
+    UUID_STRING() AS transaction_id,
+    DATEADD(DAY, -UNIFORM(0, 180, RANDOM()), CURRENT_DATE()) AS trade_date,
+    DATEADD(DAY, UNIFORM(1, 3, RANDOM()), trade_date) AS settlement_date,
     CASE UNIFORM(1, 1000, RANDOM())
         WHEN 1 THEN $TICKER_1 WHEN 2 THEN $TICKER_2 WHEN 3 THEN $TICKER_3 WHEN 4 THEN $TICKER_4
         WHEN 5 THEN $TICKER_5 WHEN 6 THEN $TICKER_6 WHEN 7 THEN $TICKER_7 WHEN 8 THEN $TICKER_8
@@ -200,69 +203,369 @@ SELECT
             WHEN 33 THEN 'SYM_33.EXCH' WHEN 34 THEN 'SYM_34.EXCH' WHEN 35 THEN 'SYM_35.EXCH' WHEN 36 THEN 'SYM_36.EXCH'
             WHEN 37 THEN 'SYM_37.EXCH' WHEN 38 THEN 'SYM_38.EXCH' WHEN 39 THEN 'SYM_39.EXCH' ELSE 'SYM_40.EXCH'
         END
-    END as security_symbol,
+    END AS security_symbol,
     CASE UNIFORM(1, 200, RANDOM())
         WHEN 200 THEN NULL
         ELSE 'PART_' || LPAD(UNIFORM(1000, 9999, RANDOM()), 4, '0')
-    END as participant_id,
-    'PART_' || LPAD(UNIFORM(1000, 9999, RANDOM()), 4, '0') as counterparty_id,
+    END AS participant_id,
+    'PART_' || LPAD(UNIFORM(1000, 9999, RANDOM()), 4, '0') AS counterparty_id,
     CASE UNIFORM(1, 500, RANDOM())
         WHEN 499 THEN -UNIFORM(100, 1000, RANDOM())
         WHEN 500 THEN 0
         ELSE UNIFORM(100, 500000, RANDOM())
-    END as quantity,
+    END AS quantity,
     CASE UNIFORM(1, 1000, RANDOM())
         WHEN 999 THEN 0
         WHEN 1000 THEN -UNIFORM(10, 100, RANDOM())
         ELSE UNIFORM(5, 2000, RANDOM()) + (UNIFORM(0, 99, RANDOM()) / 100.0)
-    END as price,
+    END AS price,
     CASE UNIFORM(1, 125, RANDOM())
         WHEN 124 THEN quantity * price * 1.02
         WHEN 125 THEN quantity * price * 0.98
         ELSE quantity * price
-    END as settlement_amount,
+    END AS settlement_amount,
     CASE UNIFORM(1, 10, RANDOM())
         WHEN 1 THEN 'SETTLED' WHEN 2 THEN 'SETTLED' WHEN 3 THEN 'SETTLED' WHEN 4 THEN 'SETTLED'
         WHEN 5 THEN 'SETTLED' WHEN 6 THEN 'SETTLED' WHEN 7 THEN 'SETTLED' WHEN 8 THEN 'SETTLED'
         WHEN 9 THEN 'PENDING' ELSE 'FAILED'
-    END as settlement_status,
-    'CAD' as currency,
-    CURRENT_TIMESTAMP() as created_timestamp,
-    'TRADING_SYS' as source_system,
-    'BATCH_' || TO_CHAR(CURRENT_DATE(), 'YYYYMMDD') as batch_id,
-    HASH(transaction_id, trade_date, security_symbol, participant_id) as row_hash
+    END AS settlement_status,
+    'CAD' AS currency,
+    CURRENT_TIMESTAMP() AS created_timestamp,
+    'TRADING_SYS' AS source_system,
+    'BATCH_' || TO_CHAR(CURRENT_DATE(), 'YYYYMMDD') AS batch_id,
+    HASH(transaction_id, trade_date, security_symbol, participant_id) AS row_hash
 FROM TABLE(GENERATOR(ROWCOUNT => 5129375));
 
 INSERT INTO SF_SOLUTIONS.CLEARING_SETTLEMENT_RAW.SECURITIES_MASTER VALUES
-    ('SEC_001', $TICKER_1, $COMPANY_1, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 185000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_002', $TICKER_2, $COMPANY_2, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TECHNOLOGY', 80000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_003', $TICKER_3, $COMPANY_3, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TRANSPORTATION', 95000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_004', $TICKER_4, $COMPANY_4, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 165000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_005', $TICKER_5, $COMPANY_5, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'MATERIALS', 35000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_006', $TICKER_6, $COMPANY_6, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TECHNOLOGY', 72000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_007', $TICKER_7, $COMPANY_7, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'CONSUMER_STAPLES', 52000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_008', $TICKER_8, $COMPANY_8, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'UTILITIES', 38000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_009', $TICKER_9, $COMPANY_9, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 82000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_010', $TICKER_10, $COMPANY_10, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TELECOMMUNICATIONS', 44000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_011', $TICKER_11, $COMPANY_11, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'ENERGY', 108000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_012', $TICKER_12, $COMPANY_12, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TRANSPORTATION', 78000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_013', $TICKER_13, $COMPANY_13, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 48000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_014', $TICKER_14, $COMPANY_14, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 42000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_015', $TICKER_15, $COMPANY_15, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 58000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_016', $TICKER_16, $COMPANY_16, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 68000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_017', $TICKER_17, $COMPANY_17, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'FINANCIALS', 78000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_018', $TICKER_18, $COMPANY_18, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'CONSUMER_DISCRETIONARY', 28000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_019', $TICKER_19, $COMPANY_19, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'MATERIALS', 32000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_020', $TICKER_20, $COMPANY_20, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TECHNOLOGY', 28000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_021', $TICKER_21, $COMPANY_21, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'HEALTHCARE', 2000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_022', $TICKER_22, $COMPANY_22, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TRANSPORTATION', 8000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_023', $TICKER_23, $COMPANY_23, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'TECHNOLOGY', 3000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_024', $TICKER_24, $COMPANY_24, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'ENERGY', 22000000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP()),
-    ('SEC_025', $TICKER_25, $COMPANY_25, 'COMMON_STOCK', $EXCHANGE_NAME, 'CAD', 'REAL_ESTATE', 3500000000, CURRENT_DATE(), 'ACTIVE', CURRENT_TIMESTAMP());
+    (
+        'SEC_001',
+        $TICKER_1,
+        $COMPANY_1,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        185000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_002',
+        $TICKER_2,
+        $COMPANY_2,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TECHNOLOGY',
+        80000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_003',
+        $TICKER_3,
+        $COMPANY_3,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TRANSPORTATION',
+        95000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_004',
+        $TICKER_4,
+        $COMPANY_4,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        165000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_005',
+        $TICKER_5,
+        $COMPANY_5,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'MATERIALS',
+        35000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_006',
+        $TICKER_6,
+        $COMPANY_6,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TECHNOLOGY',
+        72000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_007',
+        $TICKER_7,
+        $COMPANY_7,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'CONSUMER_STAPLES',
+        52000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_008',
+        $TICKER_8,
+        $COMPANY_8,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'UTILITIES',
+        38000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_009',
+        $TICKER_9,
+        $COMPANY_9,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        82000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_010',
+        $TICKER_10,
+        $COMPANY_10,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TELECOMMUNICATIONS',
+        44000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_011',
+        $TICKER_11,
+        $COMPANY_11,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'ENERGY',
+        108000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_012',
+        $TICKER_12,
+        $COMPANY_12,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TRANSPORTATION',
+        78000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_013',
+        $TICKER_13,
+        $COMPANY_13,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        48000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_014',
+        $TICKER_14,
+        $COMPANY_14,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        42000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_015',
+        $TICKER_15,
+        $COMPANY_15,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        58000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_016',
+        $TICKER_16,
+        $COMPANY_16,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        68000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_017',
+        $TICKER_17,
+        $COMPANY_17,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'FINANCIALS',
+        78000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_018',
+        $TICKER_18,
+        $COMPANY_18,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'CONSUMER_DISCRETIONARY',
+        28000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_019',
+        $TICKER_19,
+        $COMPANY_19,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'MATERIALS',
+        32000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_020',
+        $TICKER_20,
+        $COMPANY_20,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TECHNOLOGY',
+        28000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_021',
+        $TICKER_21,
+        $COMPANY_21,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'HEALTHCARE',
+        2000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_022',
+        $TICKER_22,
+        $COMPANY_22,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TRANSPORTATION',
+        8000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_023',
+        $TICKER_23,
+        $COMPANY_23,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'TECHNOLOGY',
+        3000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_024',
+        $TICKER_24,
+        $COMPANY_24,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'ENERGY',
+        22000000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    ),
+    (
+        'SEC_025',
+        $TICKER_25,
+        $COMPANY_25,
+        'COMMON_STOCK',
+        $EXCHANGE_NAME,
+        'CAD',
+        'REAL_ESTATE',
+        3500000000,
+        CURRENT_DATE(),
+        'ACTIVE',
+        CURRENT_TIMESTAMP()
+    );
 
 INSERT INTO SF_SOLUTIONS.CLEARING_SETTLEMENT_RAW.PARTICIPANTS
 SELECT 
-    'PART_' || LPAD(SEQ4(), 4, '0') as participant_id,
+    'PART_' || LPAD(SEQ4(), 4, '0') AS participant_id,
     CASE UNIFORM(1, 50, RANDOM())
         WHEN 1 THEN 'Alpha Securities Corp.' WHEN 2 THEN 'Beta Dominion Capital'
         WHEN 3 THEN 'Gamma Institutional Bank' WHEN 4 THEN 'Delta Global Markets'
@@ -275,51 +578,51 @@ SELECT
         WHEN 17 THEN 'Sigma Trust Company' WHEN 18 THEN 'Tau Fund Advisors'
         WHEN 19 THEN 'Upsilon Capital Inc.' WHEN 20 THEN 'Phi Global Funds'
         ELSE 'Financial Institution ' || UNIFORM(1, 10000, RANDOM())
-    END as participant_name,
+    END AS participant_name,
     CASE UNIFORM(1, 4, RANDOM())
         WHEN 1 THEN 'DEALER' WHEN 2 THEN 'CUSTODIAN' WHEN 3 THEN 'BANK' ELSE 'INSTITUTIONAL'
-    END as participant_type,
-    'REG_' || LPAD(UNIFORM(100000, 999999, RANDOM()), 6, '0') as registration_number,
+    END AS participant_type,
+    'REG_' || LPAD(UNIFORM(100000, 999999, RANDOM()), 6, '0') AS registration_number,
     CASE UNIFORM(1, 8, RANDOM())
         WHEN 1 THEN '100 Main Street' WHEN 2 THEN '200 Central Avenue'
         WHEN 3 THEN '1 Commerce Tower' WHEN 4 THEN '181 Financial Blvd'
         ELSE '199 Exchange Road'
-    END as address,
+    END AS address,
     CASE UNIFORM(1, 6, RANDOM())
         WHEN 1 THEN 'Metropolis' WHEN 2 THEN 'Coastal City' WHEN 3 THEN 'Mountain Town' 
         WHEN 4 THEN 'Prairie Hub' WHEN 5 THEN 'Capital Heights' ELSE 'River City'
-    END as city,
+    END AS city,
     CASE 
         WHEN city = 'Metropolis' THEN 'ST' WHEN city = 'Coastal City' THEN 'WS'
         WHEN city = 'Mountain Town' THEN 'MT' WHEN city = 'Prairie Hub' THEN 'PR'
         WHEN city = 'Capital Heights' THEN 'CH' ELSE 'RV'
-    END as province,
+    END AS province,
     CASE 
         WHEN city = 'Metropolis' THEN '10001' WHEN city = 'Coastal City' THEN '20002'
         WHEN city = 'Mountain Town' THEN '30003' WHEN city = 'Prairie Hub' THEN '40004'
         WHEN city = 'Capital Heights' THEN '50005' ELSE '60006'
-    END as postal_code,
+    END AS postal_code,
     CASE UNIFORM(1, 20, RANDOM())
         WHEN 20 THEN 'INACTIVE'
         ELSE 'ACTIVE'
-    END as status,
-    DATEADD(year, -UNIFORM(1, 30, RANDOM()), CURRENT_DATE()) as registration_date,
-    CURRENT_TIMESTAMP() as last_verified
+    END AS status,
+    DATEADD(YEAR, -UNIFORM(1, 30, RANDOM()), CURRENT_DATE()) AS registration_date,
+    CURRENT_TIMESTAMP() AS last_verified
 FROM TABLE(GENERATOR(ROWCOUNT => 2847));
 
 INSERT INTO SF_SOLUTIONS.CLEARING_SETTLEMENT_RAW.TRANSACTION_FEES
 SELECT 
-    UUID_STRING() as fee_id,
-    (SELECT transaction_id FROM SF_SOLUTIONS.CLEARING_SETTLEMENT_RAW.SETTLEMENT_TRANSACTIONS SAMPLE(0.37) LIMIT 1) as transaction_id,
+    UUID_STRING() AS fee_id,
+    (SELECT transaction_id FROM SF_SOLUTIONS.CLEARING_SETTLEMENT_RAW.SETTLEMENT_TRANSACTIONS SAMPLE(0.37) LIMIT 1) AS transaction_id,
     CASE UNIFORM(1, 8, RANDOM())
         WHEN 1 THEN 'SETTLEMENT_FEE' WHEN 2 THEN 'CLEARING_FEE' WHEN 3 THEN 'CUSTODY_FEE'
         WHEN 4 THEN 'TRANSFER_FEE' WHEN 5 THEN 'REGULATORY_FEE' WHEN 6 THEN 'EXCHANGE_FEE'
         WHEN 7 THEN 'PROCESSING_FEE' ELSE 'SERVICE_FEE'
-    END as fee_type,
-    UNIFORM(0.25, 75.00, RANDOM()) as fee_amount,
-    'CAD' as currency,
-    DATEADD(day, -UNIFORM(0, 180, RANDOM()), CURRENT_DATE()) as fee_date,
-    CURRENT_TIMESTAMP() as created_timestamp
+    END AS fee_type,
+    UNIFORM(0.25, 75.00, RANDOM()) AS fee_amount,
+    'CAD' AS currency,
+    DATEADD(DAY, -UNIFORM(0, 180, RANDOM()), CURRENT_DATE()) AS fee_date,
+    CURRENT_TIMESTAMP() AS created_timestamp
 FROM TABLE(GENERATOR(ROWCOUNT => 1891256));
 
 INSERT INTO SF_SOLUTIONS.CLEARING_SETTLEMENT_RAW.MARKET_DATA
@@ -332,14 +635,14 @@ SELECT
         WHEN 17 THEN $TICKER_17 WHEN 18 THEN $TICKER_18 WHEN 19 THEN $TICKER_19 WHEN 20 THEN $TICKER_20
         WHEN 21 THEN $TICKER_21 WHEN 22 THEN $TICKER_22 WHEN 23 THEN $TICKER_23 WHEN 24 THEN $TICKER_24
         ELSE $TICKER_25
-    END as symbol,
-    DATEADD(day, -UNIFORM(0, 180, RANDOM()), CURRENT_DATE()) as trade_date,
-    UNIFORM(10, 500, RANDOM()) + (UNIFORM(0, 99, RANDOM()) / 100.0) as open_price,
-    open_price + UNIFORM(-10, 10, RANDOM()) + (UNIFORM(0, 99, RANDOM()) / 100.0) as close_price,
-    GREATEST(open_price, close_price) + UNIFORM(0, 5, RANDOM()) as high_price,
-    LEAST(open_price, close_price) - UNIFORM(0, 5, RANDOM()) as low_price,
-    UNIFORM(10000, 5000000, RANDOM()) as volume,
-    CURRENT_TIMESTAMP() as created_timestamp
+    END AS symbol,
+    DATEADD(DAY, -UNIFORM(0, 180, RANDOM()), CURRENT_DATE()) AS trade_date,
+    UNIFORM(10, 500, RANDOM()) + (UNIFORM(0, 99, RANDOM()) / 100.0) AS open_price,
+    open_price + UNIFORM(-10, 10, RANDOM()) + (UNIFORM(0, 99, RANDOM()) / 100.0) AS close_price,
+    GREATEST(open_price, close_price) + UNIFORM(0, 5, RANDOM()) AS high_price,
+    LEAST(open_price, close_price) - UNIFORM(0, 5, RANDOM()) AS low_price,
+    UNIFORM(10000, 5000000, RANDOM()) AS volume,
+    CURRENT_TIMESTAMP() AS created_timestamp
 FROM TABLE(GENERATOR(ROWCOUNT => 15738));
 
 /*************************************************************************************************/
@@ -355,7 +658,8 @@ SELECT
     COUNT(*) as total_records,
     COUNT(*) - SUM(CASE WHEN security_symbol IS NULL OR security_symbol = '' THEN 1 ELSE 0 END) as valid_symbols,
     COUNT(*) - SUM(CASE WHEN participant_id IS NULL THEN 1 ELSE 0 END) as valid_participants,
-    ROUND((COUNT(*) - SUM(CASE WHEN security_symbol IS NULL OR security_symbol = '' THEN 1 ELSE 0 END)) / COUNT(*) * 100, 4) as symbol_completeness_pct,
+    ROUND((COUNT(*) - SUM(CASE WHEN security_symbol IS NULL OR security_symbol = '' THEN 1 ELSE 0 END)) / COUNT(*) * 100,
+    4) as symbol_completeness_pct,
     ROUND((COUNT(*) - SUM(CASE WHEN participant_id IS NULL THEN 1 ELSE 0 END)) / COUNT(*) * 100, 4) as participant_completeness_pct,
     SUM(CASE WHEN quantity > 0 THEN 1 ELSE 0 END) as valid_quantities,
     SUM(CASE WHEN price > 0 THEN 1 ELSE 0 END) as valid_prices,
@@ -370,7 +674,8 @@ SELECT
         (SUM(CASE WHEN price > 0 THEN 1 ELSE 0 END) * 0.2) +
         (SUM(CASE WHEN ABS(settlement_amount - (quantity * price)) <= (quantity * price * 0.02) THEN 1 ELSE 0 END) * 0.2)
     ) / COUNT(*) * 100, 4) as overall_quality_score,
-    ROUND(SUM(CASE WHEN security_symbol IS NULL OR security_symbol LIKE '%INVALID%' THEN 1 ELSE 0 END) / COUNT(*) * 100, 4) as symbol_error_rate_pct,
+    ROUND(SUM(CASE WHEN security_symbol IS NULL OR security_symbol LIKE '%INVALID%' THEN 1 ELSE 0 END) / COUNT(*) * 100,
+    4) as symbol_error_rate_pct,
     ROUND(SUM(CASE WHEN participant_id IS NULL THEN 1 ELSE 0 END) / COUNT(*) * 100, 4) as participant_error_rate_pct,
     ROUND(SUM(CASE WHEN quantity <= 0 THEN 1 ELSE 0 END) / COUNT(*) * 100, 4) as quantity_error_rate_pct,
     ROUND(SUM(CASE WHEN price <= 0 THEN 1 ELSE 0 END) / COUNT(*) * 100, 4) as price_error_rate_pct,
@@ -388,7 +693,9 @@ SELECT
     settlement_date,
     CASE 
         WHEN security_symbol IS NULL OR security_symbol = '' THEN 'UNKNOWN_SECURITY'
-        WHEN security_symbol LIKE '%INVALID%' OR security_symbol LIKE '%CORRUPT%' OR security_symbol LIKE '%UNKNOWN%' THEN 'INVALID_SECURITY'
+        WHEN security_symbol LIKE '%INVALID%'
+            OR security_symbol LIKE '%CORRUPT%'
+            OR security_symbol LIKE '%UNKNOWN%' THEN 'INVALID_SECURITY'
         ELSE security_symbol
     END as security_symbol_cleansed,
     COALESCE(participant_id, 'UNKNOWN_PARTICIPANT') as participant_id_cleansed,
@@ -406,20 +713,40 @@ SELECT
     settlement_status,
     currency,
     CASE 
-        WHEN security_symbol IS NULL OR security_symbol = '' OR security_symbol LIKE '%INVALID%' OR security_symbol LIKE '%CORRUPT%' OR security_symbol LIKE '%UNKNOWN%' THEN TRUE
+        WHEN security_symbol IS NULL
+            OR security_symbol = ''
+            OR security_symbol LIKE '%INVALID%'
+            OR security_symbol LIKE '%CORRUPT%'
+            OR security_symbol LIKE '%UNKNOWN%' THEN TRUE
         ELSE FALSE
     END as symbol_issue_flag,
     CASE WHEN participant_id IS NULL THEN TRUE ELSE FALSE END as participant_issue_flag,
     CASE WHEN quantity <= 0 OR price <= 0 THEN TRUE ELSE FALSE END as value_issue_flag,
     CASE 
-        WHEN (security_symbol IS NULL OR security_symbol = '' OR security_symbol LIKE '%INVALID%' OR security_symbol LIKE '%CORRUPT%' OR security_symbol LIKE '%UNKNOWN%')
-             OR participant_id IS NULL OR quantity <= 0 OR price <= 0 THEN 'POOR'
+        WHEN (
+            security_symbol IS NULL
+            OR security_symbol = ''
+            OR security_symbol LIKE '%INVALID%'
+            OR security_symbol LIKE '%CORRUPT%'
+            OR security_symbol LIKE '%UNKNOWN%'
+        )
+            OR participant_id IS NULL
+            OR quantity <= 0
+            OR price <= 0 THEN 'POOR'
         WHEN quantity > 0 AND price > 0 AND ABS(settlement_amount - (quantity * price)) > (quantity * price * 0.02) THEN 'FAIR'
         ELSE 'GOOD'
     END as record_quality_rating,
     CASE 
-        WHEN (security_symbol IS NULL OR security_symbol = '' OR security_symbol LIKE '%INVALID%' OR security_symbol LIKE '%CORRUPT%' OR security_symbol LIKE '%UNKNOWN%')
-             OR participant_id IS NULL OR quantity <= 0 OR price <= 0 THEN 25
+        WHEN (
+            security_symbol IS NULL
+            OR security_symbol = ''
+            OR security_symbol LIKE '%INVALID%'
+            OR security_symbol LIKE '%CORRUPT%'
+            OR security_symbol LIKE '%UNKNOWN%'
+        )
+            OR participant_id IS NULL
+            OR quantity <= 0
+            OR price <= 0 THEN 25
         WHEN quantity > 0 AND price > 0 AND ABS(settlement_amount - (quantity * price)) > (quantity * price * 0.02) THEN 75
         ELSE 100
     END as quality_score,
@@ -671,7 +998,8 @@ SELECT
     AVG(bre.validation_score) as avg_validation_score,
     AVG(bre.enrichment_completeness_score) as avg_enrichment_score,
     CASE 
-        WHEN SUM(CASE WHEN bre.settlement_status IN ('PENDING', 'PARTIAL') THEN bre.risk_weighted_exposure ELSE 0 END) > 100000000 THEN 'CRITICAL_EXPOSURE'
+        WHEN SUM(CASE WHEN bre.settlement_status IN ('PENDING',
+        'PARTIAL') THEN bre.risk_weighted_exposure ELSE 0 END) > 100000000 THEN 'CRITICAL_EXPOSURE'
         WHEN SUM(CASE WHEN bre.settlement_status = 'FAILED' THEN 1 ELSE 0 END) > 50 THEN 'HIGH_FAILURE_RATE'
         WHEN ROUND(SUM(CASE WHEN bre.settlement_status = 'SETTLED' THEN 1 ELSE 0 END) / COUNT(*) * 100, 4) < 95 THEN 'LOW_SUCCESS_RATE'
         WHEN AVG(bre.final_risk_score) > 2.0 THEN 'HIGH_AVG_RISK'
@@ -705,7 +1033,8 @@ SELECT
     COUNT(DISTINCT bre.security_symbol) as unique_securities,
     COUNT(DISTINCT bre.sector) as unique_sectors,
     SUM(CASE WHEN bre.regulatory_classification = 'REGULATORY_REPORTING_REQUIRED' THEN 1 ELSE 0 END) as regulatory_transactions,
-    ROUND(SUM(CASE WHEN bre.regulatory_classification = 'REGULATORY_REPORTING_REQUIRED' THEN 1 ELSE 0 END) / COUNT(*) * 100, 4) as regulatory_transaction_pct,
+    ROUND(SUM(CASE WHEN bre.regulatory_classification = 'REGULATORY_REPORTING_REQUIRED' THEN 1 ELSE 0 END) / COUNT(*) * 100,
+    4) as regulatory_transaction_pct,
     AVG(bre.validation_score) as avg_validation_score,
     AVG(bre.enrichment_completeness_score) as avg_enrichment_score,
     AVG(bre.overall_processing_score) as avg_processing_score,
