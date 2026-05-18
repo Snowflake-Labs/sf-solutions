@@ -1,0 +1,5 @@
+name: clearing_pipeline_dashboard
+channels:
+  - snowflake
+dependencies:
+  - plotly=*

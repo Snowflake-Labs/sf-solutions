@@ -1,0 +1,29 @@
+{
+  "name": "enterprise-clearing-settlement",
+  "display_name": "Enterprise Clearing & Settlement Data Platform",
+  "version": "1.0.0",
+  "industry": "Financial Services",
+  "source": "https://github.com/Snowflake-Labs/snowflake-settlement-pipeline",
+  "license": "Apache-2.0",
+  "database": "SF_SOLUTIONS",
+  "schemas": [
+    "CLEARING_SETTLEMENT_RAW",
+    "CLEARING_SETTLEMENT_DQ",
+    "CLEARING_SETTLEMENT_NORMALIZED",
+    "CLEARING_SETTLEMENT_CONSUMPTION"
+  ],
+  "role": "ACCOUNTADMIN",
+  "requires_warehouse": true,
+  "install_scripts": [
+    "scripts/setup.sql"
+  ],
+  "teardown_scripts": [
+    "scripts/teardown.sql"
+  ],
+  "features": [
+    "Dynamic Tables",
+    "Medallion Architecture",
+    "Data Quality Management",
+    "Streamlit in Snowflake"
+  ]
+}
