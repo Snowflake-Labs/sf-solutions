@@ -4276,6 +4276,7 @@ module_custom_instructions:
     The BILL_OF_MATERIALS table shows the detailed breakdown of what raw materials and components are needed to manufacture each product or component, including quantities, units of measure, and scrap factors.
 
     For material transfer analysis, users may ask about transferring raw materials from manufacturing plants with excess inventory to those with shortages. Compare the cost of purchasing new materials versus transferring existing materials between plants, factoring in transport_cost_surcharge.')
+FILE_FORMAT = (TYPE = 'CSV' FIELD_DELIMITER = NONE RECORD_DELIMITER = NONE COMPRESSION = NONE ESCAPE_UNENCLOSED_FIELD = NONE)
 OVERWRITE = TRUE
 SINGLE = TRUE;
 
