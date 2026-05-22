@@ -243,16 +243,6 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.TRANSPORT_COST_SURCHA
 )COMMENT='Transport cost surcharge for moving materials between manufacturing plants'
 ;
 
--- Run the following statement to create a Snowflake managed internal stage to store the semantic model specification file.
-
--- Run the following statement to create a Snowflake managed internal stage to store the PDF documents.
-
-  skip_header = 1  
-  field_optionally_enclosed_by = '"'  
-  type = 'CSV';  
- 
- -- Run the following statement to create a Snowflake managed internal stage to store the csv data files.
-
 -- Conversation History table for storing chat threads and messages
 CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.CONVERSATION_HISTORY (
 	CONVERSATION_ID STRING NOT NULL COMMENT 'Unique identifier for each conversation thread',
