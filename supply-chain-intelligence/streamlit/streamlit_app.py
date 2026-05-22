@@ -160,7 +160,7 @@ button[data-testid="stBaseButton-secondaryFormSubmit"] {
 }
 
 /* Hide Streamlit Branding */
-#MainMenu, header, footer {
+#MainMenu, footer {
     visibility: hidden;
 }
 
@@ -245,7 +245,6 @@ def get_token() -> str:
 def snowflake_api_call(query: str, limit: int = 10):
     
     payload = {
-        "model": "claude-3-5-sonnet",
         "messages": [
             {
                 "role": "user",
@@ -257,6 +256,10 @@ def snowflake_api_call(query: str, limit: int = 10):
                 ]
             }
         ],
+        "stream": False,
+        "models": {
+            "orchestration": "claude-sonnet-4-5"
+        },
         "tools": [
             {
                 "tool_spec": {
@@ -272,13 +275,21 @@ def snowflake_api_call(query: str, limit: int = 10):
             }
         ],
         "tool_resources": {
-            "analyst1": {"semantic_model_file": SEMANTIC_MODELS},
+            "analyst1": {
+                "semantic_model_file": SEMANTIC_MODELS,
+                "execution_environment": {
+                    "type": "warehouse",
+                    "warehouse": "SF_SOLUTIONS_WH"
+                }
+            },
             "search1": {
-                "name": CORTEX_SEARCH_SERVICES,
+                "search_service": CORTEX_SEARCH_SERVICES,
                 "max_results": limit
             }
         },
-        "response-instruction": "You will always maintain a friendly tone and provide a concise response. Don't say things like 'According to the information provided'"
+        "instructions": {
+            "response": "You will always maintain a friendly tone and provide a concise response. Don't say things like 'According to the information provided'"
+        }
     }
     
     try:
@@ -308,7 +319,7 @@ def snowflake_api_call(query: str, limit: int = 10):
         return None
 
 def process_sse_response(response):
-    """Process SSE response"""
+    """Process non-streaming agent response"""
     text = ""
     sql = ""
     interpretation = ""
@@ -318,31 +329,25 @@ def process_sse_response(response):
         return text, sql, interpretation, citation
         
     try:
-        for event in response:
-            if event.get('event') == "message.delta":
-                data = event.get('data', {})
-                delta = data.get('delta', {})
-                
-                for content_item in delta.get('content', []):
-                    content_type = content_item.get('type')
-                    if content_type == "tool_results":
-                        tool_results = content_item.get('tool_results', {})
-                        if 'content' in tool_results:
-                            for result in tool_results['content']:
-                                if result.get('type') == 'json':
-                                    interpretation += result.get('json', {}).get('text', '')
-                                    search_results = result.get('json', {}).get('searchResults', [])
-                                    for search_result in search_results:
-                                        citation += f"\n• {search_result.get('text', '')}"
-                                    sql = result.get('json', {}).get('sql', '')
-                    if content_type == 'text':
-                        text += content_item.get('text', '')
-                            
-    except json.JSONDecodeError as e:
-        st.error(f"Error processing events: {str(e)}")
-                
+        content = response.get('content', [])
+        for content_item in content:
+            content_type = content_item.get('type')
+            if content_type == 'text':
+                text += content_item.get('text', '')
+                annotations = content_item.get('annotations', [])
+                for ann in annotations:
+                    if ann.get('type') == 'cortex_search_citation':
+                        citation += f"\n• {ann.get('text', '')}"
+            elif content_type == 'tool_result':
+                tool_result = content_item.get('tool_result', {})
+                for result in tool_result.get('content', []):
+                    if result.get('type') == 'json':
+                        json_data = result.get('json', {})
+                        interpretation += json_data.get('text', '')
+                        sql = json_data.get('sql', '') or sql
+                                
     except Exception as e:
-        st.error(f"Error processing events: {str(e)}")
+        st.error(f"Error processing response: {str(e)}")
         
     return text, sql, interpretation, citation
 
@@ -767,7 +772,4 @@ def main():
             page.print_sidebar()
 
 
-# main()
-
-if __name__ == "__main__":
-    main()
+main()
