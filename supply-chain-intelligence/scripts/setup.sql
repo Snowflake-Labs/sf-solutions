@@ -23,10 +23,7 @@
 
 USE ROLE ACCOUNTADMIN;
 
-ALTER SESSION SET query_tag = '{"origin":"sf_sit-is",'
-    || '"name":"supply_chain_intelligence_platform",'
-    || '"version":{"major":1,"minor":0},'
-    || '"attributes":{"is_quickstart":1,"source":"sql"}}';
+ALTER SESSION SET query_tag = '{"origin":"sf_sit-is","name":"supply_chain_intelligence_platform","version":{"major":1,"minor":0},"attributes":{"is_quickstart":1,"source":"sql"}}';
 
 /*************************************************************************************************/
 -- SECTION 1: Database, Schema, Warehouse, Stages
