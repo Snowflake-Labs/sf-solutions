@@ -96,7 +96,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLIERS (
 	BUSINESS_LINE VARCHAR(15) COMMENT 'business line (AEROSPACE, INDUSTRIAL, BUILDINGS, ENERGY)',
 	IS_PREFERRED BOOLEAN DEFAULT FALSE COMMENT 'Indicates if this is a preferred supplier',
 	PAYMENT_TERMS VARCHAR(50) COMMENT 'Standard payment terms (Net 30, Net 60, etc.)',
-	primary key (SUPPLIER_ID)
+	PRIMARY KEY (SUPPLIER_ID)
 )COMMENT='Information about suppliers who provide raw materials and components'
 ;
 
@@ -112,7 +112,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.BILL_OF_MATERIALS (
 	SCRAP_FACTOR NUMBER(5,4) DEFAULT 0.0 COMMENT 'Expected scrap/waste factor (0.05 = 5% scrap)',
 	EFFECTIVE_DATE DATE COMMENT 'Date when this BOM version becomes effective',
 	EXPIRATION_DATE DATE COMMENT 'Date when this BOM version expires',
-	primary key (BOM_ID)
+	PRIMARY KEY (BOM_ID)
 )COMMENT='Bill of materials defining what raw materials and components are needed to produce products and components'
 ;
 
@@ -123,7 +123,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.COMPONENT (
 	COMPONENT_DESCRIPTION VARCHAR(1024) COMMENT 'Description of the component',
 	BILL_OF_MATERIALS_ID INTEGER COMMENT 'Foreign key referencing a bill_of_materials table (if applicable)',
 	BUSINESS_LINE VARCHAR(15) COMMENT 'business line (AEROSPACE, INDUSTRIAL, BUILDINGS, ENERGY)',
-	primary key (COMPONENT_ID)
+	PRIMARY KEY (COMPONENT_ID)
 )COMMENT='Information about individual components'
 ;
 
@@ -135,7 +135,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.PRODUCT (
 	PRODUCT_CATEGORY VARCHAR(100) COMMENT 'Category of the product',
 	UNIT_PRICE NUMBER(10,2) COMMENT 'Price per unit of the product',
 	BUSINESS_LINE VARCHAR(15) COMMENT 'business line (AEROSPACE, INDUSTRIAL, BUILDINGS, ENERGY)',
-	primary key (PRODUCT_ID)
+	PRIMARY KEY (PRODUCT_ID)
 )COMMENT='Information about finished goods products'
 ;
 
@@ -187,7 +187,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.CUSTOMER (
 	CONTACT_PERSON_ID INTEGER COMMENT 'Foreign key referencing a contacts table (if applicable)',
 	INDUSTRY VARCHAR(100) COMMENT 'Industry of the customer',
 	BUSINESS_LINE VARCHAR(15) COMMENT 'business line (AEROSPACE, INDUSTRIAL, BUILDINGS, ENERGY)',
-	primary key (CUSTOMER_ID)
+	PRIMARY KEY (CUSTOMER_ID)
 )COMMENT='Information about direct customers who purchase products from manufacturing plants'
 ;
 
@@ -201,7 +201,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SHIPMENT (
 	ACTUAL_DELIVERY_DATE DATE COMMENT 'Actual delivery date of the shipment',
 	SHIPPING_COST NUMBER(10,2) COMMENT 'Cost of shipping',
 	TRACKING_NUMBER VARCHAR(50) COMMENT 'Tracking number for the shipment',
-	primary key (SHIPMENT_ID)
+	PRIMARY KEY (SHIPMENT_ID)
 )COMMENT='Information about shipments from manufacturing plants directly to customers'
 ;
 
@@ -216,7 +216,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.ORDERS (
 	UNIT_PRICE NUMBER(10,2) NOT NULL COMMENT 'Price per unit at the time of order',
 	TOTAL_PRICE NUMBER(10,2) NOT NULL COMMENT 'Total price of the order line',
 	ORDER_STATUS VARCHAR(50) COMMENT 'Status of the order (e.g., Placed, In Production, Shipped, Delivered, Cancelled)',
-	primary key (ORDER_ID)
+	PRIMARY KEY (ORDER_ID)
 )COMMENT='Information about customer orders placed directly with manufacturing plants'
 ;
 
@@ -228,7 +228,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.RAW_MATERIAL (
 	MATERIAL_COST NUMBER(10,2) COMMENT 'The cost of the raw material from the supplier',
 	PLANT_TRANSPORT_COST NUMBER(10,2) COMMENT 'Base cost for transporting this material between plants (before surcharge multiplier)',
 	BUSINESS_LINE VARCHAR(15) COMMENT 'business line (AEROSPACE, INDUSTRIAL, BUILDINGS, ENERGY)',
-	primary key (MATERIAL_ID)
+	PRIMARY KEY (MATERIAL_ID)
 )COMMENT='Raw materials sourced from suppliers and used in manufacturing plants to produce components and products'
 ;
 
@@ -247,7 +247,7 @@ CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.CONVERSATION_HISTORY 
 	CREATED_AT TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP() COMMENT 'Timestamp when the conversation was created',
 	UPDATED_AT TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP() COMMENT 'Timestamp when the conversation was last updated',
 	MESSAGES VARIANT COMMENT 'JSON array of messages in the conversation thread',
-	primary key (CONVERSATION_ID)
+	PRIMARY KEY (CONVERSATION_ID)
 )COMMENT='Storage for conversation history and chat threads for the Supply Chain Assistant';
 
 /*************************************************************************************************/
