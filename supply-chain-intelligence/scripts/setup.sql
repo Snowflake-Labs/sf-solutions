@@ -83,7 +83,7 @@ CREATE FILE FORMAT IF NOT EXISTS CSVFORMAT
 
 
 -- Suppliers
-create or replace TABLE SUPPLIERS (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLIERS (
 	SUPPLIER_ID INTEGER NOT NULL COMMENT 'Unique identifier for the supplier',
 	SUPPLIER_NAME VARCHAR(255) NOT NULL COMMENT 'Name of the supplier company',
 	ADDRESS VARCHAR(255) COMMENT 'Street address of the supplier',
@@ -103,7 +103,7 @@ create or replace TABLE SUPPLIERS (
 ;
 
 -- Bill of Materials
-create or replace TABLE BILL_OF_MATERIALS (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.BILL_OF_MATERIALS (
 	BOM_ID INTEGER NOT NULL COMMENT 'Unique identifier for the bill of materials entry',
 	PARENT_PRODUCT_ID INTEGER COMMENT 'Product that uses these materials/components',
 	PARENT_COMPONENT_ID INTEGER COMMENT 'Component that uses these materials (for sub-assemblies)',
@@ -119,7 +119,7 @@ create or replace TABLE BILL_OF_MATERIALS (
 ;
 
 -- Component
-create or replace TABLE COMPONENT (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.COMPONENT (
 	COMPONENT_ID INTEGER NOT NULL COMMENT 'Unique identifier for the component',
 	COMPONENT_NAME VARCHAR(255) NOT NULL COMMENT 'Name of the component',
 	COMPONENT_DESCRIPTION VARCHAR(1024) COMMENT 'Description of the component',
@@ -130,7 +130,7 @@ create or replace TABLE COMPONENT (
 ;
 
 -- Product
-create or replace TABLE PRODUCT (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.PRODUCT (
 	PRODUCT_ID INTEGER NOT NULL COMMENT 'Unique identifier for the product',
 	PRODUCT_NAME VARCHAR(255) NOT NULL COMMENT 'Name of the product',
 	PRODUCT_DESCRIPTION VARCHAR(1024) COMMENT 'Description of the product',
@@ -142,7 +142,7 @@ create or replace TABLE PRODUCT (
 ;
 
 -- Manufacturing Plant
-create or replace TABLE MFG_PLANT (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.MFG_PLANT (
 	MFG_PLANT_ID INTEGER COMMENT 'Unique identifier for each manufacturing plant.',
 	MFG_PLANT_NAME VARCHAR(255) COMMENT 'The name of the manufacturing plant.',
 	ADDRESS VARCHAR(255) COMMENT 'Manufacturing plant addresses.',
@@ -161,7 +161,7 @@ create or replace TABLE MFG_PLANT (
 ;
 
 -- Manufacturing Plant Inventory (handles both raw materials, components, and finished products)
-create or replace TABLE MFG_INVENTORY (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.MFG_INVENTORY (
 	MFG_PLANT_ID INTEGER NOT NULL COMMENT 'Foreign key referencing MFG_PLANT',
 	MATERIAL_ID INTEGER COMMENT 'Foreign key referencing raw_material table (if applicable)',
 	COMPONENT_ID INTEGER COMMENT 'Foreign key referencing component table (if applicable)',
@@ -178,7 +178,7 @@ create or replace TABLE MFG_INVENTORY (
 ;
 
 -- Customer
-create or replace TABLE CUSTOMER (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.CUSTOMER (
 	CUSTOMER_ID INTEGER NOT NULL COMMENT 'Unique identifier for the customer',
 	CUSTOMER_NAME VARCHAR(255) NOT NULL COMMENT 'Name of the customer',
 	ADDRESS VARCHAR(255) COMMENT 'Street address of the customer',
@@ -194,7 +194,7 @@ create or replace TABLE CUSTOMER (
 ;
 
 -- Shipment (simplified for direct MFG plant to customer shipments)
-create or replace TABLE SHIPMENT (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SHIPMENT (
 	SHIPMENT_ID INTEGER NOT NULL COMMENT 'Unique identifier for the shipment',
 	ORIGIN_MFG_PLANT_ID INTEGER COMMENT 'Foreign key referencing the originating manufacturing plant',
 	DESTINATION_CUSTOMER_ID INTEGER COMMENT 'Foreign key referencing the destination customer',
@@ -208,7 +208,7 @@ create or replace TABLE SHIPMENT (
 ;
 
 -- Orders (simplified for direct customer to MFG plant orders)
-create or replace TABLE ORDERS (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.ORDERS (
 	ORDER_ID INTEGER NOT NULL COMMENT 'Unique identifier for the order',
 	CUSTOMER_ID INTEGER NOT NULL COMMENT 'Foreign key referencing the customer',
 	MFG_PLANT_ID INTEGER COMMENT 'Foreign key referencing the manufacturing plant fulfilling the order',
@@ -222,7 +222,7 @@ create or replace TABLE ORDERS (
 )COMMENT='Information about customer orders placed directly with manufacturing plants'
 ;
 
-create or replace TABLE RAW_MATERIAL (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.RAW_MATERIAL (
 	MATERIAL_ID INTEGER NOT NULL COMMENT 'Unique identifier for each raw material.',
 	MATERIAL_NAME VARCHAR(16777216) COMMENT 'Names of raw materials used in the supply chain network.',
 	MATERIAL_DESCRIPTION VARCHAR(16777216) COMMENT 'Detailed descriptions of raw materials.',
@@ -234,7 +234,7 @@ create or replace TABLE RAW_MATERIAL (
 )COMMENT='Raw materials sourced from suppliers and used in manufacturing plants to produce components and products'
 ;
 
-create or replace TABLE TRANSPORT_COST_SURCHARGE (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.TRANSPORT_COST_SURCHARGE (
 	SOURCE_FACILITY_ID INTEGER NOT NULL COMMENT 'Unique identifier for the source facility with excess inventory',
 	DESTINATION_FACILITY_ID INTEGER NOT NULL COMMENT 'Unique identifier for the destination facility that will receive materials',
 	TRANSPORT_COST_SURCHARGE NUMBER(3,
@@ -253,7 +253,7 @@ create or replace TABLE TRANSPORT_COST_SURCHARGE (
  -- Run the following statement to create a Snowflake managed internal stage to store the csv data files.
 
 -- Conversation History table for storing chat threads and messages
-create or replace TABLE CONVERSATION_HISTORY (
+CREATE OR REPLACE TABLE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.CONVERSATION_HISTORY (
 	CONVERSATION_ID STRING NOT NULL COMMENT 'Unique identifier for each conversation thread',
 	THREAD_NAME STRING NOT NULL COMMENT 'User-friendly name for the conversation thread',
 	CREATED_AT TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP() COMMENT 'Timestamp when the conversation was created',
