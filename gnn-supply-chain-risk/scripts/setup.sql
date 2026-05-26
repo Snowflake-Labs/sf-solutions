@@ -1073,35 +1073,43 @@ OVERWRITE = TRUE
 SINGLE = TRUE;
 
 -- ============================================================
--- Section 13: GPU Compute Pool (requires SPCS to be enabled)
--- NOTE: Comment out this section if SPCS is not available.
+-- Section 13: GPU Compute Pool
+-- REQUIRED FOR: gnn_supply_chain_risk.ipynb (original PyTorch Geometric notebook)
+-- NOT NEEDED FOR: gnn_supply_chain_risk_lite.ipynb (networkx/scikit-learn, CPU only)
+--
+-- Trial accounts: COMMENT OUT this entire section.
+-- Enterprise accounts with SPCS enabled: leave as-is.
 -- ============================================================
-CREATE COMPUTE POOL IF NOT EXISTS GNN_SUPPLY_CHAIN_COMPUTE_POOL
-    MIN_NODES = 1
-    MAX_NODES = 1
-    INSTANCE_FAMILY = GPU_NV_S
-    AUTO_RESUME = TRUE
-    AUTO_SUSPEND_SECS = 600
-    COMMENT = 'GPU compute pool for PyTorch Geometric GNN training';
+-- CREATE COMPUTE POOL IF NOT EXISTS GNN_SUPPLY_CHAIN_COMPUTE_POOL
+--     MIN_NODES = 1
+--     MAX_NODES = 1
+--     INSTANCE_FAMILY = GPU_NV_S
+--     AUTO_RESUME = TRUE
+--     AUTO_SUSPEND_SECS = 600
+--     COMMENT = 'GPU compute pool for PyTorch Geometric GNN training';
 
 -- ============================================================
--- Section 14: External Access Integration (requires enterprise account)
--- NOTE: Comment out this section if EAI is not available.
+-- Section 14: External Access Integration (PyPI for torch-geometric)
+-- REQUIRED FOR: gnn_supply_chain_risk.ipynb (original PyTorch Geometric notebook)
+-- NOT NEEDED FOR: gnn_supply_chain_risk_lite.ipynb (all packages via Snowflake conda)
+--
+-- Trial accounts: COMMENT OUT this entire section.
+-- Enterprise accounts with EAI support: leave as-is.
 -- ============================================================
-CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.PYPI_NETWORK_RULE
-    TYPE = HOST_PORT
-    MODE = EGRESS
-    VALUE_LIST = (
-        'pypi.org:443',
-        'files.pythonhosted.org:443',
-        'download.pytorch.org:443',
-        'data.pyg.org:443'
-    )
-    COMMENT = 'Required for PyTorch Geometric and dependencies in GNN notebook';
-
-CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION GNN_PYPI_ACCESS
-    ALLOWED_NETWORK_RULES = (SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.PYPI_NETWORK_RULE)
-    ENABLED = TRUE;
+-- CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.PYPI_NETWORK_RULE
+--     TYPE = HOST_PORT
+--     MODE = EGRESS
+--     VALUE_LIST = (
+--         'pypi.org:443',
+--         'files.pythonhosted.org:443',
+--         'download.pytorch.org:443',
+--         'data.pyg.org:443'
+--     )
+--     COMMENT = 'Required for PyTorch Geometric and dependencies in GNN notebook';
+--
+-- CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION GNN_PYPI_ACCESS
+--     ALLOWED_NETWORK_RULES = (SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.PYPI_NETWORK_RULE)
+--     ENABLED = TRUE;
 
 -- ============================================================
 -- Section 15: Cortex Agent
