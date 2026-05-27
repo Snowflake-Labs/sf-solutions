@@ -1114,19 +1114,33 @@ SINGLE = TRUE;
 -- ============================================================
 -- Section 15: Cortex Agent
 -- ============================================================
-CREATE OR REPLACE CORTEX AGENT SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SUPPLY_CHAIN_RISK_AGENT
-    WAREHOUSES = ('SF_SOLUTIONS_WH')
-    TOOLS = (
-        SUPPLY_CHAIN_ANALYTICS = (
-            TYPE = 'CORTEX_ANALYST_TOOL',
-            SEMANTIC_MODEL = '@SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SEMANTIC_MODELS/supply_chain_risk.yaml'
-        ),
-        RISK_SCENARIO_ANALYZER = (
-            TYPE = 'SQL_EXEC_TOOL',
-            SQL_EXPR = 'SELECT SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.ANALYZE_RISK_SCENARIO(:scenario_type, :target_region, :target_vendor, :shock_intensity)'
-        )
-    )
-    COMMENT = 'GNN Supply Chain Risk Copilot - answers questions via semantic view and scenario analysis UDF';
+CREATE OR REPLACE AGENT SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SUPPLY_CHAIN_RISK_AGENT
+    COMMENT = 'GNN Supply Chain Risk Copilot - answers questions via semantic view and scenario analysis UDF'
+    FROM SPECIFICATION
+    $$
+    instructions:
+      response: >
+        You are a supply chain risk analyst. Answer questions about vendor risk scores,
+        regional exposure, bottlenecks, and hidden Tier-2+ dependencies.
+        When asked about scenarios, use the RISK_SCENARIO_ANALYZER tool.
+      sample_questions:
+        - question: "What is our overall portfolio risk?"
+        - question: "Which regions have the highest supply chain risk?"
+        - question: "What are our biggest bottlenecks?"
+        - question: "Which suppliers have critical risk scores?"
+
+    tools:
+      - tool_spec:
+          type: cortex_analyst_text_to_sql
+          name: SUPPLY_CHAIN_ANALYTICS
+          description: >
+            Answers structured questions about vendor risk scores, regional exposure,
+            bottlenecks, and predicted hidden supplier links using SQL.
+
+    tool_resources:
+      SUPPLY_CHAIN_ANALYTICS:
+        semantic_model: "@SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SEMANTIC_MODELS/supply_chain_risk.yaml"
+    $$;
 
 -- ============================================================
 -- Section 16: Verification
