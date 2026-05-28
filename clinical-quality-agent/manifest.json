@@ -9,7 +9,14 @@
   "schemas": ["CLINICAL_QUALITY_SAFETY"],
   "role": "ACCOUNTADMIN",
   "requires_warehouse": true,
-  "requires_marketplace": ["PubMed Biomedical Research Corpus"],
+  "requires_marketplace": [
+    {
+      "name": "PubMed Biomedical Research Corpus",
+      "url": "https://app.snowflake.com/marketplace/listing/GZTYZ4386LY/cybersyn-pubmed-biomedical-research-corpus",
+      "required": false,
+      "note": "Strongly recommended. Enables PubMed medical literature search (38M+ articles). Agent works without it but Cortex Search tool will be unavailable."
+    }
+  ],
   "install_scripts": ["scripts/setup.sql"],
   "teardown_scripts": ["scripts/teardown.sql"],
   "features": [

@@ -39,9 +39,28 @@ Enables hospital Chief Quality Officers to analyze patient outcomes, healthcare-
 ## Prerequisites
 
 1. Snowflake account with Cortex Agent access
-2. **PubMed from Marketplace** (free):
-   - Data Products > Marketplace > "PubMed Biomedical Research Corpus" > Get
-3. Optional: Email notification integration for report sending
+2. Optional: Email notification integration for report sending
+
+## Pre-Installation: PubMed Marketplace Dataset (Strongly Recommended)
+
+> **This step must be done BEFORE running setup.sql.**
+> The Cortex Agent's medical literature search requires the PubMed dataset.
+> Without it, the Agent still works for data analytics (Cortex Analyst) but
+> cannot search biomedical research literature.
+
+**Install PubMed (free, ~30 seconds):**
+
+1. Open: https://app.snowflake.com/marketplace/listing/GZTYZ4386LY/cybersyn-pubmed-biomedical-research-corpus
+2. Click **Get**
+3. Accept terms and install with default database name `PUBMED_BIOMEDICAL_RESEARCH_CORPUS`
+
+Or manually: Snowsight > **Data Products** > **Marketplace** > Search "PubMed Biomedical Research Corpus" > **Get**
+
+Verify installation:
+```sql
+SHOW CORTEX SEARCH SERVICES IN SCHEMA PUBMED_BIOMEDICAL_RESEARCH_CORPUS.OA_COMM;
+-- Should show: PUBMED_OA_CKE_SEARCH_SERVICE
+```
 
 ## Installation
 
