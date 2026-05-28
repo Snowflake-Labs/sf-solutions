@@ -61,3 +61,6 @@ snowflake_jwt_*.json
 
 # Local files
 local.README.md
+
+.snowflake
+.cortex

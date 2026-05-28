@@ -4,8 +4,7 @@
   "version": "1.0.0",
   "industry": "Manufacturing",
   "description": "AI-driven N-tier supply chain resilience using Graph Neural Networks on Snowflake. Identifies hidden Tier-2+ supplier dependencies and concentration risks using PyTorch Geometric GraphSAGE on GPU compute.",
-  "source": "https://github.com/sfc-gh-trsmith/gnn_supply_chain_risk",
-  "license": "MIT",
+  "source": "",
   "database": "SF_SOLUTIONS",
   "schemas": ["GNN_SUPPLY_CHAIN_RISK"],
   "role": "ACCOUNTADMIN",
@@ -22,5 +21,5 @@
     "Streamlit in Snowflake",
     "External Access Integration"
   ],
-  "notes": "GPU Compute Pool (GPU_NV_S) and External Access Integration required for GNN notebook execution. Comment out Sections 13-14 of setup.sql if SPCS or EAI is not available. Run the GNN notebook after setup to populate RISK_SCORES, PREDICTED_LINKS, and BOTTLENECKS tables."
+  "notes": "GPU Compute Pool (GPU_NV_S) and External Access Integration required for GNN notebook execution. Comment out Sections 13-14 of setup.sql if SPCS or EAI is not available. After setup, run CALL SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.RUN_RISK_SCORING() (no SPCS required) or deploy the GNN notebook to populate RISK_SCORES, PREDICTED_LINKS, and BOTTLENECKS tables."
 }

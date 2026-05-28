@@ -78,6 +78,16 @@ After setup, deploy and execute the GNN notebook from `notebooks/gnn_supply_chai
 
 > Notebook runtime: ~10-15 minutes on first run (GPU cold start adds ~3-5 minutes).
 
+### Alternative: Run Risk Scoring via Stored Procedure (no SPCS required)
+
+If your account does not have Snowpark Container Services or External Access Integration, use the built-in stored procedure instead:
+
+```sql
+CALL SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.RUN_RISK_SCORING();
+```
+
+This uses NetworkX PageRank + Betweenness Centrality (CPU only) to compute risk scores, predict hidden Tier-2+ links, and identify bottlenecks. Results are written to the same output tables (`RISK_SCORES`, `PREDICTED_LINKS`, `BOTTLENECKS`).
+
 ### Deploy Streamlit
 
 Deploy `streamlit/` as a Streamlit in Snowflake app using the Snowflake CLI or Snowsight UI.

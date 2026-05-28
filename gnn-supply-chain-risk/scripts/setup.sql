@@ -1143,7 +1143,226 @@ CREATE OR REPLACE AGENT SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SUPPLY_CHAIN_RISK_AGE
     $$;
 
 -- ============================================================
--- Section 16: Verification
+-- Section 16: Stored Procedure - RUN_RISK_SCORING
+-- Alternative to the GNN notebook for accounts without SPCS/EAI.
+-- Uses NetworkX PageRank + Betweenness Centrality (CPU only).
+-- Populates: RISK_SCORES, PREDICTED_LINKS, BOTTLENECKS
+-- ============================================================
+CREATE OR REPLACE PROCEDURE SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.RUN_RISK_SCORING()
+RETURNS STRING
+LANGUAGE PYTHON
+RUNTIME_VERSION = '3.11'
+PACKAGES = ('snowflake-snowpark-python', 'pandas', 'numpy', 'networkx', 'scikit-learn')
+HANDLER = 'run'
+AS
+$$
+import numpy as np
+import pandas as pd
+import networkx as nx
+from difflib import SequenceMatcher
+
+def run(session):
+    DB_SCHEMA = 'SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK'
+    MODEL_VERSION = 'networkx-lite-v1'
+
+    vendors_df   = session.sql(f'SELECT * FROM {DB_SCHEMA}.VENDORS').to_pandas()
+    materials_df = session.sql(f'SELECT * FROM {DB_SCHEMA}.MATERIALS').to_pandas()
+    po_df        = session.sql(f'SELECT * FROM {DB_SCHEMA}.PURCHASE_ORDERS').to_pandas()
+    bom_df       = session.sql(f'SELECT * FROM {DB_SCHEMA}.BILL_OF_MATERIALS').to_pandas()
+    trade_df     = session.sql(f'SELECT * FROM {DB_SCHEMA}.TRADE_DATA').to_pandas()
+    regions_df   = session.sql(f'SELECT * FROM {DB_SCHEMA}.REGIONS').to_pandas()
+
+    region_map = regions_df.set_index('REGION_CODE').to_dict('index')
+
+    G = nx.DiGraph()
+
+    for _, v in vendors_df.iterrows():
+        reg = region_map.get(v['COUNTRY_CODE'], {})
+        base_risk = float(reg.get('BASE_RISK_SCORE', 0.3))
+        geo_risk  = float(reg.get('GEOPOLITICAL_RISK', 0.3))
+        fin_risk  = 1.0 - float(v['FINANCIAL_HEALTH_SCORE'])
+        node_risk = 0.50 * fin_risk + 0.30 * base_risk + 0.20 * geo_risk
+        G.add_node(f"V_{v['VENDOR_ID']}", node_type='SUPPLIER', raw_id=v['VENDOR_ID'],
+                   name=v['NAME'], country=v['COUNTRY_CODE'], initial_risk=node_risk)
+
+    for _, m in materials_df.iterrows():
+        node_risk = float(1.0 - m['CRITICALITY_SCORE']) * 0.5 + 0.1
+        G.add_node(f"M_{m['MATERIAL_ID']}", node_type='PART', raw_id=m['MATERIAL_ID'],
+                   name=m['DESCRIPTION'], initial_risk=node_risk)
+
+    shipper_stats = trade_df.groupby('SHIPPER_NAME').agg(
+        COUNTRY=('SHIPPER_COUNTRY', 'first'), COUNT=('BOL_ID', 'count')
+    ).reset_index()
+    for _, s in shipper_stats.iterrows():
+        reg = region_map.get(s['COUNTRY'], {})
+        node_risk = float(reg.get('BASE_RISK_SCORE', 0.4))
+        G.add_node(f"E_{s['SHIPPER_NAME']}", node_type='EXTERNAL_SUPPLIER',
+                   raw_id=s['SHIPPER_NAME'], name=s['SHIPPER_NAME'],
+                   country=s['COUNTRY'], shipment_count=int(s['COUNT']), initial_risk=node_risk)
+
+    for _, po in po_df.iterrows():
+        src, dst = f"V_{po['VENDOR_ID']}", f"M_{po['MATERIAL_ID']}"
+        spend = float(po['QUANTITY']) * float(po['UNIT_PRICE'])
+        if G.has_node(src) and G.has_node(dst):
+            if G.has_edge(src, dst):
+                G[src][dst]['weight'] += spend
+            else:
+                G.add_edge(src, dst, weight=spend, edge_type='SUPPLIES')
+
+    for _, b in bom_df.iterrows():
+        src, dst = f"M_{b['PARENT_MATERIAL_ID']}", f"M_{b['CHILD_MATERIAL_ID']}"
+        if G.has_node(src) and G.has_node(dst):
+            G.add_edge(src, dst, weight=float(b['QUANTITY_PER_UNIT']), edge_type='CONTAINS')
+
+    vendor_names = [(v['VENDOR_ID'], v['NAME'].lower()) for _, v in vendors_df.iterrows()]
+    trade_edges = []
+
+    def best_vendor_match(consignee, threshold=0.65):
+        consignee_l = consignee.lower()
+        best_id, best_score = None, 0.0
+        for vid, vname in vendor_names:
+            if vname in consignee_l or consignee_l in vname:
+                return vid, 1.0
+            score = SequenceMatcher(None, vname, consignee_l).ratio()
+            if score > best_score:
+                best_score, best_id = score, vid
+        return (best_id, best_score) if best_score >= threshold else (None, 0.0)
+
+    for _, t in trade_df.iterrows():
+        shipper_node = f"E_{t['SHIPPER_NAME']}"
+        vid, score = best_vendor_match(t['CONSIGNEE_NAME'])
+        if vid:
+            vendor_node = f"V_{vid}"
+            if G.has_node(shipper_node) and G.has_node(vendor_node):
+                if G.has_edge(shipper_node, vendor_node):
+                    G[shipper_node][vendor_node]['trade_count'] += 1
+                else:
+                    G.add_edge(shipper_node, vendor_node, weight=1.0, edge_type='SHIPS_TO',
+                               trade_count=1, match_score=score)
+                trade_edges.append((t['SHIPPER_NAME'], vid, score))
+
+    initial_risks = nx.get_node_attributes(G, 'initial_risk')
+    total_risk = sum(initial_risks.values()) or 1.0
+    personalization = {n: v / total_risk for n, v in initial_risks.items()}
+    pagerank = nx.pagerank(G, alpha=0.85, personalization=personalization, weight='weight', max_iter=200, tol=1e-6)
+    betweenness = nx.betweenness_centrality(G, normalized=True)
+
+    def norm01(vals_dict):
+        arr = np.array(list(vals_dict.values()))
+        lo, hi = arr.min(), arr.max()
+        normed = (arr - lo) / (hi - lo + 1e-9)
+        return dict(zip(vals_dict.keys(), normed))
+
+    pr_norm = norm01(pagerank)
+    bc_norm = norm01(betweenness)
+
+    risk_records = []
+    for node_id, data in G.nodes(data=True):
+        ntype = data['node_type']
+        if ntype not in ('SUPPLIER', 'PART'):
+            continue
+        base = data['initial_risk']
+        pr = pr_norm.get(node_id, 0.0)
+        bc = bc_norm.get(node_id, 0.0)
+        score = float(np.clip(0.50 * base + 0.35 * pr + 0.15 * bc, 0.05, 0.95))
+        if score >= 0.70: category = 'CRITICAL'
+        elif score >= 0.50: category = 'HIGH'
+        elif score >= 0.30: category = 'MEDIUM'
+        else: category = 'LOW'
+        confidence = float(np.clip(0.60 + 0.40 * bc, 0.55, 0.95))
+        risk_records.append({'NODE_ID': data['raw_id'], 'NODE_TYPE': ntype,
+                             'RISK_SCORE': round(score, 4), 'RISK_CATEGORY': category,
+                             'CONFIDENCE': round(confidence, 4), 'MODEL_VERSION': MODEL_VERSION})
+
+    risk_df = pd.DataFrame(risk_records)
+
+    shipper_vendor_map = {}
+    for shipper_name, vendor_id, match_score in trade_edges:
+        entry = shipper_vendor_map.setdefault(shipper_name, {})
+        if vendor_id not in entry:
+            entry[vendor_id] = {'count': 0, 'match_score': match_score}
+        entry[vendor_id]['count'] += 1
+        entry[vendor_id]['match_score'] = max(entry[vendor_id]['match_score'], match_score)
+
+    link_records = []
+    for shipper_name, vendor_map in shipper_vendor_map.items():
+        for vendor_id, stats in vendor_map.items():
+            trade_count = stats['count']
+            probability = min(0.50 + 0.05 * trade_count, 0.95)
+            if trade_count >= 5: evidence = 'STRONG'
+            elif trade_count >= 2: evidence = 'MODERATE'
+            else: evidence = 'WEAK'
+            link_records.append({'SOURCE_NODE_ID': shipper_name, 'SOURCE_NODE_TYPE': 'EXTERNAL_SUPPLIER',
+                                 'TARGET_NODE_ID': vendor_id, 'TARGET_NODE_TYPE': 'SUPPLIER',
+                                 'LINK_TYPE': 'INFERRED_SUPPLIES', 'PROBABILITY': round(probability, 4),
+                                 'EVIDENCE_STRENGTH': evidence, 'MODEL_VERSION': MODEL_VERSION})
+
+    link_df = pd.DataFrame(link_records) if link_records else pd.DataFrame()
+
+    risk_lookup = dict(zip(risk_df['NODE_ID'], risk_df['RISK_SCORE']))
+    bottleneck_records = []
+    for node_id, data in G.nodes(data=True):
+        if data['node_type'] != 'EXTERNAL_SUPPLIER':
+            continue
+        dependent_vendors = [G.nodes[s]['raw_id'] for s in G.successors(node_id)
+                             if G.nodes[s].get('node_type') == 'SUPPLIER']
+        if len(dependent_vendors) < 2:
+            continue
+        dep_risks = [risk_lookup.get(v, 0.3) for v in dependent_vendors]
+        avg_dep_risk = float(np.mean(dep_risks))
+        impact_score = float(np.clip(0.15 * len(dependent_vendors) + 0.50 * avg_dep_risk
+                                     + 0.35 * bc_norm.get(node_id, 0.0), 0.10, 0.99))
+        description = f"{len(dependent_vendors)} Tier-1 vendor(s) depend on this supplier (country: {data.get('country', 'UNK')})"
+        bottleneck_records.append({'NODE_ID': data['raw_id'], 'NODE_TYPE': 'EXTERNAL_SUPPLIER',
+                                   'DEPENDENT_COUNT': len(dependent_vendors), 'IMPACT_SCORE': round(impact_score, 4),
+                                   'DESCRIPTION': description, 'MITIGATION_STATUS': 'UNMITIGATED'})
+
+    bottleneck_df = pd.DataFrame(bottleneck_records).sort_values('IMPACT_SCORE', ascending=False) if bottleneck_records else pd.DataFrame()
+
+    # Write results using INSERT to avoid column mismatch with AUTOINCREMENT columns
+    session.sql(f'TRUNCATE TABLE IF EXISTS {DB_SCHEMA}.RISK_SCORES').collect()
+    session.sql(f'TRUNCATE TABLE IF EXISTS {DB_SCHEMA}.PREDICTED_LINKS').collect()
+    session.sql(f'TRUNCATE TABLE IF EXISTS {DB_SCHEMA}.BOTTLENECKS').collect()
+
+    for _, row in risk_df.iterrows():
+        node_id = row['NODE_ID'].replace("'", "''")
+        node_type = row['NODE_TYPE']
+        risk_score = row['RISK_SCORE']
+        risk_cat = row['RISK_CATEGORY']
+        conf = row['CONFIDENCE']
+        mv = MODEL_VERSION.replace("'", "''")
+        session.sql(f"""INSERT INTO {DB_SCHEMA}.RISK_SCORES (NODE_ID, NODE_TYPE, RISK_SCORE, RISK_CATEGORY, CONFIDENCE, MODEL_VERSION)
+                        VALUES ('{node_id}', '{node_type}', {risk_score}, '{risk_cat}', {conf}, '{mv}')""").collect()
+
+    if not link_df.empty:
+        for _, row in link_df.iterrows():
+            src_id = row['SOURCE_NODE_ID'].replace("'", "''")
+            src_type = row['SOURCE_NODE_TYPE']
+            tgt_id = row['TARGET_NODE_ID'].replace("'", "''")
+            tgt_type = row['TARGET_NODE_TYPE']
+            lt = row['LINK_TYPE']
+            prob = row['PROBABILITY']
+            ev = row['EVIDENCE_STRENGTH']
+            mv = MODEL_VERSION.replace("'", "''")
+            session.sql(f"""INSERT INTO {DB_SCHEMA}.PREDICTED_LINKS (SOURCE_NODE_ID, SOURCE_NODE_TYPE, TARGET_NODE_ID, TARGET_NODE_TYPE, LINK_TYPE, PROBABILITY, EVIDENCE_STRENGTH, MODEL_VERSION)
+                            VALUES ('{src_id}', '{src_type}', '{tgt_id}', '{tgt_type}', '{lt}', {prob}, '{ev}', '{mv}')""").collect()
+
+    if not bottleneck_df.empty:
+        for _, row in bottleneck_df.iterrows():
+            nid = row['NODE_ID'].replace("'", "''")
+            ntype = row['NODE_TYPE']
+            dc = int(row['DEPENDENT_COUNT'])
+            imp = row['IMPACT_SCORE']
+            desc = row['DESCRIPTION'].replace("'", "''")
+            ms = row['MITIGATION_STATUS']
+            session.sql(f"""INSERT INTO {DB_SCHEMA}.BOTTLENECKS (NODE_ID, NODE_TYPE, DEPENDENT_COUNT, IMPACT_SCORE, DESCRIPTION, MITIGATION_STATUS)
+                            VALUES ('{nid}', '{ntype}', {dc}, {imp}, '{desc}', '{ms}')""").collect()
+
+    return f"Done: {len(risk_df)} risk scores, {len(link_df)} predicted links, {len(bottleneck_df)} bottlenecks"
+$$;
+
+-- ============================================================
+-- Section 17: Verification
 -- ============================================================
 SELECT
     'GNN Supply Chain Risk Intelligence deployed!' AS STATUS,
@@ -1153,4 +1372,4 @@ SELECT
     (SELECT COUNT(*) FROM SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.TRADE_DATA) AS TRADE_DATA_COUNT,
     (SELECT COUNT(*) FROM SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.REGIONS) AS REGION_COUNT,
     (SELECT COUNT(*) FROM SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.RISK_SCORES) AS RISK_SCORES_COUNT,
-    'NOTE: Run GNN notebook to populate RISK_SCORES, PREDICTED_LINKS, BOTTLENECKS tables' AS NEXT_STEP;
+    'NOTE: Run CALL SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.RUN_RISK_SCORING() or deploy the GNN notebook to populate RISK_SCORES, PREDICTED_LINKS, BOTTLENECKS tables' AS NEXT_STEP;
