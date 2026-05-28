@@ -8,17 +8,22 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 | # | Solution | Industry | Directory | Key Snowflake Features | Status |
 |---|----------|----------|-----------|----------------------|--------|
-| 1 | **Retail Demand Forecasting & Inventory Optimization** | Retail / CPG | `retail-demand-forecasting/` | Snowflake ML Forecasting, Dynamic Tables | 📋 Planned |
-| 2 | **Customer Lifetime Value Prediction** | Retail / CPG | `ltv-prediction/` | Snowflake ML Regression, Cortex AI Functions | ✅ Done |
-| 3 | **Anti-Money Laundering (AML) Graph Analytics** | Finance, Public Sector | `aml-graph-analytics/` | Graph Analytics, Cortex Search, Streams | 📋 Planned |
-| 4 | **OMOP CDM (Clinical Data Model)** | Life Science / Healthcare | `omop-cdm/` | Snowpark, Data Sharing, dbt | 📋 Planned |
-| 5 | **Media Mix Modeling** | Media & Entertainment, Retail | `media-mix-modeling/` | Snowflake ML, Cortex AI Functions, Marketplace | 📋 Planned |
-| 6 | **Cybersecurity IOC Matching** | Public Sector, Technology | `cybersecurity-ioc-matching/` | Cortex Search, Streams, Dynamic Tables | 📋 Planned |
-| 7 | **GraphRAG** | Technology, Cross-Industry | `graphrag/` | Cortex Search, Cortex LLM, SPCS | 📋 Planned |
-| 8 | **Manufacturing Predictive Maintenance** | Manufacturing | `manufacturing-predictive-maintenance/` | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | ✅ Done |
-| 9 | **Supply Chain Intelligence Platform** | Manufacturing | `supply-chain-intelligence/` | Snowflake Intelligence, Cortex Analyst, Cortex Search, Semantic Model, Streamlit | ✅ Done |
-| 10 | **GNN Supply Chain Risk Intelligence** | Manufacturing | `gnn-supply-chain-risk/` | Graph Neural Networks, PyTorch Geometric, Cortex Agent, Cortex Analyst, SPCS GPU, Streamlit | ✅ Done |
-| 11 | **Clinical Quality and Patient Safety Agent** | Healthcare | `clinical-quality-agent/` | Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Snowflake Intelligence | ✅ Done |
+| 1 | **Customer Lifetime Value Prediction** | Retail / CPG | `ltv-prediction/` | Snowflake ML Regression, Cortex AI Functions | ✅ Done |
+| 2 | **Manufacturing Predictive Maintenance** | Manufacturing | `manufacturing-predictive-maintenance/` | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | ✅ Done |
+| 3 | **Supply Chain Intelligence Platform** | Manufacturing | `supply-chain-intelligence/` | Snowflake Intelligence, Cortex Analyst, Cortex Search, Semantic Model, Streamlit | ✅ Done |
+| 4 | **GNN Supply Chain Risk Intelligence** | Manufacturing | `gnn-supply-chain-risk/` | Graph Neural Networks, PyTorch Geometric, Cortex Agent, Cortex Analyst, SPCS GPU, Streamlit | ✅ Done |
+| 5 | **Clinical Quality and Patient Safety Agent** | Healthcare | `clinical-quality-agent/` | Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Snowflake Intelligence | ✅ Done |
+
+### Planned
+
+| # | Solution | Industry | Directory | Key Snowflake Features |
+|---|----------|----------|-----------|----------------------|
+| 6 | Retail Demand Forecasting & Inventory Optimization | Retail / CPG | `retail-demand-forecasting/` | Snowflake ML Forecasting, Dynamic Tables |
+| 7 | Anti-Money Laundering (AML) Graph Analytics | Finance, Public Sector | `aml-graph-analytics/` | Graph Analytics, Cortex Search, Streams |
+| 8 | OMOP CDM (Clinical Data Model) | Life Science / Healthcare | `omop-cdm/` | Snowpark, Data Sharing, dbt |
+| 9 | Media Mix Modeling | Media & Entertainment, Retail | `media-mix-modeling/` | Snowflake ML, Cortex AI Functions, Marketplace |
+| 10 | Cybersecurity IOC Matching | Public Sector, Technology | `cybersecurity-ioc-matching/` | Cortex Search, Streams, Dynamic Tables |
+| 11 | GraphRAG | Technology, Cross-Industry | `graphrag/` | Cortex Search, Cortex LLM, SPCS |
 
 ---
 

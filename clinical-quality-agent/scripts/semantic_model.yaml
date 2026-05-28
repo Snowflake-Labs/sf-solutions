@@ -1,0 +1,1135 @@
+name: clinical_quality_patient_safety_analytics
+description: "Enhanced semantic model for clinical quality and patient safety analytics with realistic clinical relationships enabling Chief Quality Officers to analyze patient outcomes, infections, mortality, and safety indicators using natural language. Focus: Provider-side clinical quality and patient safety (not payer/insurance)."
+
+# Define the logical tables and their relationships
+tables:
+  - name: patient_demographics
+    description: >
+      Patient demographic information with realistic age distribution (65% over 65) and 
+      insurance patterns. Enables age-stratified mortality and risk analysis.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY  
+      table: PATIENTS
+      
+    primary_key:
+      columns:
+        - patient_id
+    
+    dimensions:
+      - name: patient_id
+        synonyms: ["patient ID", "patient key", "patient number", "patient identifier"]
+        description: "Unique identifier for each patient"
+        expr: patient_id
+        data_type: STRING
+        unique: true
+        
+      - name: medical_record_number
+        synonyms: ["MRN", "medical record number", "medical record ID", "record number"]
+        description: "Medical record number for the patient"
+        expr: medical_record_number
+        data_type: STRING
+        unique: true
+        
+      - name: patient_name
+        synonyms: ["name", "patient name", "full name"]
+        description: "Patient's full name"
+        expr: first_name || ' ' || last_name
+        data_type: STRING
+        
+      - name: gender
+        synonyms: ["sex", "patient gender"]
+        description: "Patient's gender"
+        expr: gender
+        data_type: STRING
+        sample_values: ["M", "F", "Other"]
+        is_enum: true
+        
+      - name: race
+        synonyms: ["ethnicity", "race category", "racial background"]
+        description: "Patient's racial background"
+        expr: race
+        data_type: STRING
+        sample_values: ["White", "Black or African American", "Hispanic or Latino", "Asian", "American Indian or Alaska Native", "Native Hawaiian or Other Pacific Islander", "Other"]
+        
+      - name: insurance_type
+        synonyms: ["insurance", "payer", "coverage", "insurance plan"]
+        description: "Type of insurance coverage"
+        expr: insurance_type
+        data_type: STRING
+        sample_values: ["Medicare", "Medicaid", "Commercial", "Medicare Advantage", "Self-Pay", "Uninsured"]
+        
+      - name: primary_language
+        synonyms: ["language", "preferred language"]
+        description: "Patient's primary language"
+        expr: primary_language
+        data_type: STRING
+        sample_values: ["English", "Spanish", "Chinese", "Other"]
+        
+    time_dimensions:
+      - name: date_of_birth
+        synonyms: ["birth date", "DOB", "birthdate"]
+        description: "Patient's date of birth"
+        expr: date_of_birth
+        data_type: DATE
+        
+      - name: patient_age
+        synonyms: ["age", "age in years", "patient age"]
+        description: "Patient's current age in years"
+        expr: DATEDIFF(year, date_of_birth, CURRENT_DATE())
+        data_type: NUMBER
+        
+      - name: age_group
+        synonyms: ["age category", "age bracket", "age range"]
+        description: "Patient age grouped into clinically meaningful ranges"
+        expr: >
+          CASE 
+            WHEN DATEDIFF(year, date_of_birth, CURRENT_DATE()) < 50 THEN 'Under 50'
+            WHEN DATEDIFF(year, date_of_birth, CURRENT_DATE()) < 65 THEN '50-64'
+            WHEN DATEDIFF(year, date_of_birth, CURRENT_DATE()) < 75 THEN '65-74'
+            WHEN DATEDIFF(year, date_of_birth, CURRENT_DATE()) < 85 THEN '75-84'
+            ELSE '85+'
+          END
+        data_type: STRING
+        sample_values: ["Under 50", "50-64", "65-74", "75-84", "85+"]
+        
+  - name: hospital_admissions
+    description: >
+      Hospital admissions with realistic 2-3% mortality rate, age-stratified risk scores,
+      and proper length of stay patterns. Enables mortality analysis and risk adjustment.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY
+      table: ADMISSIONS
+      
+    primary_key:
+      columns:
+        - admission_id
+    
+    dimensions:
+      - name: admission_id
+        synonyms: ["admission ID", "encounter ID", "visit ID", "stay ID"]
+        description: "Unique identifier for each hospital admission"
+        expr: admission_id
+        data_type: STRING
+        unique: true
+        
+      - name: patient_id
+        synonyms: ["patient ID", "patient identifier"]
+        description: "Patient identifier"
+        expr: patient_id
+        data_type: STRING
+        
+      - name: admission_type
+        synonyms: ["type of admission", "admission category", "how admitted"]
+        description: "Type of hospital admission"
+        expr: admission_type
+        data_type: STRING
+        sample_values: ["Emergency", "Elective", "Urgent", "Observation"]
+        is_enum: true
+        
+      - name: discharge_disposition
+        synonyms: ["discharge status", "where discharged", "disposition", "outcome"]
+        description: "Patient's discharge disposition"
+        expr: discharge_disposition
+        data_type: STRING
+        sample_values: ["Home", "SNF", "Rehab", "AMA", "Expired", "Transfer"]
+        is_enum: true
+        
+      - name: primary_service
+        synonyms: ["service", "department", "service line", "admitting service"]
+        description: "Primary hospital service"
+        expr: primary_service
+        data_type: STRING
+        sample_values: ["Medicine", "Surgery", "ICU", "Emergency", "Cardiology"]
+        
+      - name: room_type
+        synonyms: ["unit", "ward", "room level", "care level"]
+        description: "Type of hospital room/unit"
+        expr: room_type
+        data_type: STRING
+        sample_values: ["ICU", "Step-down", "Med-Surg", "Emergency"]
+        
+      - name: attending_physician
+        synonyms: ["attending", "physician", "doctor", "primary doctor"]
+        description: "Attending physician"
+        expr: attending_physician
+        data_type: STRING
+        
+      - name: is_readmission
+        synonyms: ["readmission", "return visit", "readmitted"]
+        description: "Whether this is a readmission"
+        expr: is_readmission
+        data_type: BOOLEAN
+        
+    time_dimensions:
+      - name: admission_date
+        synonyms: ["admit date", "admission time", "when admitted"]
+        description: "Date and time of admission"
+        expr: admission_date
+        data_type: TIMESTAMP_NTZ
+        
+      - name: discharge_date
+        synonyms: ["discharge time", "when discharged", "release date"]
+        description: "Date and time of discharge"
+        expr: discharge_date
+        data_type: TIMESTAMP_NTZ
+        
+      - name: admission_month
+        synonyms: ["month admitted", "admission month"]
+        description: "Month of admission (for seasonal analysis)"
+        expr: DATE_TRUNC('month', admission_date)
+        data_type: DATE
+        
+    facts:
+      - name: length_of_stay_days
+        synonyms: ["LOS", "length of stay", "days in hospital", "stay duration"]
+        description: "Length of stay in days (correlated with age and complexity)"
+        expr: length_of_stay_days
+        data_type: NUMBER
+        
+      - name: severity_of_illness_score
+        synonyms: ["severity score", "illness severity", "SOI", "acuity"]
+        description: "Severity of illness score (1.0-4.0, age-stratified)"
+        expr: severity_of_illness_score
+        data_type: NUMBER
+        
+      - name: mortality_risk_score
+        synonyms: ["mortality risk", "death risk", "risk score", "mortality probability"]
+        description: "Predicted mortality risk (0.001-0.200, age-based)"
+        expr: mortality_risk_score
+        data_type: NUMBER
+        
+      - name: days_since_last_discharge
+        synonyms: ["time between admissions", "days since discharge"]
+        description: "Days since last discharge (for readmission analysis)"
+        expr: days_since_last_discharge
+        data_type: NUMBER
+        
+    metrics:
+      - name: total_admissions
+        synonyms: ["admission count", "number of admissions", "total encounters"]
+        description: "Total number of hospital admissions"
+        expr: COUNT(admission_id)
+        
+      - name: average_length_of_stay
+        synonyms: ["average LOS", "mean length of stay", "avg days"]
+        description: "Average length of stay in days"
+        expr: AVG(length_of_stay_days)
+        
+      - name: icu_admissions
+        synonyms: ["ICU admits", "critical care admissions", "intensive care"]
+        description: "Number of ICU admissions"
+        expr: COUNT(CASE WHEN room_type = 'ICU' THEN admission_id END)
+        
+      - name: emergency_admissions
+        synonyms: ["ED admits", "emergency admits", "urgent admissions"]
+        description: "Number of emergency admissions"
+        expr: COUNT(CASE WHEN admission_type = 'Emergency' THEN admission_id END)
+        
+      - name: readmission_rate
+        synonyms: ["readmission percentage", "return rate"]
+        description: "Percentage of admissions that are readmissions"
+        expr: COUNT(CASE WHEN is_readmission = TRUE THEN admission_id END) * 100.0 / COUNT(admission_id)
+        
+      - name: winter_admissions
+        synonyms: ["seasonal admissions", "winter surge"]
+        description: "Admissions during winter months (Dec-Feb)"
+        expr: COUNT(CASE WHEN MONTH(admission_date) IN (12, 1, 2) THEN admission_id END)
+
+  - name: medical_diagnoses
+    description: >
+      Medical diagnoses with age-appropriate patterns (elderly: heart failure, COPD; 
+      deaths: sepsis, cardiac arrest). Enables diagnosis-specific outcome analysis.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY
+      table: DIAGNOSES
+      
+    primary_key:
+      columns:
+        - diagnosis_id
+    
+    dimensions:
+      - name: diagnosis_id
+        synonyms: ["diagnosis ID", "diagnosis key", "condition ID"]
+        description: "Unique identifier for each diagnosis"
+        expr: diagnosis_id
+        data_type: STRING
+        unique: true
+        
+      - name: admission_id
+        synonyms: ["admission ID", "encounter ID"]
+        description: "Admission identifier"
+        expr: admission_id
+        data_type: STRING
+        
+      - name: patient_id
+        synonyms: ["patient ID", "patient identifier"]
+        description: "Patient identifier"
+        expr: patient_id
+        data_type: STRING
+        
+      - name: icd10_code
+        synonyms: ["ICD code", "ICD-10", "diagnosis code"]
+        description: "ICD-10 diagnosis code"
+        expr: icd10_code
+        data_type: STRING
+        
+      - name: diagnosis_description
+        synonyms: ["diagnosis", "condition", "disease", "medical condition"]
+        description: "Description of the medical diagnosis"
+        expr: diagnosis_description
+        data_type: STRING
+        
+      - name: diagnosis_type
+        synonyms: ["type of diagnosis", "diagnosis category"]
+        description: "Type of diagnosis"
+        expr: diagnosis_type
+        data_type: STRING
+        sample_values: ["Primary", "Secondary", "Comorbidity"]
+        is_enum: true
+        
+      - name: present_on_admission
+        synonyms: ["POA", "present on admit", "admission diagnosis"]
+        description: "Whether diagnosis was present on admission"
+        expr: present_on_admission
+        data_type: BOOLEAN
+        
+      - name: complication_flag
+        synonyms: ["complication", "hospital complication", "nosocomial"]
+        description: "Whether diagnosis is a hospital-acquired complication"
+        expr: complication_flag
+        data_type: BOOLEAN
+        
+    time_dimensions:
+      - name: diagnosis_date
+        synonyms: ["date diagnosed", "diagnosis time"]
+        description: "Date the diagnosis was made"
+        expr: diagnosis_date
+        data_type: DATE
+        
+    metrics:
+      - name: sepsis_cases
+        synonyms: ["sepsis count", "infection cases", "septicemia"]
+        description: "Number of sepsis cases (leading cause of hospital mortality)"
+        expr: COUNT(CASE WHEN icd10_code IN ('A41.9', 'R65.20') THEN diagnosis_id END)
+        
+      - name: heart_failure_cases
+        synonyms: ["CHF cases", "cardiac failure", "heart failure admissions"]
+        description: "Number of heart failure cases (common in elderly)"
+        expr: COUNT(CASE WHEN icd10_code = 'I50.9' THEN diagnosis_id END)
+        
+      - name: respiratory_failure_cases
+        synonyms: ["resp failure", "breathing problems", "ventilator cases"]
+        description: "Number of respiratory failure cases"
+        expr: COUNT(CASE WHEN icd10_code = 'J96.00' THEN diagnosis_id END)
+
+  - name: medical_procedures
+    description: >
+      Medical procedures with realistic diagnosis-procedure relationships (cardiac cath for MI,
+      cholecystectomy for gallstones). Enables procedure-specific outcome analysis.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY
+      table: PROCEDURES
+      
+    primary_key:
+      columns:
+        - procedure_id
+    
+    dimensions:
+      - name: procedure_id
+        synonyms: ["procedure ID", "procedure key", "intervention ID"]
+        description: "Unique identifier for each procedure"
+        expr: procedure_id
+        data_type: STRING
+        unique: true
+        
+      - name: admission_id
+        synonyms: ["admission ID", "encounter ID"]
+        description: "Admission identifier"
+        expr: admission_id
+        data_type: STRING
+        
+      - name: patient_id
+        synonyms: ["patient ID", "patient identifier"]
+        description: "Patient identifier"
+        expr: patient_id
+        data_type: STRING
+        
+      - name: cpt_code
+        synonyms: ["CPT", "CPT procedure code", "procedure code"]
+        description: "CPT procedure code"
+        expr: cpt_code
+        data_type: STRING
+        
+      - name: procedure_description
+        synonyms: ["procedure", "procedure name", "intervention", "operation"]
+        description: "Description of the medical procedure"
+        expr: procedure_description
+        data_type: STRING
+        
+      - name: procedure_type
+        synonyms: ["type of procedure", "procedure category"]
+        description: "Category of procedure"
+        expr: procedure_type
+        data_type: STRING
+        sample_values: ["Surgical", "Diagnostic", "Therapeutic"]
+        is_enum: true
+        
+      - name: procedure_location
+        synonyms: ["location", "where performed", "procedure site"]
+        description: "Where the procedure was performed"
+        expr: procedure_location
+        data_type: STRING
+        sample_values: ["OR", "ICU", "Floor", "Emergency", "Cardiac Cath Lab"]
+        
+      - name: anesthesia_type
+        synonyms: ["anesthesia", "type of anesthesia"]
+        description: "Type of anesthesia used"
+        expr: anesthesia_type
+        data_type: STRING
+        sample_values: ["Local", "Regional", "General", "Conscious sedation", "None"]
+        
+      - name: complication_occurred
+        synonyms: ["complications", "procedural complications", "adverse events"]
+        description: "Whether complications occurred during procedure"
+        expr: complication_occurred
+        data_type: BOOLEAN
+        
+      - name: infection_risk_level
+        synonyms: ["infection risk", "risk level", "contamination risk"]
+        description: "Risk level for post-procedure infection"
+        expr: infection_risk_level
+        data_type: STRING
+        sample_values: ["Low", "Medium", "High"]
+        is_enum: true
+        
+    time_dimensions:
+      - name: procedure_date
+        synonyms: ["date of procedure", "time of procedure", "when performed"]
+        description: "Date and time procedure was performed"
+        expr: procedure_date
+        data_type: TIMESTAMP_NTZ
+        
+    facts:
+      - name: procedure_duration_minutes
+        synonyms: ["duration", "length of procedure", "procedure time"]
+        description: "Duration of procedure in minutes (CABG: 4-8hrs, cath: 30-90min)"
+        expr: procedure_duration_minutes
+        data_type: NUMBER
+        
+    metrics:
+      - name: total_procedures
+        synonyms: ["procedure count", "number of procedures", "interventions"]
+        description: "Total number of procedures performed"
+        expr: COUNT(procedure_id)
+        
+      - name: surgical_procedures
+        synonyms: ["surgery count", "operations", "surgical cases"]
+        description: "Number of surgical procedures"
+        expr: COUNT(CASE WHEN procedure_type = 'Surgical' THEN procedure_id END)
+        
+      - name: cardiac_procedures
+        synonyms: ["heart procedures", "cardiac interventions", "cardiology procedures"]
+        description: "Number of cardiac procedures (cath, CABG, PCI)"
+        expr: COUNT(CASE WHEN cpt_code IN ('93458', '33533', '92982') THEN procedure_id END)
+        
+      - name: device_procedures
+        synonyms: ["device placement", "line placement", "catheter procedures"]
+        description: "Procedures involving device placement (central lines, catheters)"
+        expr: COUNT(CASE WHEN cpt_code IN ('36556', '51702', '31500') THEN procedure_id END)
+        
+      - name: procedure_complication_rate
+        synonyms: ["complication rate", "procedure complications", "adverse event rate"]
+        description: "Percentage of procedures with complications"
+        expr: COUNT(CASE WHEN complication_occurred = TRUE THEN procedure_id END) * 100.0 / COUNT(procedure_id)
+        
+      - name: high_risk_procedures
+        synonyms: ["high risk cases", "complex procedures"]
+        description: "Number of high infection risk procedures"
+        expr: COUNT(CASE WHEN infection_risk_level = 'High' THEN procedure_id END)
+
+  - name: healthcare_infections
+    description: >
+      Healthcare-associated infections with realistic device correlations (CAUTI with Foley,
+      CLABSI with central lines). Enables device-specific infection rate analysis.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY
+      table: INFECTIONS
+      
+    primary_key:
+      columns:
+        - infection_id
+    
+    dimensions:
+      - name: infection_id
+        synonyms: ["infection ID", "infection identifier", "HAI ID"]
+        description: "Unique identifier for each infection"
+        expr: infection_id
+        data_type: STRING
+        unique: true
+        
+      - name: admission_id
+        synonyms: ["admission ID", "encounter ID"]
+        description: "Admission identifier"
+        expr: admission_id
+        data_type: STRING
+        
+      - name: patient_id
+        synonyms: ["patient ID", "patient identifier"]
+        description: "Patient identifier"
+        expr: patient_id
+        data_type: STRING
+        
+      - name: infection_type
+        synonyms: ["type of infection", "infection category", "HAI type"]
+        description: "Type of healthcare-associated infection"
+        expr: infection_type
+        data_type: STRING
+        sample_values: ["CAUTI", "CLABSI", "VAP", "SSI", "CDIFF", "MRSA", "Pneumonia", "Sepsis"]
+        is_enum: true
+        
+      - name: infection_site
+        synonyms: ["site of infection", "infection location", "affected site"]
+        description: "Anatomical site of infection"
+        expr: infection_site
+        data_type: STRING
+        sample_values: ["Urinary", "Bloodstream", "Respiratory", "Surgical Site", "Skin/Soft Tissue", "Gastrointestinal"]
+        
+      - name: pathogen
+        synonyms: ["organism", "bacteria", "microorganism", "bug"]
+        description: "Microorganism causing the infection (E.coli for CAUTI, Staph for CLABSI)"
+        expr: pathogen
+        data_type: STRING
+        sample_values: ["E. coli", "Staphylococcus aureus", "Pseudomonas aeruginosa", "Klebsiella pneumoniae", "Enterococcus", "Candida albicans", "Clostridium difficile", "Acinetobacter"]
+        
+      - name: severity
+        synonyms: ["infection severity", "severity level", "how severe"]
+        description: "Severity level of the infection"
+        expr: severity
+        data_type: STRING
+        sample_values: ["Mild", "Moderate", "Severe", "Life-threatening"]
+        is_enum: true
+        
+      - name: device_associated
+        synonyms: ["device related", "device infection", "medical device"]
+        description: "Whether infection is associated with a medical device"
+        expr: device_associated
+        data_type: BOOLEAN
+        
+      - name: device_type
+        synonyms: ["type of device", "device", "medical equipment"]
+        description: "Type of medical device associated with infection"
+        expr: device_type
+        data_type: STRING
+        sample_values: ["Foley catheter", "Central line", "Ventilator", "Peripheral IV", "Surgical drain"]
+        
+      - name: antibiotic_resistance
+        synonyms: ["resistant", "antibiotic resistant", "drug resistant", "MDR"]
+        description: "Whether infection shows antibiotic resistance"
+        expr: antibiotic_resistance
+        data_type: BOOLEAN
+        
+      - name: infection_preventable
+        synonyms: ["preventable", "could have been prevented", "avoidable"]
+        description: "Whether the infection was preventable (70% of CAUTI, 65% of CLABSI)"
+        expr: infection_preventable
+        data_type: BOOLEAN
+        
+      - name: contributed_to_death
+        synonyms: ["caused death", "led to death", "death related", "fatal"]
+        description: "Whether the infection contributed to patient death"
+        expr: contributed_to_death
+        data_type: BOOLEAN
+        
+    time_dimensions:
+      - name: onset_date
+        synonyms: ["infection date", "date of infection", "when infected"]
+        description: "Date infection was identified"
+        expr: onset_date
+        data_type: DATE
+        
+      - name: resolution_date
+        synonyms: ["resolved date", "cure date", "infection cleared"]
+        description: "Date infection was resolved"
+        expr: resolution_date
+        data_type: DATE
+        
+    facts:
+      - name: days_to_onset
+        synonyms: ["days to infection", "incubation period", "onset days"]
+        description: "Days from admission to infection onset"
+        expr: days_to_onset
+        data_type: NUMBER
+        
+      - name: device_days
+        synonyms: ["device utilization", "days with device"]
+        description: "Number of days device was in place"
+        expr: device_days
+        data_type: NUMBER
+        
+    metrics:
+      - name: total_infections
+        synonyms: ["infection count", "HAI count", "nosocomial infections"]
+        description: "Total number of healthcare-associated infections"
+        expr: COUNT(infection_id)
+        
+      - name: infection_rate
+        synonyms: ["HAI rate", "infection percentage"]
+        description: "Healthcare-associated infection rate per 100 admissions"
+        expr: COUNT(infection_id) * 100.0 / COUNT(DISTINCT admission_id)
+        
+      - name: cauti_infections
+        synonyms: ["catheter UTIs", "urinary tract infections", "Foley infections"]
+        description: "Number of catheter-associated urinary tract infections"
+        expr: COUNT(CASE WHEN infection_type = 'CAUTI' THEN infection_id END)
+        
+      - name: clabsi_infections
+        synonyms: ["central line infections", "bloodstream infections", "line sepsis"]
+        description: "Number of central line-associated bloodstream infections"
+        expr: COUNT(CASE WHEN infection_type = 'CLABSI' THEN infection_id END)
+        
+      - name: vap_infections
+        synonyms: ["ventilator pneumonia", "VAP cases", "respirator infections"]
+        description: "Number of ventilator-associated pneumonia cases"
+        expr: COUNT(CASE WHEN infection_type = 'VAP' THEN infection_id END)
+        
+      - name: ssi_infections
+        synonyms: ["surgical site infections", "wound infections", "post-op infections"]
+        description: "Number of surgical site infections"
+        expr: COUNT(CASE WHEN infection_type = 'SSI' THEN infection_id END)
+        
+      - name: cdiff_infections
+        synonyms: ["C diff", "C difficile", "antibiotic-associated colitis"]
+        description: "Number of C. difficile infections"
+        expr: COUNT(CASE WHEN infection_type = 'CDIFF' THEN infection_id END)
+        
+      - name: device_associated_infections
+        synonyms: ["device infections", "device-related HAI"]
+        description: "Number of device-associated infections"
+        expr: COUNT(CASE WHEN device_associated = TRUE THEN infection_id END)
+        
+      - name: preventable_infections
+        synonyms: ["avoidable infections", "preventable HAI"]
+        description: "Number of preventable infections"
+        expr: COUNT(CASE WHEN infection_preventable = TRUE THEN infection_id END)
+        
+      - name: fatal_infections
+        synonyms: ["deadly infections", "infections causing death"]
+        description: "Number of infections that contributed to death"
+        expr: COUNT(CASE WHEN contributed_to_death = TRUE THEN infection_id END)
+        
+      - name: resistant_infections
+        synonyms: ["antibiotic resistant infections", "drug resistant bacteria"]
+        description: "Number of antibiotic-resistant infections"
+        expr: COUNT(CASE WHEN antibiotic_resistance = TRUE THEN infection_id END)
+        
+      - name: cauti_rate_per_1000_days
+        synonyms: ["CAUTI device rate", "catheter infection rate"]
+        description: "CAUTI infections per 1000 catheter days"
+        expr: >
+          COUNT(CASE WHEN infection_type = 'CAUTI' THEN infection_id END) * 1000.0 / 
+          NULLIF(SUM(CASE WHEN device_type = 'Foley catheter' THEN device_days END), 0)
+          
+      - name: clabsi_rate_per_1000_days
+        synonyms: ["CLABSI device rate", "central line infection rate"]
+        description: "CLABSI infections per 1000 central line days"
+        expr: >
+          COUNT(CASE WHEN infection_type = 'CLABSI' THEN infection_id END) * 1000.0 / 
+          NULLIF(SUM(CASE WHEN device_type = 'Central line' THEN device_days END), 0)
+
+  - name: patient_outcomes
+    description: >
+      Patient outcomes with realistic mortality causes tied to infections and procedures.
+      Enables analysis of preventable deaths and infection-mortality relationships.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY
+      table: OUTCOMES
+      
+    primary_key:
+      columns:
+        - outcome_id
+    
+    dimensions:
+      - name: outcome_id
+        synonyms: ["outcome ID", "outcome identifier", "result ID"]
+        description: "Unique identifier for each outcome"
+        expr: outcome_id
+        data_type: STRING
+        unique: true
+        
+      - name: admission_id
+        synonyms: ["admission ID", "encounter ID"]
+        description: "Admission identifier"
+        expr: admission_id
+        data_type: STRING
+        
+      - name: patient_id
+        synonyms: ["patient ID", "patient identifier"]
+        description: "Patient identifier"
+        expr: patient_id
+        data_type: STRING
+        
+      - name: outcome_type
+        synonyms: ["type of outcome", "result", "disposition"]
+        description: "Type of patient outcome"
+        expr: outcome_type
+        data_type: STRING
+        sample_values: ["Death", "Discharge", "Transfer", "AMA"]
+        is_enum: true
+        
+      - name: primary_cause
+        synonyms: ["cause of death", "primary diagnosis", "main cause"]
+        description: "Primary cause of outcome (realistic: sepsis, cardiac arrest, resp failure)"
+        expr: primary_cause
+        data_type: STRING
+        sample_values: ["Sepsis/Infection", "Cardiac arrest", "Respiratory failure", "Heart failure", "COPD exacerbation", "Multiple organ failure"]
+        
+      - name: expected_vs_actual
+        synonyms: ["expected outcome", "mortality prediction", "anticipated result"]
+        description: "Whether outcome was expected based on risk score"
+        expr: expected_vs_actual
+        data_type: STRING
+        sample_values: ["Expected", "Somewhat expected", "Unexpected"]
+        is_enum: true
+        
+      - name: preventable
+        synonyms: ["avoidable", "could have been prevented", "preventable death"]
+        description: "Whether the outcome was preventable"
+        expr: preventable
+        data_type: BOOLEAN
+        
+      - name: quality_issue_related
+        synonyms: ["quality problem", "care quality issue", "system failure"]
+        description: "Whether outcome is related to quality issues"
+        expr: quality_issue_related
+        data_type: BOOLEAN
+        
+      - name: infection_related
+        synonyms: ["infection caused", "HAI related", "sepsis related"]
+        description: "Whether outcome is related to healthcare-associated infection"
+        expr: infection_related
+        data_type: BOOLEAN
+        
+      - name: procedure_related
+        synonyms: ["surgery related", "procedure complication"]
+        description: "Whether outcome is related to procedure complications"
+        expr: procedure_related
+        data_type: BOOLEAN
+        
+      - name: medication_related
+        synonyms: ["drug related", "medication error", "pharmacy issue"]
+        description: "Whether outcome is related to medication issues"
+        expr: medication_related
+        data_type: BOOLEAN
+        
+      - name: readmission_within_30_days
+        synonyms: ["30-day readmission", "readmitted within 30 days"]
+        description: "Whether patient was readmitted within 30 days"
+        expr: readmission_within_30_days
+        data_type: BOOLEAN
+        
+      - name: readmission_within_90_days
+        synonyms: ["90-day readmission", "readmitted within 90 days"]
+        description: "Whether patient was readmitted within 90 days"
+        expr: readmission_within_90_days
+        data_type: BOOLEAN
+        
+    time_dimensions:
+      - name: outcome_date
+        synonyms: ["date of outcome", "outcome time", "when occurred"]
+        description: "Date and time of the outcome"
+        expr: outcome_date
+        data_type: TIMESTAMP_NTZ
+        
+    facts:
+      - name: satisfaction_score
+        synonyms: ["patient satisfaction", "satisfaction rating", "HCAHPS score"]
+        description: "Patient satisfaction score (lower for deaths and complications)"
+        expr: satisfaction_score
+        data_type: NUMBER
+        
+    metrics:
+      - name: total_deaths
+        synonyms: ["mortality count", "number of deaths", "death count", "fatalities"]
+        description: "Total number of patient deaths"
+        expr: COUNT(CASE WHEN outcome_type = 'Death' THEN outcome_id END)
+        
+      - name: mortality_rate
+        synonyms: ["death rate", "mortality percentage", "case fatality rate"]
+        description: "Percentage of admissions resulting in death (realistic: 2-3%)"
+        expr: >
+          COUNT(CASE WHEN outcome_type = 'Death' THEN outcome_id END) * 100.0 / 
+          COUNT(DISTINCT admission_id)
+        
+      - name: infection_related_deaths
+        synonyms: ["deaths from infection", "infection mortality", "sepsis deaths", "HAI deaths"]
+        description: "Number of deaths related to healthcare-associated infections"
+        expr: COUNT(CASE WHEN outcome_type = 'Death' AND infection_related = TRUE THEN outcome_id END)
+        
+      - name: preventable_deaths
+        synonyms: ["avoidable deaths", "preventable mortality"]
+        description: "Number of deaths that were preventable"
+        expr: COUNT(CASE WHEN outcome_type = 'Death' AND preventable = TRUE THEN outcome_id END)
+        
+      - name: unexpected_deaths
+        synonyms: ["unexpected mortality", "unanticipated deaths"]
+        description: "Number of unexpected deaths (low predicted risk)"
+        expr: COUNT(CASE WHEN outcome_type = 'Death' AND expected_vs_actual = 'Unexpected' THEN outcome_id END)
+        
+      - name: procedure_related_deaths
+        synonyms: ["operative mortality", "surgical deaths", "procedure deaths"]
+        description: "Number of deaths related to procedure complications"
+        expr: COUNT(CASE WHEN outcome_type = 'Death' AND procedure_related = TRUE THEN outcome_id END)
+        
+      - name: thirty_day_readmissions
+        synonyms: ["30-day readmission count", "readmissions within 30 days"]
+        description: "Number of 30-day readmissions"
+        expr: COUNT(CASE WHEN readmission_within_30_days = TRUE THEN outcome_id END)
+        
+      - name: average_satisfaction_score
+        synonyms: ["mean satisfaction", "avg patient satisfaction", "HCAHPS average"]
+        description: "Average patient satisfaction score"
+        expr: AVG(satisfaction_score)
+        
+      - name: sepsis_mortality_rate
+        synonyms: ["sepsis death rate", "infection death rate"]
+        description: "Mortality rate for sepsis/infection cases"
+        expr: >
+          COUNT(CASE WHEN outcome_type = 'Death' AND primary_cause = 'Sepsis/Infection' THEN outcome_id END) * 100.0 / 
+          NULLIF(COUNT(CASE WHEN primary_cause = 'Sepsis/Infection' THEN outcome_id END), 0)
+
+  - name: quality_safety_events
+    description: >
+      Patient safety events with realistic age and device correlations (pressure injuries 
+      in elderly, device malfunctions with device usage). Enables preventability analysis.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY
+      table: QUALITY_EVENTS
+      
+    primary_key:
+      columns:
+        - event_id
+    
+    dimensions:
+      - name: event_id
+        synonyms: ["event ID", "safety event ID", "incident ID"]
+        description: "Unique identifier for each quality event"
+        expr: event_id
+        data_type: STRING
+        unique: true
+        
+      - name: admission_id
+        synonyms: ["admission ID", "encounter ID"]
+        description: "Admission identifier"
+        expr: admission_id
+        data_type: STRING
+        
+      - name: patient_id
+        synonyms: ["patient ID", "patient identifier"]
+        description: "Patient identifier"
+        expr: patient_id
+        data_type: STRING
+        
+      - name: event_type
+        synonyms: ["type of event", "safety event type", "incident type"]
+        description: "Type of patient safety event"
+        expr: event_type
+        data_type: STRING
+        sample_values: ["Pressure_Injury", "Fall", "Medication_Error", "Wrong_Site_Surgery", "Device_Malfunction", "Communication_Failure"]
+        
+      - name: severity
+        synonyms: ["event severity", "severity level", "how serious"]
+        description: "Severity level of the safety event"
+        expr: severity
+        data_type: STRING
+        sample_values: ["Minor", "Moderate", "Major", "Catastrophic"]
+        is_enum: true
+        
+      - name: harm_level
+        synonyms: ["harm", "patient harm", "level of harm", "injury level"]
+        description: "Level of harm caused to patient"
+        expr: harm_level
+        data_type: STRING
+        sample_values: ["No harm", "Temporary harm", "Permanent harm", "Death"]
+        is_enum: true
+        
+      - name: preventable
+        synonyms: ["could have been prevented", "preventable event", "avoidable"]
+        description: "Whether the event was preventable (70-90% of events)"
+        expr: preventable
+        data_type: BOOLEAN
+        
+      - name: reported_by
+        synonyms: ["who reported", "reporter", "reporting person"]
+        description: "Who reported the safety event"
+        expr: reported_by
+        data_type: STRING
+        sample_values: ["Nurse", "Physician", "Patient", "Family"]
+        
+      - name: location
+        synonyms: ["where occurred", "event location", "unit"]
+        description: "Hospital location where event occurred"
+        expr: location
+        data_type: STRING
+        
+      - name: event_resolved
+        synonyms: ["resolved", "fixed", "completed"]
+        description: "Whether the event has been resolved"
+        expr: event_resolved
+        data_type: BOOLEAN
+        
+      - name: contributed_to_death
+        synonyms: ["caused death", "led to death", "death related", "fatal event"]
+        description: "Whether the event contributed to patient death"
+        expr: contributed_to_death
+        data_type: BOOLEAN
+        
+    time_dimensions:
+      - name: event_date
+        synonyms: ["date of event", "when occurred", "event time"]
+        description: "Date the safety event occurred"
+        expr: event_date
+        data_type: DATE
+        
+      - name: resolution_date
+        synonyms: ["date resolved", "when fixed", "completion date"]
+        description: "Date the event was resolved"
+        expr: resolution_date
+        data_type: DATE
+        
+    metrics:
+      - name: total_quality_events
+        synonyms: ["safety event count", "number of quality events", "adverse event count"]
+        description: "Total number of patient safety events"
+        expr: COUNT(event_id)
+        
+      - name: quality_event_rate
+        synonyms: ["safety event rate", "incident rate"]
+        description: "Safety events per 100 admissions"
+        expr: COUNT(event_id) * 100.0 / COUNT(DISTINCT admission_id)
+        
+      - name: pressure_injuries
+        synonyms: ["pressure ulcer count", "bedsore count", "skin breakdown"]
+        description: "Number of pressure injury events (common in elderly)"
+        expr: COUNT(CASE WHEN event_type = 'Pressure_Injury' THEN event_id END)
+        
+      - name: falls
+        synonyms: ["patient falls", "fall incidents", "fall injuries"]
+        description: "Number of patient fall events"
+        expr: COUNT(CASE WHEN event_type = 'Fall' THEN event_id END)
+        
+      - name: medication_errors
+        synonyms: ["drug errors", "pharmacy errors", "medication mistakes"]
+        description: "Number of medication error events"
+        expr: COUNT(CASE WHEN event_type = 'Medication_Error' THEN event_id END)
+        
+      - name: preventable_events
+        synonyms: ["avoidable events", "preventable incidents"]
+        description: "Number of preventable safety events"
+        expr: COUNT(CASE WHEN preventable = TRUE THEN event_id END)
+        
+      - name: serious_events
+        synonyms: ["major events", "severe incidents", "serious safety events"]
+        description: "Number of major or catastrophic events"
+        expr: COUNT(CASE WHEN severity IN ('Major', 'Catastrophic') THEN event_id END)
+        
+      - name: events_causing_harm
+        synonyms: ["harmful events", "events with injury"]
+        description: "Number of events causing temporary or permanent harm"
+        expr: COUNT(CASE WHEN harm_level IN ('Temporary harm', 'Permanent harm', 'Death') THEN event_id END)
+
+  - name: patient_risk_factors
+    description: >
+      Patient risk factors with realistic age-based comorbidity clusters (diabetes+hypertension 
+      in elderly). Enables risk-stratified analysis and outcome prediction.
+    
+    base_table:
+      database: SF_SOLUTIONS
+      schema: CLINICAL_QUALITY_SAFETY
+      table: RISK_FACTORS
+      
+    primary_key:
+      columns:
+        - risk_factor_id
+    
+    dimensions:
+      - name: risk_factor_id
+        synonyms: ["risk ID", "risk factor ID", "comorbidity ID"]
+        description: "Unique identifier for each risk factor"
+        expr: risk_factor_id
+        data_type: STRING
+        unique: true
+        
+      - name: patient_id
+        synonyms: ["patient ID", "patient identifier"]
+        description: "Patient identifier"
+        expr: patient_id
+        data_type: STRING
+        
+      - name: admission_id
+        synonyms: ["admission ID", "encounter ID"]
+        description: "Admission identifier"
+        expr: admission_id
+        data_type: STRING
+        
+      - name: risk_factor_type
+        synonyms: ["type of risk", "risk category"]
+        description: "Category of risk factor"
+        expr: risk_factor_type
+        data_type: STRING
+        sample_values: ["Comorbidity", "Social", "Environmental"]
+        is_enum: true
+        
+      - name: risk_factor_name
+        synonyms: ["risk factor", "comorbidity", "condition"]
+        description: "Name of the risk factor"
+        expr: risk_factor_name
+        data_type: STRING
+        sample_values: ["Diabetes mellitus", "Hypertension", "COPD", "Heart failure", "Chronic kidney disease", "Age > 65", "Obesity"]
+        
+      - name: chronic_condition
+        synonyms: ["chronic disease", "long-term condition"]
+        description: "Whether this is a chronic condition"
+        expr: chronic_condition
+        data_type: BOOLEAN
+        
+      - name: affects_mortality_risk
+        synonyms: ["increases death risk", "mortality risk factor"]
+        description: "Whether this factor increases mortality risk"
+        expr: affects_mortality_risk
+        data_type: BOOLEAN
+        
+      - name: affects_infection_risk
+        synonyms: ["increases infection risk", "infection risk factor"]
+        description: "Whether this factor increases infection risk"
+        expr: affects_infection_risk
+        data_type: BOOLEAN
+        
+      - name: affects_los_risk
+        synonyms: ["increases length of stay", "LOS risk factor"]
+        description: "Whether this factor increases length of stay"
+        expr: affects_los_risk
+        data_type: BOOLEAN
+        
+    time_dimensions:
+      - name: documented_date
+        synonyms: ["date documented", "when identified"]
+        description: "Date risk factor was documented"
+        expr: documented_date
+        data_type: DATE
+        
+    facts:
+      - name: severity_score
+        synonyms: ["risk score", "severity rating", "risk level"]
+        description: "Severity score for this risk factor (1.0-4.5)"
+        expr: severity_score
+        data_type: NUMBER
+        
+    metrics:
+      - name: total_risk_factors
+        synonyms: ["comorbidity count", "risk factor count"]
+        description: "Total number of documented risk factors"
+        expr: COUNT(risk_factor_id)
+        
+      - name: diabetes_cases
+        synonyms: ["diabetic patients", "diabetes mellitus"]
+        description: "Number of patients with diabetes"
+        expr: COUNT(CASE WHEN risk_factor_name = 'Diabetes mellitus' THEN risk_factor_id END)
+        
+      - name: hypertension_cases
+        synonyms: ["high blood pressure", "HTN patients"]
+        description: "Number of patients with hypertension"
+        expr: COUNT(CASE WHEN risk_factor_name = 'Hypertension' THEN risk_factor_id END)
+        
+      - name: elderly_patients
+        synonyms: ["patients over 65", "geriatric patients"]
+        description: "Number of elderly patients (age > 65)"
+        expr: COUNT(CASE WHEN risk_factor_name = 'Age > 65' THEN risk_factor_id END)
+        
+      - name: high_mortality_risk_factors
+        synonyms: ["death risk factors", "mortality risks"]
+        description: "Number of risk factors that increase mortality"
+        expr: COUNT(CASE WHEN affects_mortality_risk = TRUE THEN risk_factor_id END)
+        
+      - name: high_infection_risk_factors
+        synonyms: ["infection risk factors", "HAI risks"]
+        description: "Number of risk factors that increase infection risk"
+        expr: COUNT(CASE WHEN affects_infection_risk = TRUE THEN risk_factor_id END)
+
+# Define relationships between tables
+relationships:
+  - name: admissions_to_patient
+    left_table: hospital_admissions
+    right_table: patient_demographics
+    relationship_columns:
+      - left_column: patient_id
+        right_column: patient_id
+    join_type: left_outer
+    relationship_type: many_to_one
+    
+  - name: diagnoses_to_admissions
+    left_table: medical_diagnoses
+    right_table: hospital_admissions
+    relationship_columns:
+      - left_column: admission_id
+        right_column: admission_id
+    join_type: left_outer
+    relationship_type: many_to_one
+    
+  - name: procedures_to_admissions
+    left_table: medical_procedures
+    right_table: hospital_admissions
+    relationship_columns:
+      - left_column: admission_id
+        right_column: admission_id
+    join_type: left_outer
+    relationship_type: many_to_one
+    
+  - name: infections_to_admissions
+    left_table: healthcare_infections
+    right_table: hospital_admissions
+    relationship_columns:
+      - left_column: admission_id
+        right_column: admission_id
+    join_type: left_outer
+    relationship_type: many_to_one
+    
+  - name: quality_events_to_admissions
+    left_table: quality_safety_events
+    right_table: hospital_admissions
+    relationship_columns:
+      - left_column: admission_id
+        right_column: admission_id
+    join_type: left_outer
+    relationship_type: many_to_one
+    
+  - name: outcomes_to_admissions
+    left_table: patient_outcomes
+    right_table: hospital_admissions
+    relationship_columns:
+      - left_column: admission_id
+        right_column: admission_id
+    join_type: left_outer
+    relationship_type: many_to_one
+    
+  - name: risk_factors_to_admissions
+    left_table: patient_risk_factors
+    right_table: hospital_admissions
+    relationship_columns:
+      - left_column: admission_id
+        right_column: admission_id
+    join_type: left_outer
+    relationship_type: many_to_one 
