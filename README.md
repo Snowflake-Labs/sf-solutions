@@ -16,6 +16,22 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ---
 
+## Quick Install (via Cortex Code)
+
+Install any solution with a single command using the [solutions-installer](https://github.com/Snowflake-Labs/cortex-code-skills/tree/main/skills/solutions-installer) skill:
+
+```bash
+# 1. Install the solutions-installer skill
+cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
+
+# 2. Run the installer
+$solutions-installer
+```
+
+The installer reads each solution's `manifest.json`, handles prerequisites, and executes `setup.sql` against your Snowflake account.
+
+---
+
 ## Getting Started
 
 Each solution is self-contained in its own directory with:
