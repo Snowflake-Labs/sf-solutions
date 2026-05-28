@@ -14,17 +14,6 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 | 4 | **GNN Supply Chain Risk Intelligence** | Manufacturing | `gnn-supply-chain-risk/` | Graph Neural Networks, PyTorch Geometric, Cortex Agent, Cortex Analyst, SPCS GPU, Streamlit | ✅ Done |
 | 5 | **Clinical Quality and Patient Safety Agent** | Healthcare | `clinical-quality-agent/` | Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Snowflake Intelligence | ✅ Done |
 
-### Planned
-
-| # | Solution | Industry | Directory | Key Snowflake Features |
-|---|----------|----------|-----------|----------------------|
-| 6 | Retail Demand Forecasting & Inventory Optimization | Retail / CPG | `retail-demand-forecasting/` | Snowflake ML Forecasting, Dynamic Tables |
-| 7 | Anti-Money Laundering (AML) Graph Analytics | Finance, Public Sector | `aml-graph-analytics/` | Graph Analytics, Cortex Search, Streams |
-| 8 | OMOP CDM (Clinical Data Model) | Life Science / Healthcare | `omop-cdm/` | Snowpark, Data Sharing, dbt |
-| 9 | Media Mix Modeling | Media & Entertainment, Retail | `media-mix-modeling/` | Snowflake ML, Cortex AI Functions, Marketplace |
-| 10 | Cybersecurity IOC Matching | Public Sector, Technology | `cybersecurity-ioc-matching/` | Cortex Search, Streams, Dynamic Tables |
-| 11 | GraphRAG | Technology, Cross-Industry | `graphrag/` | Cortex Search, Cortex LLM, SPCS |
-
 ---
 
 ## Getting Started
