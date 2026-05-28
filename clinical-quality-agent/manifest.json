@@ -1,0 +1,30 @@
+{
+  "name": "clinical-quality-agent",
+  "display_name": "Clinical Quality and Patient Safety Agent",
+  "version": "1.0.0",
+  "industry": "Healthcare & Life Sciences",
+  "description": "AI-powered Cortex Agent for Chief Quality Officers to analyze patient outcomes, infections, mortality rates, and safety indicators using natural language. Combines Cortex Analyst (text-to-SQL), PubMed Cortex Search (38M+ articles), and email notifications.",
+  "license": "MIT",
+  "database": "SF_SOLUTIONS",
+  "schemas": ["CLINICAL_QUALITY_SAFETY"],
+  "role": "ACCOUNTADMIN",
+  "requires_warehouse": true,
+  "requires_marketplace": [
+    {
+      "name": "PubMed Biomedical Research Corpus",
+      "url": "https://app.snowflake.com/marketplace/listing/GZTYZ4386LY/cybersyn-pubmed-biomedical-research-corpus",
+      "required": false,
+      "note": "Strongly recommended. Enables PubMed medical literature search (38M+ articles). Agent works without it but Cortex Search tool will be unavailable."
+    }
+  ],
+  "install_scripts": ["scripts/setup.sql"],
+  "teardown_scripts": ["scripts/teardown.sql"],
+  "features": [
+    "Cortex Agent",
+    "Cortex Analyst",
+    "Cortex Search (PubMed Marketplace)",
+    "Semantic Model",
+    "Snowflake Intelligence"
+  ],
+  "notes": "Requires PubMed Biomedical Research Corpus from Snowflake Marketplace (free). Data generation creates 75K patients with configurable quality trends. No Streamlit - uses Snowflake Intelligence UI."
+}
