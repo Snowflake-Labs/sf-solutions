@@ -1,0 +1,10 @@
+{
+  "name": "snowflake-solutions",
+  "description": "Install pre-built Snowflake industry solutions (manufacturing, healthcare, supply chain) into your Snowflake account. Requires snowflake-cortex-code plugin for SQL execution.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Snowflake Labs (Sho Tanaka)"
+  },
+  "homepage": "https://github.com/Snowflake-Labs/sf-solutions",
+  "repository": "https://github.com/Snowflake-Labs/sf-solutions"
+}
