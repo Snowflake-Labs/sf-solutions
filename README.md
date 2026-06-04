@@ -22,10 +22,10 @@ Install any solution with a single command using the [solutions-installer](https
 
 ```bash
 # 1. Install the solutions-installer skill
-cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
+cortex skill add https://github.com/Snowflake-Labs/coco-skills.git
 
 # 2. Run the installer
-$solutions-installer
+$solutions-install
 ```
 
 The installer reads each solution's `manifest.json`, handles prerequisites, and executes `setup.sql` against your Snowflake account.
