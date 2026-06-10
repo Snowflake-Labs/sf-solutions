@@ -1,0 +1,13 @@
+{
+  "name": "snowflake-solutions-marketplace",
+  "description": "Snowflake Industry Solution Installers for Claude Code",
+  "owner": {
+    "name": "Snowflake Labs"
+  },
+  "plugins": [
+    {
+      "name": "snowflake-solutions",
+      "source": "."
+    }
+  ]
+}

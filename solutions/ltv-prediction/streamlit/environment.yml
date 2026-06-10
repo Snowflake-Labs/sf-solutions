@@ -1,0 +1,6 @@
+name: ltv_prediction_dashboard
+channels:
+  - snowflake
+dependencies:
+  - plotly
+  - pandas
