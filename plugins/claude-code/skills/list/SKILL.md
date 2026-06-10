@@ -15,9 +15,9 @@ description: >
    ```
    Or check if it exists at `~/project/sf-solutions/` or the current directory.
 
-2. Find all `manifest.json` files:
+2. Find all `manifest.json` files under the `solutions/` directory only:
    ```bash
-   find <repo> -maxdepth 2 -name "manifest.json" -not -path "*/plugins/*" -not -path "*/.claude-plugin/*"
+   find <repo>/solutions -maxdepth 2 -name "manifest.json"
    ```
 
 3. Read each manifest and present:
