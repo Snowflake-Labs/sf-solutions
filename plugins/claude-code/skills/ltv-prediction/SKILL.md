@@ -31,7 +31,7 @@ Parse the action from `$ARGUMENTS`:
    ```
    Or check `~/project/sf-solutions/`, current directory.
 
-2. Read `ltv-prediction/manifest.json` from the repository.
+2. Read `solutions/ltv-prediction/manifest.json` from the repository.
 
 3. Present the installation plan:
    ```
@@ -53,7 +53,7 @@ Parse the action from `$ARGUMENTS`:
 
 4. Wait for user confirmation.
 
-5. Read `ltv-prediction/scripts/setup.sql` from the repository and execute it against Snowflake statement by statement.
+5. Read `solutions/ltv-prediction/scripts/setup.sql` from the repository and execute it against Snowflake statement by statement.
    - The ML model training step may take 2-5 minutes (use timeout_seconds: 600)
    - The PREDICT call depends on RESULT_SCAN — execute immediately after
 
@@ -85,7 +85,7 @@ Parse the action from `$ARGUMENTS`:
 If `$ARGUMENTS` is "teardown":
 
 1. Confirm with user: "This will drop LTV_RAW, LTV_ANALYTICS, LTV_ML schemas. Proceed?"
-2. Read and execute `ltv-prediction/scripts/teardown.sql` from the repository.
+2. Read and execute `solutions/ltv-prediction/scripts/teardown.sql` from the repository.
 3. Confirm: "Customer Lifetime Value Prediction removed."
 
 ## Usage Help

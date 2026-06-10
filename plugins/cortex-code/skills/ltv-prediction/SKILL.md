@@ -36,7 +36,7 @@ Parse the action from `$ARGUMENTS`:
    - Check current working directory
    - If not found: `git clone https://github.com/Snowflake-Labs/sf-solutions.git /tmp/sf-solutions`
 
-2. Read `ltv-prediction/manifest.json`.
+2. Read `solutions/ltv-prediction/manifest.json`.
 
 3. Present the installation plan:
    ```
@@ -58,7 +58,7 @@ Parse the action from `$ARGUMENTS`:
 
 4. Wait for user confirmation.
 
-5. Read `ltv-prediction/scripts/setup.sql` and execute statement by statement using `snowflake_sql_execute`.
+5. Read `solutions/ltv-prediction/scripts/setup.sql` and execute statement by statement using `snowflake_sql_execute`.
    - ML model training: use `timeout_seconds: 600`
    - PREDICT call depends on RESULT_SCAN — execute immediately after model call
    - Log progress after each major section
@@ -78,7 +78,7 @@ Parse the action from `$ARGUMENTS`:
 If `$ARGUMENTS` is "teardown":
 
 1. Confirm with user.
-2. Read and execute `ltv-prediction/scripts/teardown.sql` statement by statement.
+2. Read and execute `solutions/ltv-prediction/scripts/teardown.sql` statement by statement.
 3. Confirm removal.
 
 ## Usage Help
