@@ -97,6 +97,17 @@ If `$ARGUMENTS` is "teardown":
 2. Read and execute `solutions/ltv-prediction/scripts/teardown.sql` from the repository.
 3. Confirm: "Customer Lifetime Value Prediction removed."
 
+## Next Actions
+
+If the user asks "what next?", "what can I do?", or "how to customize":
+
+Read and present the content from `NEXT_ACTIONS.md` (located in this skill's directory).
+Present the relevant section based on user intent:
+- Just exploring → Quick Exploration section
+- Wants to use own data → Customize with Your Data section
+- Wants better accuracy → Tune the Model section
+- Ready for production → Production Deployment section
+
 ## Usage Help
 
 ```
