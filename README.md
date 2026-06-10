@@ -24,7 +24,10 @@ Install any solution with a single command using the Cortex Code plugin:
 # Install the plugin
 cortex plugin add ./plugins/cortex-code
 
-# Install a solution (e.g., ltv-prediction)
+# List available solutions
+cortex -p "$ltv-prediction"
+
+# Install a solution (inside Cortex Code REPL)
 $ltv-prediction install
 ```
 
@@ -32,7 +35,7 @@ Or use the solutions-installer skill from [cortex-code-skills](https://github.co
 
 ```bash
 cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
-$solutions-install
+cortex -p "$solutions-install ltv-prediction"
 ```
 
 ## Quick Install (via Claude Code)
