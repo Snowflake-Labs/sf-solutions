@@ -24,8 +24,9 @@ Install any solution with a single command using the Cortex Code plugin:
 # Install the plugin
 cortex plugin add ./plugins/cortex-code
 
-# Install a solution
-cortex -p "$ltv-prediction install"
+# Install a solution (interactive REPL)
+cortex
+> $ltv-prediction install
 ```
 
 ## Quick Install (via Claude Code)
