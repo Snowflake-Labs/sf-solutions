@@ -31,13 +31,13 @@ cortex --plugin-dir ./plugins/cortex-code
 Then in a Cortex Code session, run a solution by name:
 
 ```
-$<solution-name> install
+$snowflake-solutions:<solution-name>
 ```
 
 Example:
 ```
-$ltv-prediction install
-$ltv-prediction teardown
+$snowflake-solutions:ltv-prediction
+$snowflake-solutions:ltv-prediction teardown
 ```
 
 ## Quick Install (via Claude Code)
