@@ -18,13 +18,13 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ## Quick Install (via Cortex Code)
 
-Install any solution with a single command using the Cortex Code plugin:
+Install any solution using Cortex Code skills:
 
 ```bash
-# Install the plugin
-cortex plugin add ./plugins/cortex-code
+# Add the solution skill
+cortex skill add ./plugins/cortex-code/skills/ltv-prediction
 
-# Install a solution (interactive REPL)
+# Run the installer (in Cortex Code REPL)
 cortex
 > $ltv-prediction install
 ```
