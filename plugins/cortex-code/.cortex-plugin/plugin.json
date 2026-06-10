@@ -1,0 +1,6 @@
+{
+  "name": "snowflake-solutions",
+  "description": "Install pre-built Snowflake industry solutions into your account.",
+  "version": "1.0.0",
+  "author": "Snowflake Labs (Sho Tanaka)"
+}
