@@ -18,17 +18,37 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ## Quick Install (via Cortex Code)
 
-Install any solution with a single command using the [solutions-installer](https://github.com/Snowflake-Labs/cortex-code-skills/tree/main/skills/solutions-installer) skill:
+Install any solution with a single command using the Cortex Code plugin:
 
 ```bash
-# 1. Install the solutions-installer skill
-cortex skill add https://github.com/Snowflake-Labs/coco-skills.git
+# Install the plugin
+cortex plugin add ./plugins/cortex-code
 
-# 2. Run the installer
+# Install a solution (e.g., ltv-prediction)
+$ltv-prediction install
+```
+
+Or use the solutions-installer skill from [cortex-code-skills](https://github.com/Snowflake-Labs/cortex-code-skills):
+
+```bash
+cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
 $solutions-install
 ```
 
-The installer reads each solution's `manifest.json`, handles prerequisites, and executes `setup.sql` against your Snowflake account.
+## Quick Install (via Claude Code)
+
+```bash
+# Add the marketplace
+claude plugin marketplace add https://github.com/Snowflake-Labs/sf-solutions.git --path plugins/claude-code
+
+# Install the plugin
+claude plugin install snowflake-solutions
+
+# Install a solution
+/snowflake-solutions:ltv-prediction
+```
+
+Requires the [snowflake-cortex-code](https://claude.com/plugins/snowflake-cortex-code) plugin (auto-installed as dependency).
 
 ---
 
