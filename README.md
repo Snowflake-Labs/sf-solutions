@@ -21,14 +21,23 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 Install any solution using the Cortex Code plugin:
 
 ```bash
-# Install the plugin from this repo
+# Install the plugin
 cortex plugin install https://github.com/Snowflake-Labs/sf-solutions.git
 
 # Or load locally during development
 cortex --plugin-dir ./plugins/cortex-code
+```
 
-# Install a solution (in Cortex Code session)
+Then in a Cortex Code session, run a solution by name:
+
+```
+$<solution-name> install
+```
+
+Example:
+```
 $ltv-prediction install
+$ltv-prediction teardown
 ```
 
 ## Quick Install (via Claude Code)
