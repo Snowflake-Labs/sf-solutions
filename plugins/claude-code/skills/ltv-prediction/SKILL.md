@@ -65,16 +65,11 @@ Parse the action from `$ARGUMENTS`:
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
 
-7. Deploy the Streamlit dashboard:
-   - The Streamlit app is at `solutions/ltv-prediction/streamlit/` in the repository
-   - Instruct the user to deploy it via Snowsight:
-     1. Go to Projects > Streamlit > + Streamlit App
-     2. Upload `streamlit_app.py` and `environment.yml`
-     3. Set database: SF_SOLUTIONS, schema: LTV_ML, warehouse: COMPUTE_WH
-   - Or deploy via Snowflake CLI:
-     ```bash
-     snow streamlit deploy --database SF_SOLUTIONS --schema LTV_ML --warehouse COMPUTE_WH
-     ```
+7. The setup.sql automatically deploys a Streamlit dashboard and outputs the URL.
+   Show the Streamlit URL to the user from the final query result:
+   ```
+   https://<org>-<account>.snowflakecomputing.com/#/streamlit-apps/SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD
+   ```
 
 8. Show summary:
    ```
@@ -86,8 +81,7 @@ Parse the action from `$ARGUMENTS`:
      LTV_ML: LTV_PREDICTIONS, SEGMENT_INSIGHTS, LTV_REGRESSION_MODEL
 
    Streamlit Dashboard:
-     Deploy from: solutions/ltv-prediction/streamlit/
-     → Projects > Streamlit in Snowsight
+     <URL from final query>
 
    Try:
      SELECT * FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_SEGMENTS LIMIT 10;
