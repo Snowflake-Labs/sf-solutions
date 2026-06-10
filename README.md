@@ -24,18 +24,8 @@ Install any solution with a single command using the Cortex Code plugin:
 # Install the plugin
 cortex plugin add ./plugins/cortex-code
 
-# List available solutions
-cortex -p "$ltv-prediction"
-
-# Install a solution (inside Cortex Code REPL)
-$ltv-prediction install
-```
-
-Or use the solutions-installer skill from [cortex-code-skills](https://github.com/Snowflake-Labs/cortex-code-skills):
-
-```bash
-cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
-cortex -p "$solutions-install ltv-prediction"
+# Install a solution
+cortex -p "$ltv-prediction install"
 ```
 
 ## Quick Install (via Claude Code)
@@ -52,6 +42,17 @@ claude plugin install snowflake-solutions
 ```
 
 Requires the [snowflake-cortex-code](https://claude.com/plugins/snowflake-cortex-code) plugin (auto-installed as dependency).
+
+---
+
+## Alternative: solutions-installer skill
+
+If you use the [cortex-code-skills](https://github.com/Snowflake-Labs/cortex-code-skills) repository:
+
+```bash
+cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
+cortex -p "$solutions-install ltv-prediction"
+```
 
 ---
 
