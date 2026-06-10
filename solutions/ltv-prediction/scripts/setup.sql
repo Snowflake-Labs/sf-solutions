@@ -103,14 +103,14 @@ SINGLE = TRUE;
 -- Upload environment.yml
 COPY INTO @SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE/environment.yml
 FROM (
-    SELECT $$name: ltv_prediction_dashboard
-channels:
-  - snowflake
-dependencies:
-  - plotly
-  - pandas
-$$
+    SELECT 'name: sf_env' || CHAR(10)
+        || 'channels:' || CHAR(10)
+        || '  - snowflake' || CHAR(10)
+        || 'dependencies:' || CHAR(10)
+        || '  - plotly' || CHAR(10)
+        || '  - pandas' || CHAR(10)
 )
+FILE_FORMAT = (TYPE = 'CSV' FIELD_DELIMITER = NONE RECORD_DELIMITER = NONE COMPRESSION = NONE FIELD_OPTIONALLY_ENCLOSED_BY = NONE)
 OVERWRITE = TRUE
 SINGLE = TRUE;
 
@@ -128,8 +128,8 @@ ALTER STREAMLIT SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD ADD LIVE VERSION FR
 
 SELECT
     'LTV Prediction Dashboard deployed!' AS STATUS,
-    'https://' || CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME()
-        || '.snowflakecomputing.com/#/streamlit-apps/SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD' AS STREAMLIT_URL;
+    'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+        || '/#/streamlit-apps/SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD' AS STREAMLIT_URL;
 -- CUSTOMER LIFETIME VALUE PREDICTION SETUP
 -- Version: 1.0
 --

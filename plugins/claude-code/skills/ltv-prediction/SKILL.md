@@ -65,26 +65,36 @@ Parse the action from `$ARGUMENTS`:
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
 
-7. The setup.sql automatically deploys a Streamlit dashboard and outputs the URL.
-   Show the Streamlit URL to the user from the final query result:
+7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Streamlit dashboard URL.
+   Execute this query:
+   ```sql
+   SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+       || '/#/streamlit-apps/SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD' AS STREAMLIT_URL;
    ```
-   https://<org>-<account>.snowflakecomputing.com/#/streamlit-apps/SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD
+   Take the value of `STREAMLIT_URL` from the result and display it to the user exactly like this:
+
+   ```
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Streamlit Dashboard:
+   <paste the full URL here>
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ```
 
-8. Show summary:
+   This step is NON-OPTIONAL. The user must always see the clickable URL after install.
+
+8. Show final summary:
    ```
-   Installed: Customer Lifetime Value Prediction v1.0.0
+   Installation complete: Customer Lifetime Value Prediction v1.0.0
 
    Objects created:
      LTV_RAW: ML_LTV_TRANSACTIONS (108K rows)
      LTV_ANALYTICS: CUSTOMER_FEATURES, TRAIN_DATA, TEST_DATA, CUSTOMER_SEGMENTS
      LTV_ML: LTV_PREDICTIONS, SEGMENT_INSIGHTS, LTV_REGRESSION_MODEL
 
-   Streamlit Dashboard:
-     <URL from final query>
-
-   Try:
-     SELECT * FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_SEGMENTS LIMIT 10;
+   Next Actions:
+   1. Open the Streamlit dashboard URL above
+   2. Query segment insights: SELECT * FROM SF_SOLUTIONS.LTV_ML.SEGMENT_INSIGHTS;
+   3. View top customers: SELECT * FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_SEGMENTS WHERE LTV_SEGMENT = 'Platinum' LIMIT 10;
 
    Teardown: /snowflake-solutions:ltv-prediction teardown
    ```

@@ -2,7 +2,7 @@
 name: ltv-prediction
 description: >
   Install or teardown the Customer Lifetime Value Prediction solution.
-  Usage: $ltv-prediction install | $ltv-prediction teardown
+  Usage: $snowflake-solutions:ltv-prediction | $snowflake-solutions:ltv-prediction teardown
   Triggers: ltv, lifetime value, customer prediction, retail ML.
 tools:
   - snowflake_sql_execute
@@ -71,20 +71,58 @@ Parse the action from `$ARGUMENTS`:
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
 
-7. Show summary with next steps.
+7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Streamlit dashboard URL.
+   Execute this query:
+   ```sql
+   SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+       || '/#/streamlit-apps/SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD' AS STREAMLIT_URL;
+   ```
+   Take the value of `STREAMLIT_URL` from the result and display it to the user exactly like this:
+
+   ```
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Streamlit Dashboard:
+   <paste the full URL here>
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ```
+
+   This step is NON-OPTIONAL. The user must always see the clickable URL after install.
+
+8. Show final summary:
+   ```
+   Installation complete: Customer Lifetime Value Prediction v1.0.0
+
+   Next Actions:
+   1. Open the Streamlit dashboard URL above
+   2. Query segment insights: SELECT * FROM SF_SOLUTIONS.LTV_ML.SEGMENT_INSIGHTS;
+   3. View top customers: SELECT * FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_SEGMENTS WHERE LTV_SEGMENT = 'Platinum' LIMIT 10;
+
+   Teardown: $snowflake-solutions:ltv-prediction teardown
+   ```
 
 ## Teardown
 
 If `$ARGUMENTS` is "teardown":
 
-1. Confirm with user.
+1. Confirm with user: "This will drop LTV_RAW, LTV_ANALYTICS, LTV_ML schemas. Proceed?"
 2. Read and execute `solutions/ltv-prediction/scripts/teardown.sql` statement by statement.
-3. Confirm removal.
+3. Confirm: "Customer Lifetime Value Prediction removed."
+
+## Next Actions
+
+If the user asks "what next?", "what can I do?", or "how to customize":
+
+Read and present the content from `NEXT_ACTIONS.md` (located in this skill's directory).
+Present the relevant section based on user intent:
+- Just exploring → Quick Exploration section
+- Wants to use own data → Customize with Your Data section
+- Wants better accuracy → Tune the Model section
+- Ready for production → Production Deployment section
 
 ## Usage Help
 
 ```
 Usage:
-  $ltv-prediction install    — Install the solution
-  $ltv-prediction teardown   — Remove the solution
+  $snowflake-solutions:ltv-prediction           — Install the solution
+  $snowflake-solutions:ltv-prediction teardown   — Remove the solution
 ```
