@@ -65,7 +65,18 @@ Parse the action from `$ARGUMENTS`:
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
 
-7. Show summary:
+7. Deploy the Streamlit dashboard:
+   - The Streamlit app is at `solutions/ltv-prediction/streamlit/` in the repository
+   - Instruct the user to deploy it via Snowsight:
+     1. Go to Projects > Streamlit > + Streamlit App
+     2. Upload `streamlit_app.py` and `environment.yml`
+     3. Set database: SF_SOLUTIONS, schema: LTV_ML, warehouse: COMPUTE_WH
+   - Or deploy via Snowflake CLI:
+     ```bash
+     snow streamlit deploy --database SF_SOLUTIONS --schema LTV_ML --warehouse COMPUTE_WH
+     ```
+
+8. Show summary:
    ```
    Installed: Customer Lifetime Value Prediction v1.0.0
 
@@ -73,6 +84,10 @@ Parse the action from `$ARGUMENTS`:
      LTV_RAW: ML_LTV_TRANSACTIONS (108K rows)
      LTV_ANALYTICS: CUSTOMER_FEATURES, TRAIN_DATA, TEST_DATA, CUSTOMER_SEGMENTS
      LTV_ML: LTV_PREDICTIONS, SEGMENT_INSIGHTS, LTV_REGRESSION_MODEL
+
+   Streamlit Dashboard:
+     Deploy from: solutions/ltv-prediction/streamlit/
+     → Projects > Streamlit in Snowsight
 
    Try:
      SELECT * FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_SEGMENTS LIMIT 10;
