@@ -59,17 +59,18 @@ Present a header and rich table:
 
 **Snowflake Industry Solutions** — *N solution(s) registered*
 
-| # | Solution | Industry | Snowflake Features | Tags | Status | Repo |
+| # | Solution | Type | Industry | Snowflake Features | Tags | Status | Repo |
 |---|----------|----------|--------------------|------|--------|------|
 
 For each entry (sorted by industry, then name):
 - **#**: sequential number
 - **Solution**: `name` in bold
+- **Type**: `solution_type` — render as `bootstrap` or `self-contained`
 - **Industry**: `industry` field
 - **Snowflake Features**: `snowflake_features` list joined with ` · `
 - **Tags**: each tag formatted as `` `tag` ``
 - **Status**: `available` / `coming-soon` / `deprecated`
-- **Repo**: `[source](repo_url)`
+- **Repo**: `[source](repo_url)` if `repo` field is present; `—` for self-contained skills
 
 ### Step 4: Grouped summaries
 

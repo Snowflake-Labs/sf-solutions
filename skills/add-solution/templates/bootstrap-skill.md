@@ -1,6 +1,7 @@
 ---
 name: {{slug}}
 skill_type: solution
+solution_type: bootstrap
 industry: {{industry}}
 snowflake_features:
 {{snowflake_features_yaml}}

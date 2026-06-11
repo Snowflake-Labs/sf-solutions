@@ -42,7 +42,8 @@ sf-solutions/
 │   ├── add-solution/
 │   │   ├── SKILL.md
 │   │   ├── templates/
-│   │   │   ├── skill-md.md       ← SKILL.md template for new solutions
+│   │   │   ├── bootstrap-skill.md    ← SKILL.md template for bootstrap solutions
+│   │   │   ├── selfcontained-skill.md ← SKILL.md template for self-contained solutions
 │   │   │   └── next-actions.md   ← NEXT_ACTIONS.md template
 │   │   └── evals/evals.json
 │   └── <slug>/                   ← one dir per solution (added by add-solution)
@@ -118,9 +119,16 @@ sf-solutions-<slug>/
 }
 ```
 
-### 2. Add the canonical skill
+### 2. Choose a solution type and add the canonical skill
 
-Create `skills/<slug>/SKILL.md` using `skills/add-solution/templates/skill-md.md` as the template.
+Solutions come in two types — choose based on where the runtime code lives:
+
+| Type | When to use | Template |
+|---|---|---|
+| **bootstrap** | Logic lives in an external GitHub repo; skill clones it at invocation | `templates/bootstrap-skill.md` |
+| **self-contained** | All logic (SQL, steps, scripts) lives inside `skills/<slug>/` | `templates/selfcontained-skill.md` |
+
+Create `skills/<slug>/SKILL.md` using the appropriate template.
 
 **Required frontmatter fields:**
 
@@ -130,12 +138,13 @@ Solution skills carry extra metadata fields beyond the CoCo `name`/`description`
 ---
 name: <slug>
 skill_type: solution          # required — marks this as discoverable by list skill
+solution_type: bootstrap      # bootstrap | self-contained
 industry: <industry>
 snowflake_features:
   - Snowflake ML Regression
   - Cortex AI Functions
 tags: [ml, cortex, retail]   # searchable labels
-repo: https://github.com/Snowflake-Labs/sf-solutions-<slug>
+repo: https://github.com/Snowflake-Labs/sf-solutions-<slug>  # bootstrap only; omit for self-contained
 status: available            # available | coming-soon | deprecated
 version: "1.0.0"
 description: >               # pushy — enumerate exact trigger phrases
@@ -159,7 +168,13 @@ tools:
 - Post-install NEXT_ACTIONS presented automatically (as a hard step, not "if user asks")
 - Declare `[[solutions-scaffold]] Tier 1` compliance
 
-Also create:
+**Additional files for self-contained skills:**
+- `skills/<slug>/steps/step-1.md` (and more) — one file per step, following Why/What/Do/Summary pattern
+- `skills/<slug>/cleanup/SKILL.md` — teardown flow
+- `skills/<slug>/scripts/` — (optional) inline SQL or Python scripts
+- `skills/<slug>/references/` — (optional) supporting reference docs
+
+For bootstrap skills also create:
 - `skills/<slug>/NEXT_ACTIONS.md` — 4-phase guide (Explore / Customize / Tune / Production)
   Use `skills/add-solution/templates/next-actions.md` as the template
 - `skills/<slug>/evals/evals.json` — at least one test case per invocation variant
@@ -295,10 +310,11 @@ Before merging a new solution PR, verify:
 - [ ] Solution repo (`sf-solutions-<slug>`) exists and is public
 - [ ] `manifest.json` in solution repo is valid JSON with all required fields
 - [ ] `scripts/setup.sql` and `scripts/teardown.sql` exist in solution repo
-- [ ] `skills/<slug>/SKILL.md` has `skill_type: solution` in frontmatter
+- [ ] `skills/<slug>/SKILL.md` has `skill_type: solution` and `solution_type` (bootstrap or self-contained) in frontmatter
 - [ ] `skills/<slug>/SKILL.md` has `industry`, `snowflake_features`, `tags`, `repo`, `status` in frontmatter
 - [ ] `skills/<slug>/SKILL.md` has `name:` frontmatter, pushy `description:`, `tools:` array
-- [ ] `skills/<slug>/SKILL.md` uses sparse-checkout bootstrap pattern
+- [ ] Bootstrap: `skills/<slug>/SKILL.md` uses sparse-checkout bootstrap pattern
+- [ ] Self-contained: `skills/<slug>/steps/step-1.md` and `skills/<slug>/cleanup/SKILL.md` exist
 - [ ] `$snowflake-solutions:list` shows the new solution (auto-discovery check)
 - [ ] `skills/<slug>/NEXT_ACTIONS.md` exists and covers all four phases
 - [ ] `skills/<slug>/evals/evals.json` has at least one test case
