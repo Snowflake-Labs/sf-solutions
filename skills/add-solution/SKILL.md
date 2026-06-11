@@ -38,6 +38,7 @@ tools:
 Use `ask_user_question` (options type) to ask:
 
 > What kind of solution is this?
+>
 > - **Bootstrap** — logic lives in an external GitHub repo; skill clones it at invocation time
 > - **Self-contained** — all logic (SQL, steps, scripts) lives inside this skill directory; no external repo needed
 
@@ -58,14 +59,15 @@ Use `ask_user_question` (text type) for:
 
 If `solution_type` is `bootstrap`, also ask:
 
-7. **repo_url** — e.g. `https://github.com/Snowflake-Labs/sf-solutions-fraud-detection`
+1. **repo_url** — e.g. `https://github.com/Snowflake-Labs/sf-solutions-fraud-detection`
 
 ### Step 4 — Present plan
 
 Present a plan showing exactly which files will be created and which will be patched.
 
 **For bootstrap:**
-```
+
+```text
 Solution type: bootstrap (clones external repo at invocation time)
 
 Files to create:
@@ -82,7 +84,8 @@ Manual step required after scaffolding:
 ```
 
 **For self-contained:**
-```
+
+```text
 Solution type: self-contained (all logic lives in the skill directory)
 
 Files to create:
@@ -109,15 +112,18 @@ Manual step required after scaffolding:
 **If `solution_type` is `bootstrap`:**
 
 Read `skills/add-solution/templates/bootstrap-skill.md`. Replace placeholders:
+
 - `{{slug}}` → slug
 - `{{name}}` → name
 - `{{industry}}` → industry
 - `{{features}}` → snowflake_features as comma-separated string
 - `{{snowflake_features_yaml}}` → each feature as an indented YAML line:
-  ```
+
+  ```yaml
     - Snowflake ML Regression
     - Cortex AI Functions
   ```
+
 - `{{tags}}` → comma-separated tag list
 - `{{repo_url}}` → repo_url
 - `{{status}}` → status
@@ -137,6 +143,7 @@ Write to `skills/<slug>/NEXT_ACTIONS.md`.
 ### Create self-contained extras (only for self-contained type)
 
 **`skills/<slug>/steps/step-1.md`** — starter step scaffold:
+
 ```markdown
 # Step 1: (title)
 
@@ -160,6 +167,7 @@ Write to `skills/<slug>/NEXT_ACTIONS.md`.
 ```
 
 **`skills/<slug>/cleanup/SKILL.md`** — teardown:
+
 ```markdown
 ---
 name: {{slug}}-cleanup
@@ -177,6 +185,7 @@ description: Remove all {{name}} objects (reverse of install).
 ### Create skills/<slug>/evals/evals.json
 
 For bootstrap:
+
 ```json
 {
   "skill_name": "<slug>",
@@ -195,6 +204,7 @@ For bootstrap:
 ```
 
 For self-contained:
+
 ```json
 {
   "skill_name": "<slug>",
@@ -224,6 +234,7 @@ For self-contained:
 ### Create .claude/commands/<slug>.md
 
 For bootstrap:
+
 ```markdown
 ---
 description: "Install or teardown the <name> solution"
@@ -237,6 +248,7 @@ To see what's next: say "<slug> next actions"
 ```
 
 For self-contained:
+
 ```markdown
 ---
 description: "Run the <name> solution walkthrough"
@@ -251,6 +263,7 @@ To clean up: say "<slug> cleanup"
 ### Patch .cortex-plugin/plugin.json
 
 Add to `skills[]` array:
+
 ```json
 { "name": "<slug>", "path": "skills/<slug>/SKILL.md" }
 ```
@@ -263,7 +276,7 @@ Add to `skills[]` array:
 
 Invoke the bundled `skill-development` skill to review `skills/<slug>/SKILL.md`:
 
-```
+```text
 skill(command="skill-development")
 ```
 
@@ -274,6 +287,7 @@ no prohibited anti-patterns. Apply any findings before proceeding.
 ### Verify file existence
 
 Read back each created file and confirm correct content:
+
 - `skills/<slug>/SKILL.md` — has `skill_type: solution` and `solution_type` in frontmatter
 - `skills/<slug>/NEXT_ACTIONS.md` — has content
 - `.claude/commands/<slug>.md` — exists
@@ -286,7 +300,7 @@ Present a summary table of created and patched files.
 
 Then instruct the user to complete the one manual step:
 
-```
+```text
 One manual step required — run this from the sf-solutions repo root:
 
   ln -s ../../skills/<slug> .cortex/skills/<slug>

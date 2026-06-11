@@ -30,6 +30,7 @@ The catalog is built by scanning skill frontmatter — there is no separate cata
 Use Glob to find all `skills/*/SKILL.md` files.
 
 For each file found:
+
 1. Read the file and parse the YAML frontmatter block (the `---` delimited section at the top).
 2. Include the entry **only if** `skill_type: solution` is present in the frontmatter.
    Skills without `skill_type: solution` (e.g. `list`, `add-solution`, `solutions-scaffold`) are framework skills — exclude them.
@@ -45,12 +46,14 @@ For each file found:
 ### Step 2: If no solution skills found
 
 Present:
-```
+
+```text
 No solutions registered yet.
 
 To add the first solution:
   $snowflake-solutions:add-solution
 ```
+
 Then stop.
 
 ### Step 3: Build and display the catalog
@@ -63,6 +66,7 @@ Present a header and rich table:
 |---|----------|----------|--------------------|------|--------|------|
 
 For each entry (sorted by industry, then name):
+
 - **#**: sequential number
 - **Solution**: `name` in bold
 - **Type**: `solution_type` — render as `bootstrap` or `self-contained`
@@ -82,7 +86,7 @@ Group solution slugs under each feature they use.
 
 ### Step 5: Usage footer
 
-```
+```text
 To install a solution:
   $snowflake-solutions:<slug>
   $snowflake-solutions:<slug> teardown
@@ -96,7 +100,7 @@ To add a new solution:
 
 After the usage footer, add:
 
-```
+```text
 ## Framework Skills
 
 | Skill | Purpose |

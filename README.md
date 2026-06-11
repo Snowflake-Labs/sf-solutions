@@ -48,13 +48,13 @@ The pre-commit hooks enforce the PR checklist mechanically — run `pre-commit i
 
 Solutions are auto-discovered from skill frontmatter. To see the current list with full metadata (industry, Snowflake features, tags, status):
 
-```
+```text
 $snowflake-solutions:list
 ```
 
 To add a new solution:
 
-```
+```text
 $snowflake-solutions:add-solution
 ```
 
@@ -72,7 +72,7 @@ cortex --plugin-dir /path/to/sf-solutions
 
 Then in a Cortex Code session:
 
-```
+```text
 # List all solutions with metadata
 $snowflake-solutions:list
 
@@ -97,7 +97,7 @@ claude plugin install snowflake-solutions
 
 Then run:
 
-```
+```text
 /snowflake-solutions:list
 /snowflake-solutions:<slug>
 /snowflake-solutions:add-solution
@@ -109,7 +109,7 @@ Requires the [snowflake-cortex-code](https://claude.com/plugins/snowflake-cortex
 
 ## Repository Structure
 
-```
+```text
 sf-solutions/
 ├── .cortex-plugin/
 │   ├── plugin.json               # CoCo plugin manifest (skills[] array)
@@ -148,7 +148,7 @@ Skills use sparse checkout to clone solution runtime code from per-solution repo
 
 To add a new solution, start a CoCo session in this repo and run:
 
-```
+```text
 $snowflake-solutions:add-solution
 ```
 

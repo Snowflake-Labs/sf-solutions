@@ -5,11 +5,14 @@ repos:
           - id: check-json
             files: \.(json)$
 
-    - repo: https://github.com/igorshubovych/markdownlint-cli
-      rev: v0.41.0
+    - repo: local
       hooks:
           - id: markdownlint
-            args: [--config, .markdownlint.yaml]
+            name: markdownlint
+            language: system
+            entry: markdownlint
+            args: [--config, .markdownlint.yaml, --ignore-path, .markdownlintignore]
+            types: [markdown]
 
     - repo: local
       hooks:

@@ -26,7 +26,7 @@ Every skill in sf-solutions must follow these conventions unconditionally.
 
 Required sections in order:
 
-```
+```text
 ---                          ← frontmatter: name + description only
 name: <slug>
 description: >               ← intent phrases go here, not in extra fields
@@ -64,6 +64,7 @@ Call `enter_plan_mode` **immediately** after marking a step IN_PROGRESS,
 before presenting any content.
 
 Run inside plan mode:
+
 - "Why this matters"
 - "What we'll do"
 - Dry-run output or SQL preview (if applicable)
@@ -78,7 +79,7 @@ There are no intermediate `Proceed?` asks or `STOP` blocks within the step flow.
 
 Organize skill content as:
 
-```
+```text
 skills/<slug>/
 ├── SKILL.md          ← orchestration entrypoint
 ├── NEXT_ACTIONS.md   ← optional: post-install exploration guide
@@ -160,6 +161,7 @@ All steps use `scripts/gate.py` (check / start / complete) and
 `scripts/sanity_gate.py` (unified reconciliation).
 
 Gate behavior:
+
 1. Check `[demo.steps.step-N].status` in manifest (O(1) dict lookup)
 2. If `COMPLETE` and fresh (< 3600s since `completed_at`) → **PASS**
 3. If `COMPLETE` but stale → re-verify against Snowflake → re-stamp or **BLOCK**
@@ -168,6 +170,7 @@ Gate behavior:
    - Not done → **BLOCK** with actionable message
 
 The agent MUST NOT:
+
 - Skip gates by querying Snowflake directly and declaring "passed"
 - Declare a step "passed" without the gate script writing to the manifest
 - Treat sanity checks as read-only — gates WRITE `[demo.steps.*]` records
@@ -189,11 +192,13 @@ CLD is read-only — SELECT only, no DDL or DML.
 
 Individual skills reference this scaffold with a one-liner in Global Rules:
 
-```
+```text
 This skill follows [[solutions-scaffold]] Tier 1 conventions.
 ```
+
 or
-```
+
+```text
 This skill follows [[solutions-scaffold]] Tier 1 + Tier 2 conventions.
 ```
 

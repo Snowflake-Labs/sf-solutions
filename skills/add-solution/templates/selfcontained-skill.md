@@ -37,6 +37,7 @@ This skill follows [[solutions-scaffold]] Tier 1 conventions.
 | `$snowflake-solutions:{{slug}} next` | Present NEXT_ACTIONS.md |
 
 Parse the action from `$ARGUMENTS`:
+
 - If `$ARGUMENTS` is empty → run **Introduction** flow
 - If `$ARGUMENTS` starts with "step" → route to the matching `steps/step-N.md`
 - If `$ARGUMENTS` is "cleanup" → route to `cleanup/SKILL.md`
@@ -54,7 +55,7 @@ Parse the action from `$ARGUMENTS`:
 
 Present to the user when invoked with no arguments:
 
-```
+```text
 {{name}}
 
 This solution will walk you through N steps:
@@ -105,13 +106,14 @@ Read `NEXT_ACTIONS.md` from this skill directory and present the relevant sectio
 ## Completion Criteria
 
 The solution walkthrough is complete when:
+
 - All steps have been executed and confirmed
 - User has seen the completion summary
 - NEXT_ACTIONS.md Quick Exploration section has been presented
 
 ## Usage Help
 
-```
+```text
 Usage:
   $snowflake-solutions:{{slug}}           — Introduction and step overview
   $snowflake-solutions:{{slug}} step N    — Run step N

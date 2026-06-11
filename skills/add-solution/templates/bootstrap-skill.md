@@ -38,6 +38,7 @@ This skill follows [[solutions-scaffold]] Tier 1 conventions.
 | `$snowflake-solutions:{{slug}} next` | Present NEXT_ACTIONS.md |
 
 Parse the action from `$ARGUMENTS`:
+
 - If `$ARGUMENTS` is "install" or empty → run **Install** flow
 - If `$ARGUMENTS` is "teardown" → run **Teardown** flow
 - If `$ARGUMENTS` is "next" → run **Next Actions** flow
@@ -52,6 +53,7 @@ Parse the action from `$ARGUMENTS`:
 ## Install
 
 1. Clone the solution repository:
+
    ```bash
    git clone --filter=blob:none --no-checkout \
      {{repo_url}}.git \
@@ -104,13 +106,14 @@ Read `NEXT_ACTIONS.md` from this skill directory and present the relevant sectio
 ## Completion Criteria
 
 Install is complete when:
+
 - All expected schemas exist in INFORMATION_SCHEMA.TABLES
 - A summary with the created objects has been shown to the user
 - NEXT_ACTIONS.md Quick Exploration section has been presented
 
 ## Usage Help
 
-```
+```text
 Usage:
   $snowflake-solutions:{{slug}}           — Install the solution
   $snowflake-solutions:{{slug}} teardown   — Remove the solution
