@@ -47,19 +47,20 @@ Then present a plan showing exactly which files will be created and which will b
 
 ```
 Files to create:
-  skills/<slug>/SKILL.md
+  skills/<slug>/SKILL.md          — solution skill with metadata frontmatter
   skills/<slug>/NEXT_ACTIONS.md
   skills/<slug>/evals/evals.json
   .claude/commands/<slug>.md
 
 Files to patch:
-  catalog.yaml                    — add solution entry
-  README.md                       — note new solution in catalog section (if status=available)
   .cortex-plugin/plugin.json      — add entry to skills[] array
 
 Manual step required after scaffolding:
   ln -s ../../skills/<slug> .cortex/skills/<slug>
 ```
+
+Note: No separate catalog file is patched. The `list` skill auto-discovers
+solutions by scanning `skills/*/SKILL.md` frontmatter for `skill_type: solution`.
 
 **HARD GATE: STOP. Present the plan to the user. Do NOT proceed until the user explicitly says "yes" or "proceed".**
 
@@ -71,8 +72,15 @@ Read `skills/add-solution/templates/skill-md.md`. Replace all placeholders:
 - `{{slug}}` → slug
 - `{{name}}` → name
 - `{{industry}}` → industry
-- `{{features}}` → snowflake_features (comma-separated)
+- `{{features}}` → snowflake_features as a comma-separated string (for description + Overview)
+- `{{snowflake_features_yaml}}` → each feature on its own indented YAML line:
+  ```
+    - Snowflake ML Regression
+    - Cortex AI Functions
+  ```
+- `{{tags}}` → comma-separated tag list (e.g. `ml, cortex, retail`)
 - `{{repo_url}}` → repo_url
+- `{{status}}` → status
 
 Write to `skills/<slug>/SKILL.md`.
 
@@ -116,23 +124,6 @@ To teardown: say "<slug> teardown"
 To see what's next: say "<slug> next actions"
 ```
 
-### Patch catalog.yaml
-
-Read `catalog.yaml`. Append to the `solutions:` list:
-
-```yaml
-- slug: <slug>
-  name: <name>
-  industry: <industry>
-  snowflake_features:
-    - <feature 1>
-    - <feature 2>
-  tags: [<tag1>, <tag2>]
-  repo: <repo_url>
-  status: <status>
-  version: "1.0.0"
-```
-
 ### Patch .cortex-plugin/plugin.json
 
 Read the file. Add to `skills[]` array:
@@ -153,21 +144,23 @@ skill(command="skill-development")
 ```
 
 Pass the path `skills/<slug>/SKILL.md` for review. The skill-development skill will check:
-- Frontmatter completeness (`name`, `description`)
+- Frontmatter completeness (`name`, `description`, `skill_type`)
 - Description is "pushy" (enumerates trigger phrases)
 - Required sections present (Routing, Error Recovery, Completion Criteria)
 - No prohibited anti-patterns
 
 Apply any findings before proceeding to the file-existence check.
 
-### Verify file existence
+### Verify
 
 Read back each created file and confirm it exists with correct content:
-- `skills/<slug>/SKILL.md` — has `name:` frontmatter
+- `skills/<slug>/SKILL.md` — has `name:` and `skill_type: solution` in frontmatter
 - `skills/<slug>/NEXT_ACTIONS.md` — has content
 - `.claude/commands/<slug>.md` — exists
-- `catalog.yaml` — contains the new slug entry
 - `.cortex-plugin/plugin.json` — contains the new skills[] entry
+
+Verify the `list` skill can discover the new solution:
+- Run `$snowflake-solutions:list` mentally: the new skill should appear in the table.
 
 ### Show summary and manual step
 
@@ -190,6 +183,5 @@ After running it, verify with:
 | Scenario | Action |
 |---|---|
 | `skills/<slug>/` already exists | Show existing content; ask user whether to overwrite |
-| YAML parse error in catalog.yaml | Show parse error and line number; ask user to fix before continuing |
 | JSON parse error in plugin.json | Show current file; ask user to resolve before continuing |
 | skill-development review finds blockers | Address each blocker before marking Phase 3 complete |

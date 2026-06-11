@@ -1,5 +1,13 @@
 ---
 name: {{slug}}
+skill_type: solution
+industry: {{industry}}
+snowflake_features:
+{{snowflake_features_yaml}}
+tags: [{{tags}}]
+repo: {{repo_url}}
+status: {{status}}
+version: "1.0.0"
 description: >
   Installs or tears down the {{name}} solution in Snowflake.
   Use when: "install {{slug}}", "set up {{slug}}", "{{slug}} solution",

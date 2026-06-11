@@ -13,6 +13,8 @@ When a user runs a solution skill (e.g., `$snowflake-solutions:ltv-prediction`),
 
 The catalog repo stays lean — no SQL, no data, no notebooks live here.
 
+**How catalog discovery works:** The `list` skill auto-discovers solutions by scanning `skills/*/SKILL.md` for files with `skill_type: solution` in their frontmatter. There is no separate catalog file to maintain — adding a skill makes it automatically appear in `$snowflake-solutions:list`.
+
 ---
 
 ## Repo Structure
@@ -24,30 +26,28 @@ sf-solutions/
 │   └── skills                    ← SYMLINK → ../skills
 ├── .cortex/
 │   └── skills/
-│       ├── ltv-prediction        ← SYMLINK → ../../skills/ltv-prediction
-│       ├── list                  ← SYMLINK → ../../skills/list
-│       └── add-solution          ← SYMLINK → ../../skills/add-solution
+│       └── <name>                ← SYMLINK → ../../skills/<name> (per skill)
 ├── .claude-plugin/
 │   ├── plugin.json               ← Claude marketplace manifest
 │   └── marketplace.json
 ├── .claude/
 │   └── commands/
-│       ├── ltv-prediction.md     ← thin Claude adapter
-│       ├── list.md
-│       └── add-solution.md
+│       ├── list.md               ← thin Claude adapters
+│       ├── add-solution.md
+│       └── <slug>.md             ← one per solution skill
 ├── skills/                       ← CANONICAL skill content (real files)
-│   ├── ltv-prediction/
-│   │   ├── SKILL.md
-│   │   ├── NEXT_ACTIONS.md
-│   │   └── evals/evals.json
 │   ├── list/
-│   │   ├── SKILL.md
+│   │   ├── SKILL.md              ← auto-discovers solutions via frontmatter scan
 │   │   └── evals/evals.json
-│   └── add-solution/
-│       ├── SKILL.md
-│       ├── templates/
-│       │   ├── skill-md.md       ← SKILL.md template for new solutions
-│       │   └── next-actions.md   ← NEXT_ACTIONS.md template
+│   ├── add-solution/
+│   │   ├── SKILL.md
+│   │   ├── templates/
+│   │   │   ├── skill-md.md       ← SKILL.md template for new solutions
+│   │   │   └── next-actions.md   ← NEXT_ACTIONS.md template
+│   │   └── evals/evals.json
+│   └── <slug>/                   ← one dir per solution (added by add-solution)
+│       ├── SKILL.md              ← frontmatter: skill_type, industry, features, tags
+│       ├── NEXT_ACTIONS.md
 │       └── evals/evals.json
 ├── hooks/
 │   ├── hooks.json
@@ -68,7 +68,7 @@ The fastest way is to use the built-in scaffolding skill in a CoCo session:
 $snowflake-solutions:add-solution
 ```
 
-The skill will ask for your solution details, generate all required files, patch the catalog, and tell you the one manual shell command to run at the end.
+The skill will ask for your solution details, generate all required files, patch `plugin.json`, and tell you the one manual shell command to run at the end.
 
 If you prefer to add a solution manually, follow the steps below.
 
@@ -120,22 +120,49 @@ sf-solutions-<slug>/
 
 ### 2. Add the canonical skill
 
-Create `skills/<slug>/SKILL.md` following the CoCo skill-architect best practices:
+Create `skills/<slug>/SKILL.md` using `skills/add-solution/templates/skill-md.md` as the template.
 
-- `name` and `description` frontmatter are **required**
-- `description` must be **"pushy"** — enumerate the exact phrases and invocations that should trigger the skill, not just a summary
-- Declare a `tools:` array listing only the tools the skill needs
-- Include an explicit `## Routing` table as the first body section
-- Include `## Error Recovery` and `## Completion Criteria` sections
-- Post-install next actions must be presented **automatically** (as a hard step), not behind a soft "if the user asks" clause
-- Use the sparse-checkout bootstrap pattern (see below)
+**Required frontmatter fields:**
 
-Use `skills/add-solution/templates/skill-md.md` as the canonical template.
+Solution skills carry extra metadata fields beyond the CoCo `name`/`description` minimum. CoCo ignores unknown frontmatter fields at runtime; the `list` skill reads them for catalog auto-discovery.
+
+```yaml
+---
+name: <slug>
+skill_type: solution          # required — marks this as discoverable by list skill
+industry: <industry>
+snowflake_features:
+  - Snowflake ML Regression
+  - Cortex AI Functions
+tags: [ml, cortex, retail]   # searchable labels
+repo: https://github.com/Snowflake-Labs/sf-solutions-<slug>
+status: available            # available | coming-soon | deprecated
+version: "1.0.0"
+description: >               # pushy — enumerate exact trigger phrases
+  Installs or tears down the <Solution Name> solution in Snowflake.
+  Use when: "install <slug>", "set up <slug>", ...
+tools:
+  - snowflake_sql_execute
+  - snowflake_object_search
+  - Bash
+  - Read
+  - Glob
+  - Grep
+  - WebFetch
+---
+```
+
+**Required body sections:**
+- `## Routing` table as the first body section
+- `## Error Recovery` table
+- `## Completion Criteria` with machine-verifiable conditions
+- Post-install NEXT_ACTIONS presented automatically (as a hard step, not "if user asks")
+- Declare `[[solutions-scaffold]] Tier 1` compliance
 
 Also create:
 - `skills/<slug>/NEXT_ACTIONS.md` — 4-phase guide (Explore / Customize / Tune / Production)
   Use `skills/add-solution/templates/next-actions.md` as the template
-- `skills/<slug>/evals/evals.json` — at least one test case per skill action
+- `skills/<slug>/evals/evals.json` — at least one test case per invocation variant
 
 ### 3. Add the Claude Code adapter
 
@@ -171,17 +198,15 @@ Add a new entry to the `skills[]` array:
 { "name": "<slug>", "path": "skills/<slug>/SKILL.md" }
 ```
 
-### 6. Update the skills/list/SKILL.md catalog table
+### 6. Verify list skill auto-discovers the new solution
 
-Append a row to the table in `skills/list/SKILL.md`:
+The `list` skill scans `skills/*/SKILL.md` for `skill_type: solution`. No manual catalog patching is needed — the new skill is automatically discoverable once its frontmatter is correct.
 
-```markdown
-| N | <slug> | <Solution Name> | <Industry> | <Key Features> | [sf-solutions-<slug>](https://github.com/Snowflake-Labs/sf-solutions-<slug>) |
-```
+Verify by running `$snowflake-solutions:list` — the new solution should appear in the table.
 
 ### 7. Update root README.md
 
-Add a row to the Solution Catalog table.
+If the solution's `status` is `available`, mention it in the README.
 
 ### 8. Update hooks allowlist (if needed)
 
@@ -192,7 +217,7 @@ If your skill runs commands not already in the allowlist, add the prefix to
 
 ## Bootstrap Pattern Reference
 
-Every `SKILL.md` uses this sparse-checkout pattern to fetch the solution repo at invocation time:
+Every solution SKILL.md uses this sparse-checkout pattern to fetch the solution repo at invocation time:
 
 ```bash
 git clone --filter=blob:none --no-checkout \
@@ -213,6 +238,7 @@ All skills in this catalog must comply with the CoCo skill-architect conventions
 | Practice | Requirement |
 |---|---|
 | Frontmatter | `name:` and `description:` are non-negotiable |
+| `skill_type: solution` | Required in solution skill frontmatter for auto-discovery by list skill |
 | Description | Must be "pushy" — enumerate exact trigger phrases, not just a summary |
 | `tools:` array | Declare only the tools the skill actually uses |
 | Routing table | Include as the first body section |
@@ -227,7 +253,7 @@ Anti-patterns to avoid:
 - Vague description → skill won't trigger reliably
 - Soft gates ("check if things look OK") → agents skip them under context pressure
 - "If the user asks" for important post-install steps → use explicit routing
-- `TODO` / `TBD` placeholders in generated files
+- Missing `skill_type: solution` → skill invisible to `$snowflake-solutions:list`
 
 ---
 
@@ -258,7 +284,7 @@ The Claude marketplace uses `.claude-plugin/` at the repo root.
 }
 ```
 
-No changes to these files are needed when adding a new solution — the marketplace metadata covers the plugin as a whole.
+No changes to these files are needed when adding a new solution.
 
 ---
 
@@ -269,14 +295,15 @@ Before merging a new solution PR, verify:
 - [ ] Solution repo (`sf-solutions-<slug>`) exists and is public
 - [ ] `manifest.json` in solution repo is valid JSON with all required fields
 - [ ] `scripts/setup.sql` and `scripts/teardown.sql` exist in solution repo
+- [ ] `skills/<slug>/SKILL.md` has `skill_type: solution` in frontmatter
+- [ ] `skills/<slug>/SKILL.md` has `industry`, `snowflake_features`, `tags`, `repo`, `status` in frontmatter
 - [ ] `skills/<slug>/SKILL.md` has `name:` frontmatter, pushy `description:`, `tools:` array
-- [ ] `skills/<slug>/SKILL.md` has `## Routing`, `## Error Recovery`, `## Completion Criteria`
 - [ ] `skills/<slug>/SKILL.md` uses sparse-checkout bootstrap pattern
+- [ ] `$snowflake-solutions:list` shows the new solution (auto-discovery check)
 - [ ] `skills/<slug>/NEXT_ACTIONS.md` exists and covers all four phases
 - [ ] `skills/<slug>/evals/evals.json` has at least one test case
 - [ ] `.claude/commands/<slug>.md` thin adapter created
 - [ ] `.cortex/skills/<slug>` symlink created (manual step)
 - [ ] `.cortex-plugin/plugin.json` skills[] array updated
-- [ ] `skills/list/SKILL.md` catalog table updated
-- [ ] Root `README.md` solution table updated
+- [ ] Root `README.md` updated if status is `available`
 - [ ] `hooks/allow-solution-commands.sh` updated if new command types introduced

@@ -8,7 +8,7 @@ description: >
   "$snowflake-solutions:list", "what snowflake solutions exist".
 tools:
   - Read
-  - Bash
+  - Glob
 ---
 
 # List Available Solutions
@@ -17,63 +17,90 @@ tools:
 
 | Invocation | Action |
 |---|---|
-| `$snowflake-solutions:list` | Present full catalog from catalog.yaml |
-| `$snowflake-solutions:list <industry>` | Filter catalog by industry |
-| `$snowflake-solutions:list <tag>` | Filter catalog by tag |
+| `$snowflake-solutions:list` | Present full auto-discovered catalog |
+| `$snowflake-solutions:list <industry>` | Filter by industry |
+| `$snowflake-solutions:list <tag>` | Filter by tag |
 
 ## Instructions
 
-1. Read `catalog.yaml` from the repo root.
+The catalog is built by scanning skill frontmatter — there is no separate catalog file.
 
-2. If `solutions` is empty, present:
-   ```
-   No solutions registered yet.
-   To add the first solution: $snowflake-solutions:add-solution
-   ```
-   Then stop.
+### Step 1: Discover solution skills
 
-3. Otherwise, present a rich catalog table:
+Use Glob to find all `skills/*/SKILL.md` files.
 
-   **Snowflake Industry Solutions**
+For each file found:
+1. Read the file and parse the YAML frontmatter block (the `---` delimited section at the top).
+2. Include the entry **only if** `skill_type: solution` is present in the frontmatter.
+   Skills without `skill_type: solution` (e.g. `list`, `add-solution`, `solutions-scaffold`) are framework skills — exclude them.
+3. Extract these fields from the frontmatter:
+   - `name` — skill slug
+   - `industry`
+   - `snowflake_features` — YAML list
+   - `tags` — YAML list
+   - `repo` — URL
+   - `status` — `available` | `coming-soon` | `deprecated`
+   - `version`
 
-   | # | Solution | Industry | Snowflake Features | Tags | Status | Repo |
-   |---|----------|----------|--------------------|------|--------|------|
-   | (one row per catalog.yaml entry) | | | | | | |
+### Step 2: If no solution skills found
 
-   For each entry:
-   - **#**: sequential number
-   - **Solution**: `name` field, bold
-   - **Industry**: `industry` field
-   - **Snowflake Features**: `snowflake_features` list joined with ` · `
-   - **Tags**: `tags` list formatted as `` `tag1` `tag2` ``
-   - **Status**: `status` — render as `available`, `coming-soon`, or `deprecated`
-   - **Repo**: link text = `source`, href = `repo` field
+Present:
+```
+No solutions registered yet.
 
-4. After the table, present grouped summaries:
+To add the first solution:
+  $snowflake-solutions:add-solution
+```
+Then stop.
 
-   **By Industry:**
-   (group solution names by industry field)
+### Step 3: Build and display the catalog
 
-   **By Snowflake Feature:**
-   (group solution slugs by each feature they use)
+Present a header and rich table:
 
-5. After the summaries, add:
-   ```
-   To install a solution:
-     $snowflake-solutions:<slug>
-     $snowflake-solutions:<slug> teardown
-     $snowflake-solutions:<slug> next
+**Snowflake Industry Solutions** — *N solution(s) registered*
 
-   To add a new solution to this catalog:
-     $snowflake-solutions:add-solution
-   ```
+| # | Solution | Industry | Snowflake Features | Tags | Status | Repo |
+|---|----------|----------|--------------------|------|--------|------|
 
-6. If `$ARGUMENTS` contains a filter term (industry or tag), show only matching entries and note how many were filtered out.
+For each entry (sorted by industry, then name):
+- **#**: sequential number
+- **Solution**: `name` in bold
+- **Industry**: `industry` field
+- **Snowflake Features**: `snowflake_features` list joined with ` · `
+- **Tags**: each tag formatted as `` `tag` ``
+- **Status**: `available` / `coming-soon` / `deprecated`
+- **Repo**: `[source](repo_url)`
+
+### Step 4: Grouped summaries
+
+**By Industry:**
+Group solution names under each industry heading.
+
+**By Snowflake Feature:**
+Group solution slugs under each feature they use.
+
+### Step 5: Usage footer
+
+```
+To install a solution:
+  $snowflake-solutions:<slug>
+  $snowflake-solutions:<slug> teardown
+  $snowflake-solutions:<slug> next
+
+To add a new solution:
+  $snowflake-solutions:add-solution
+```
+
+### Step 6: Apply filter (if $ARGUMENTS provided)
+
+If `$ARGUMENTS` is non-empty, re-run the display showing only entries where
+`industry` or any `tags` entry contains the argument string (case-insensitive).
+Note how many entries were filtered out.
 
 ## Error Recovery
 
 | Scenario | Action |
 |---|---|
-| `catalog.yaml` not found | Inform user the catalog file is missing; suggest running `git status` to check repo state |
-| YAML parse error | Show the parse error and line number; ask user to fix catalog.yaml |
-| `solutions` key missing | Treat as empty catalog and show the empty-state message |
+| No `skills/` directory found | Inform user the repo may be in an unexpected state; show `git status` suggestion |
+| SKILL.md frontmatter is malformed YAML | Skip that file and note it in a warnings section at the bottom of output |
+| `skill_type` field absent | Skip the file (treat as framework skill) |
