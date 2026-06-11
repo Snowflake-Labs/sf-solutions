@@ -1,14 +1,13 @@
 {
-  "name": "snowflake-solutions",
-  "description": "Install pre-built Snowflake industry solutions into your account with one command.",
+  "name": "snowflake-solutions-marketplace",
+  "description": "Snowflake Industry Solution Installers for Claude Code",
   "owner": {
     "name": "Snowflake Labs"
   },
   "plugins": [
     {
       "name": "snowflake-solutions",
-      "source": "./plugins/claude-code",
-      "description": "Snowflake industry solution installers (LTV Prediction, Clinical Quality Agent, and more)"
+      "source": "."
     }
   ]
 }

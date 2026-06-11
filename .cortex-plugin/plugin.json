@@ -1,0 +1,24 @@
+{
+  "name": "snowflake-solutions",
+  "description": "Install pre-built Snowflake industry solutions into your account.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Snowflake Labs"
+  },
+  "homepage": "https://github.com/Snowflake-Labs/sf-solutions",
+  "repository": "https://github.com/Snowflake-Labs/sf-solutions",
+  "skills": [
+    {
+      "name": "ltv-prediction",
+      "path": "skills/ltv-prediction/SKILL.md"
+    },
+    {
+      "name": "list",
+      "path": "skills/list/SKILL.md"
+    },
+    {
+      "name": "add-solution",
+      "path": "skills/add-solution/SKILL.md"
+    }
+  ]
+}

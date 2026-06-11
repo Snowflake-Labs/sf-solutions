@@ -1,0 +1,24 @@
+{
+    "skill_name": "list",
+    "evals": [
+        {
+            "id": 1,
+            "prompt": "what solutions are available",
+            "expected_output": "Presents a formatted table of all 5 solutions with slugs, industries, key features, and repo links, followed by install invocation syntax",
+            "expectations": [
+                "Shows all 5 solutions in a table",
+                "Includes slug, industry, key features, and repo link for each",
+                "Shows install invocation syntax after the table"
+            ]
+        },
+        {
+            "id": 2,
+            "prompt": "$snowflake-solutions:list",
+            "expected_output": "Same as above — full catalog table plus install instructions",
+            "expectations": [
+                "Shows all 5 solutions",
+                "Includes add-solution invocation hint at the end"
+            ]
+        }
+    ]
+}

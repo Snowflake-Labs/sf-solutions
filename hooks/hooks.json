@@ -1,0 +1,16 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "hooks/allow-solution-commands.sh",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ]
+    }
+}

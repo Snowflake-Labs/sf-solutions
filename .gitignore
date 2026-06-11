@@ -63,4 +63,4 @@ snowflake_jwt_*.json
 local.README.md
 
 .snowflake
-.cortex
+.cortex/plans

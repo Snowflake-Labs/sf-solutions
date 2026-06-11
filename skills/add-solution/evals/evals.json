@@ -1,0 +1,24 @@
+{
+    "skill_name": "add-solution",
+    "evals": [
+        {
+            "id": 1,
+            "prompt": "add a new solution called fraud-detection",
+            "expected_output": "Skill asks for slug, name, industry, features, repo_url; presents a plan showing files to create and patch; waits for user confirmation; creates all files; shows manual symlink step",
+            "expectations": [
+                "Asks for all required fields before creating any files",
+                "Presents a plan and waits for user confirmation before any writes",
+                "Creates skills/fraud-detection/SKILL.md with correct frontmatter",
+                "Instructs user to run the ln -s symlink command at the end"
+            ]
+        },
+        {
+            "id": 2,
+            "prompt": "$snowflake-solutions:add-solution",
+            "expected_output": "Same as above — skill enters the gather and plan phase",
+            "expectations": [
+                "Does not write any files before user approves the plan"
+            ]
+        }
+    ]
+}

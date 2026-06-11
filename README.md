@@ -1,24 +1,22 @@
 # Snowflake Industry Solutions
 
-End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Cortex AI, Snowflake ML, and the modern data platform.
+A **plugin catalog** for Snowflake industry solution accelerators. Each solution lives in its own dedicated repository; this repo provides the plugin skills that bootstrap and install them into your Snowflake account via Cortex Code or Claude Code.
 
 ---
 
 ## Solution Catalog
 
-| # | Solution | Industry | Directory | Key Snowflake Features | Status |
-|---|----------|----------|-----------|----------------------|--------|
-| 1 | **Customer Lifetime Value Prediction** | Retail / CPG | `ltv-prediction/` | Snowflake ML Regression, Cortex AI Functions | ✅ Done |
-| 2 | **Manufacturing Predictive Maintenance** | Manufacturing | `manufacturing-predictive-maintenance/` | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | ✅ Done |
-| 3 | **Supply Chain Intelligence Platform** | Manufacturing | `supply-chain-intelligence/` | Snowflake Intelligence, Cortex Analyst, Cortex Search, Semantic Model, Streamlit | ✅ Done |
-| 4 | **GNN Supply Chain Risk Intelligence** | Manufacturing | `gnn-supply-chain-risk/` | Graph Neural Networks, PyTorch Geometric, Cortex Agent, Cortex Analyst, SPCS GPU, Streamlit | ✅ Done |
-| 5 | **Clinical Quality and Patient Safety Agent** | Healthcare | `clinical-quality-agent/` | Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Snowflake Intelligence | ✅ Done |
+| # | Solution | Industry | Key Features | Repo |
+|---|----------|----------|--------------|------|
+| 1 | **Customer Lifetime Value Prediction** | Retail / CPG | Snowflake ML Regression, Cortex AI Functions, Customer Segmentation | [sf-solutions-ltv-prediction](https://github.com/Snowflake-Labs/sf-solutions-ltv-prediction) |
+| 2 | **Clinical Quality and Patient Safety Agent** | Healthcare | Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Snowflake Intelligence | [sf-solutions-clinical-quality-agent](https://github.com/Snowflake-Labs/sf-solutions-clinical-quality-agent) |
+| 3 | **Manufacturing Predictive Maintenance** | Manufacturing | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | [sf-solutions-manufacturing-predictive-maintenance](https://github.com/Snowflake-Labs/sf-solutions-manufacturing-predictive-maintenance) |
+| 4 | **Supply Chain Intelligence Platform** | Manufacturing | Snowflake Intelligence, Cortex Analyst, Cortex Search, Semantic Model, Streamlit | [sf-solutions-supply-chain-intelligence](https://github.com/Snowflake-Labs/sf-solutions-supply-chain-intelligence) |
+| 5 | **GNN Supply Chain Risk Intelligence** | Manufacturing | Graph Neural Networks, PyTorch Geometric, Cortex Agent, SPCS GPU, Streamlit | [sf-solutions-gnn-supply-chain-risk](https://github.com/Snowflake-Labs/sf-solutions-gnn-supply-chain-risk) |
 
 ---
 
 ## Quick Install (via Cortex Code)
-
-Install any solution using the Cortex Code plugin:
 
 ```bash
 # Install the plugin
@@ -28,16 +26,17 @@ cortex plugin install https://github.com/Snowflake-Labs/sf-solutions.git
 cortex --plugin-dir ./plugins/cortex-code
 ```
 
-Then in a Cortex Code session, run a solution by name:
+Then in a Cortex Code session:
 
-```
-$snowflake-solutions:<solution-name>
-```
-
-Example:
 ```
 $snowflake-solutions:ltv-prediction
 $snowflake-solutions:ltv-prediction teardown
+```
+
+List all available solutions:
+
+```
+$snowflake-solutions:list
 ```
 
 ## Quick Install (via Claude Code)
@@ -48,58 +47,68 @@ claude plugin marketplace add https://github.com/Snowflake-Labs/sf-solutions.git
 
 # Install the plugin
 claude plugin install snowflake-solutions
+```
 
-# Install a solution
+Then run a solution:
+
+```
 /snowflake-solutions:ltv-prediction
+/snowflake-solutions:ltv-prediction teardown
+/snowflake-solutions:list
 ```
 
 Requires the [snowflake-cortex-code](https://claude.com/plugins/snowflake-cortex-code) plugin (auto-installed as dependency).
 
 ---
 
-## Alternative: solutions-installer skill
+## Repository Structure
 
-If you use the [cortex-code-skills](https://github.com/Snowflake-Labs/cortex-code-skills) repository:
-
-```bash
-cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
-cortex -p "$solutions-install ltv-prediction"
 ```
+sf-solutions/
+├── plugins/
+│   ├── cortex-code/          # Cortex Code plugin (skills + manifest)
+│   │   ├── .cortex-plugin/plugin.json
+│   │   └── skills/
+│   │       └── <solution-name>/
+│   │           ├── SKILL.md
+│   │           └── NEXT_ACTIONS.md
+│   └── claude-code/          # Claude Code plugin (skills + marketplace manifest)
+│       ├── .claude-plugin/
+│       │   ├── plugin.json
+│       │   └── marketplace.json
+│       └── skills/
+│           ├── list/SKILL.md
+│           └── <solution-name>/
+│               ├── SKILL.md
+│               └── NEXT_ACTIONS.md
+├── hooks/
+│   ├── hooks.json                    # CoCo PreToolUse hook config
+│   └── allow-solution-commands.sh   # Bash command allowlist
+├── CONTRIBUTING.md
+└── README.md
+```
+
+Each skill clones the corresponding solution repo at invocation time via sparse checkout, so this catalog repo stays lean.
 
 ---
-
-## Getting Started
-
-Each solution is self-contained in its own directory with:
-
-```
-<solution-name>/
-├── README.md          # Overview, architecture, prerequisites
-├── data/              # Sample data generation scripts
-├── models/            # ML model training / SQL logic
-└── prompts/           # Demo prompts for Cortex Code / Cloud Agents (EN + JP)
-```
 
 ## Prerequisites
 
 - Snowflake account (Enterprise edition recommended)
-- Appropriate role with CREATE DATABASE / SCHEMA privileges
+- Appropriate role with `CREATE DATABASE` / `SCHEMA` privileges
 - Warehouse (default: `COMPUTE_WH`)
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide on adding a new solution, including the PR checklist and Claude marketplace requirements.
 
 ---
 
 ## Related Resources
 
-### Web Pages
-
-- [Snowflake ML](https://www.snowflake.com/en/data-cloud/snowflake-ml/) - Integrated set of capabilities for development, MLOps and inference leading with agentic ML
-- [Snowflake Notebooks](https://www.snowflake.com/en/data-cloud/notebooks/) - Jupyter-based notebooks in Snowflake Workspaces
-- [Cortex Code](https://www.snowflake.com/en/data-cloud/cortex/cortex-code/) - Snowflake's AI native coding agent that boosts ML productivity
-
-### Technical Documentation
-
-- [Cortex Code Documentation](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code) - Getting started with Cortex Code
-- [Cortex Code in Snowsight](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-snowsight) - Browser-based experience
-- [Cortex Code CLI](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli) - Command-line experience
-- [Snowflake ML Documentation](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview) - Official Snowflake ML developer guide
-- [Snowflake ML Quickstart](https://quickstarts.snowflake.com/guide/getting-started-with-snowflake-ml/) - Hands-on guides to get started with Snowflake ML
+- [Snowflake ML](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview)
+- [Cortex AI Functions](https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions)
+- [Cortex Code](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code)
+- [Snowflake Notebooks](https://docs.snowflake.com/en/user-guide/ui-snowsight/notebooks)
