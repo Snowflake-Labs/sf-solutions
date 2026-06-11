@@ -2,13 +2,51 @@
 
 A **plugin catalog** for Snowflake industry solution accelerators. Each solution lives in its own dedicated repository; this repo provides the plugin skills that bootstrap and install them into your Snowflake account via Cortex Code or Claude Code.
 
-Solution metadata is maintained in [`catalog.yaml`](catalog.yaml). The catalog grows as solutions are added via `$snowflake-solutions:add-solution`.
+Solution metadata is auto-discovered from skill frontmatter. The catalog grows as solutions are added via `$snowflake-solutions:add-solution`.
+
+---
+
+## How It Works
+
+<details>
+<summary>Flow diagram</summary>
+
+```mermaid
+flowchart LR
+    A["cortex plugin install sf-solutions"] --> B["$snowflake-solutions:list"]
+    B --> C{Pick a solution slug}
+    C --> D["$snowflake-solutions:slug"]
+    D --> E["Skill clones solution repo\nvia sparse checkout"]
+    E --> F["Presents install plan"]
+    F --> G{User confirms}
+    G -->|Yes| H["Runs setup.sql\nagainst Snowflake"]
+    G -->|No| I["Aborts cleanly"]
+    H --> J["Shows NEXT_ACTIONS"]
+```
+
+</details>
+
+---
+
+## Getting Started
+
+### For users — install a solution
+
+1. Install this plugin in Cortex Code or Claude Code (see Quick Install below)
+2. Run `$snowflake-solutions:list` to see available solutions
+3. Run `$snowflake-solutions:<slug>` to install one
+
+### For contributors — add a new solution
+
+Run `$snowflake-solutions:add-solution` in a CoCo session — it scaffolds all required files and patches `plugin.json`. For engineering conventions and SKILL.md structure, run `$snowflake-solutions:solutions-scaffold`.
+
+The pre-commit hooks enforce the PR checklist mechanically — run `pre-commit install` after cloning.
 
 ---
 
 ## Solution Catalog
 
-The catalog is managed in `catalog.yaml`. To see the current list with full metadata (industry, Snowflake features, tags, status):
+Solutions are auto-discovered from skill frontmatter. To see the current list with full metadata (industry, Snowflake features, tags, status):
 
 ```
 $snowflake-solutions:list
@@ -86,13 +124,11 @@ sf-solutions/
 │   └── commands/
 │       └── <name>.md             # thin Claude adapters
 ├── skills/                       # CANONICAL skill content
-│   ├── list/                     # catalog browser (reads catalog.yaml)
+│   ├── list/                     # catalog browser (frontmatter auto-discovery)
 │   └── add-solution/             # scaffolds new solution skills
-├── catalog.yaml                  # solution metadata (slug, industry, features, tags, repo)
 ├── hooks/
 │   ├── hooks.json
 │   └── allow-solution-commands.sh
-├── CONTRIBUTING.md
 └── README.md
 ```
 
@@ -110,7 +146,15 @@ Skills use sparse checkout to clone solution runtime code from per-solution repo
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide on adding a new solution, including the PR checklist and Claude marketplace requirements.
+To add a new solution, start a CoCo session in this repo and run:
+
+```
+$snowflake-solutions:add-solution
+```
+
+The skill scaffolds all required files and patches `plugin.json`. For engineering conventions and SKILL.md structure, see `$snowflake-solutions:solutions-scaffold`.
+
+For design decisions and repo architecture, see [docs/DESIGN.md](docs/DESIGN.md).
 
 ---
 

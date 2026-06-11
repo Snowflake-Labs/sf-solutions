@@ -1,0 +1,29 @@
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.6.0
+      hooks:
+          - id: check-json
+            files: \.(json)$
+
+    - repo: https://github.com/igorshubovych/markdownlint-cli
+      rev: v0.41.0
+      hooks:
+          - id: markdownlint
+            args: [--config, .markdownlint.yaml]
+
+    - repo: local
+      hooks:
+          - id: no-code-in-skills
+            name: "skills/ must contain only .md, .json, .yaml, .yml files"
+            language: system
+            entry: >
+                bash -c 'bad=$(find skills -type f ! -name "*.md" ! -name "*.json" ! -name "*.yaml" ! -name "*.yml"); [
+                -z "$bad" ] || (echo "Code files found in skills/: $bad" && exit 1)'
+            pass_filenames: false
+
+    - repo: https://github.com/compilerla/conventional-pre-commit
+      rev: v3.4.0
+      hooks:
+          - id: conventional-pre-commit
+            stages: [commit-msg]
+            args: [feat, fix, chore, docs, refactor, ci, test]

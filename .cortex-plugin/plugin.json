@@ -8,8 +8,17 @@
   "homepage": "https://github.com/Snowflake-Labs/sf-solutions",
   "repository": "https://github.com/Snowflake-Labs/sf-solutions",
   "skills": [
-    { "name": "list",               "path": "skills/list/SKILL.md" },
-    { "name": "add-solution",       "path": "skills/add-solution/SKILL.md" },
-    { "name": "solutions-scaffold", "path": "skills/solutions-scaffold/SKILL.md" }
+    {
+      "name": "list",
+      "path": "skills/list/SKILL.md"
+    },
+    {
+      "name": "add-solution",
+      "path": "skills/add-solution/SKILL.md"
+    },
+    {
+      "name": "solutions-scaffold",
+      "path": "skills/solutions-scaffold/SKILL.md"
+    }
   ]
 }
