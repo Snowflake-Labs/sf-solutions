@@ -114,6 +114,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide on adding a new soluti
 
 ---
 
+## Framework Skills
+
+| Skill | Purpose |
+|-------|---------|
+| [solutions-scaffold](skills/solutions-scaffold/SKILL.md) | Shared engineering conventions (SKILL.md structure, plan mode gate, manifest schema, snow CLI rules) for building sf-solutions skills |
+
+---
+
 ## Related Resources
 
 - [Snowflake ML](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview)

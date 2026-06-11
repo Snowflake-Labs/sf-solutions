@@ -92,6 +92,21 @@ To add a new solution:
   $snowflake-solutions:add-solution
 ```
 
+### Step 5b: Framework Skills section
+
+After the usage footer, add:
+
+```
+## Framework Skills
+
+| Skill | Purpose |
+|-------|---------|
+| solutions-scaffold | Shared engineering conventions for building sf-solutions skills |
+
+To consult the scaffold when building a new skill:
+  $solutions-scaffold
+```
+
 ### Step 6: Apply filter (if $ARGUMENTS provided)
 
 If `$ARGUMENTS` is non-empty, re-run the display showing only entries where

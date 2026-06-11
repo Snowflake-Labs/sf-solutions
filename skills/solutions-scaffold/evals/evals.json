@@ -1,0 +1,25 @@
+{
+  "skill_name": "solutions-scaffold",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "what are the skill conventions for sf-solutions",
+      "expected_output": "Presents Tier 1 and Tier 2 conventions from solutions-scaffold SKILL.md including three presentation points, plan mode gate, SKILL.md structure, and manifest pattern",
+      "expectations": [
+        "References Tier 1 universal conventions",
+        "References Tier 2 infra-heavy conventions",
+        "Does not attempt to install or run anything"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "how do I structure a new skill",
+      "expected_output": "Shows required SKILL.md sections, frontmatter rules, step routing convention, and references/ directory layout",
+      "expectations": [
+        "Shows frontmatter: name and description only",
+        "Shows required sections in order",
+        "Mentions 500-line limit"
+      ]
+    }
+  ]
+}
