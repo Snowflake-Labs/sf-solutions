@@ -1,12 +1,14 @@
 ---
 name: list
 description: >
-  Lists all available Snowflake industry solutions in the catalog.
+  Lists all available Snowflake industry solutions in the catalog with rich metadata.
   Use when: "list solutions", "what solutions are available", "show solutions",
   "show catalog", "what can I install", "available solutions",
+  "solutions by industry", "what Snowflake features are used",
   "$snowflake-solutions:list", "what snowflake solutions exist".
 tools:
   - Read
+  - Bash
 ---
 
 # List Available Solutions
@@ -15,31 +17,63 @@ tools:
 
 | Invocation | Action |
 |---|---|
-| `$snowflake-solutions:list` | Present full catalog |
+| `$snowflake-solutions:list` | Present full catalog from catalog.yaml |
+| `$snowflake-solutions:list <industry>` | Filter catalog by industry |
+| `$snowflake-solutions:list <tag>` | Filter catalog by tag |
 
 ## Instructions
 
-Present the following solution catalog:
+1. Read `catalog.yaml` from the repo root.
 
-| # | Slug | Name | Industry | Key Features | Repo |
-|---|------|------|----------|--------------|------|
-| 1 | ltv-prediction | Customer Lifetime Value Prediction | Retail / CPG | Snowflake ML Regression, Cortex AI Functions, Customer Segmentation | [sf-solutions-ltv-prediction](https://github.com/Snowflake-Labs/sf-solutions-ltv-prediction) |
-| 2 | clinical-quality-agent | Clinical Quality and Patient Safety Agent | Healthcare | Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Snowflake Intelligence | [sf-solutions-clinical-quality-agent](https://github.com/Snowflake-Labs/sf-solutions-clinical-quality-agent) |
-| 3 | manufacturing-predictive-maintenance | Manufacturing Predictive Maintenance | Manufacturing | Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit, SPCS | [sf-solutions-manufacturing-predictive-maintenance](https://github.com/Snowflake-Labs/sf-solutions-manufacturing-predictive-maintenance) |
-| 4 | supply-chain-intelligence | Supply Chain Intelligence Platform | Manufacturing | Snowflake Intelligence, Cortex Analyst, Cortex Search, Semantic Model, Streamlit | [sf-solutions-supply-chain-intelligence](https://github.com/Snowflake-Labs/sf-solutions-supply-chain-intelligence) |
-| 5 | gnn-supply-chain-risk | GNN Supply Chain Risk Intelligence | Manufacturing | Graph Neural Networks, PyTorch Geometric, Cortex Agent, SPCS GPU, Streamlit | [sf-solutions-gnn-supply-chain-risk](https://github.com/Snowflake-Labs/sf-solutions-gnn-supply-chain-risk) |
+2. If `solutions` is empty, present:
+   ```
+   No solutions registered yet.
+   To add the first solution: $snowflake-solutions:add-solution
+   ```
+   Then stop.
 
-After the table, add:
+3. Otherwise, present a rich catalog table:
 
-```
-To install a solution:
-  $snowflake-solutions:<slug>
+   **Snowflake Industry Solutions**
 
-Examples:
-  $snowflake-solutions:ltv-prediction
-  $snowflake-solutions:ltv-prediction teardown
-  $snowflake-solutions:ltv-prediction next
+   | # | Solution | Industry | Snowflake Features | Tags | Status | Repo |
+   |---|----------|----------|--------------------|------|--------|------|
+   | (one row per catalog.yaml entry) | | | | | | |
 
-To add a new solution to this catalog:
-  $snowflake-solutions:add-solution
-```
+   For each entry:
+   - **#**: sequential number
+   - **Solution**: `name` field, bold
+   - **Industry**: `industry` field
+   - **Snowflake Features**: `snowflake_features` list joined with ` · `
+   - **Tags**: `tags` list formatted as `` `tag1` `tag2` ``
+   - **Status**: `status` — render as `available`, `coming-soon`, or `deprecated`
+   - **Repo**: link text = `source`, href = `repo` field
+
+4. After the table, present grouped summaries:
+
+   **By Industry:**
+   (group solution names by industry field)
+
+   **By Snowflake Feature:**
+   (group solution slugs by each feature they use)
+
+5. After the summaries, add:
+   ```
+   To install a solution:
+     $snowflake-solutions:<slug>
+     $snowflake-solutions:<slug> teardown
+     $snowflake-solutions:<slug> next
+
+   To add a new solution to this catalog:
+     $snowflake-solutions:add-solution
+   ```
+
+6. If `$ARGUMENTS` contains a filter term (industry or tag), show only matching entries and note how many were filtered out.
+
+## Error Recovery
+
+| Scenario | Action |
+|---|---|
+| `catalog.yaml` not found | Inform user the catalog file is missing; suggest running `git status` to check repo state |
+| YAML parse error | Show the parse error and line number; ask user to fix catalog.yaml |
+| `solutions` key missing | Treat as empty catalog and show the empty-state message |

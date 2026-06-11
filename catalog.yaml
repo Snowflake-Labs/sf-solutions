@@ -1,0 +1,30 @@
+# sf-solutions catalog
+#
+# This file is the single source of truth for solution metadata.
+# The `list` skill reads this file to display the solution catalog.
+# The `add-solution` skill appends entries here when a new solution is added.
+#
+# Schema per entry:
+#   slug            : kebab-case identifier used in skill invocations
+#   name            : human-readable solution name
+#   industry        : target industry vertical
+#   snowflake_features: list of Snowflake products / features used
+#   tags            : searchable labels (e.g. ml, cortex, streamlit, spcs)
+#   repo            : GitHub repo URL for the solution runtime code
+#   status          : available | coming-soon | deprecated
+#   version         : semver string
+
+solutions: []
+# Example entry (added automatically by $snowflake-solutions:add-solution):
+#
+# - slug: ltv-prediction
+#   name: Customer Lifetime Value Prediction
+#   industry: Retail / CPG
+#   snowflake_features:
+#     - Snowflake ML Regression
+#     - Cortex AI Functions (COMPLETE)
+#     - Streamlit in Snowflake
+#   tags: [ml, retail, forecasting, cortex]
+#   repo: https://github.com/Snowflake-Labs/sf-solutions-ltv-prediction
+#   status: available
+#   version: "1.0.0"

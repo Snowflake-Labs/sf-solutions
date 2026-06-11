@@ -9,10 +9,6 @@
   "repository": "https://github.com/Snowflake-Labs/sf-solutions",
   "skills": [
     {
-      "name": "ltv-prediction",
-      "path": "skills/ltv-prediction/SKILL.md"
-    },
-    {
       "name": "list",
       "path": "skills/list/SKILL.md"
     },

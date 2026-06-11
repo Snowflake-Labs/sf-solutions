@@ -18,6 +18,8 @@ tools:
 
 # {{name}}
 
+This skill follows [[solutions-scaffold]] Tier 1 conventions.
+
 ## Routing
 
 | Invocation | Action |

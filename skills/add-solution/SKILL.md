@@ -29,6 +29,7 @@ tools:
 - Do NOT write any files before the user approves the plan in Phase 1.
 - Do NOT guess repo URLs — always ask the user.
 - Do NOT create the `.cortex/skills/<slug>` symlink directly — instruct the user to run the shell command.
+- Do NOT skip the `skill-development` review in Phase 3 — it is mandatory.
 
 ## Phase 1: Gather and plan
 
@@ -37,8 +38,10 @@ Ask the user for the following details (use `ask_user_question` with type "text"
 1. **slug** — kebab-case identifier, e.g. `fraud-detection`
 2. **name** — human-readable solution name, e.g. `Real-Time Fraud Detection`
 3. **industry** — e.g. `Financial Services`
-4. **key_features** — comma-separated, e.g. `Snowflake ML, Cortex Agent, Streamlit`
-5. **repo_url** — e.g. `https://github.com/Snowflake-Labs/sf-solutions-fraud-detection`
+4. **snowflake_features** — comma-separated list of Snowflake products used
+5. **tags** — comma-separated labels, e.g. `ml, cortex, streamlit`
+6. **repo_url** — e.g. `https://github.com/Snowflake-Labs/sf-solutions-fraud-detection`
+7. **status** — one of: `available`, `coming-soon` (default: `coming-soon`)
 
 Then present a plan showing exactly which files will be created and which will be patched:
 
@@ -50,9 +53,9 @@ Files to create:
   .claude/commands/<slug>.md
 
 Files to patch:
-  skills/list/SKILL.md    — add row to catalog table
-  README.md               — add row to Solution Catalog table
-  .cortex-plugin/plugin.json  — add entry to skills[] array
+  catalog.yaml                    — add solution entry
+  README.md                       — note new solution in catalog section (if status=available)
+  .cortex-plugin/plugin.json      — add entry to skills[] array
 
 Manual step required after scaffolding:
   ln -s ../../skills/<slug> .cortex/skills/<slug>
@@ -64,25 +67,24 @@ Manual step required after scaffolding:
 
 ### Create skills/<slug>/SKILL.md
 
-Fill `skills/add-solution/templates/skill-md.md` with:
-- `{{slug}}` → the slug provided
-- `{{name}}` → the name provided
-- `{{industry}}` → the industry provided
-- `{{features}}` → the key_features provided
-- `{{repo_url}}` → the repo_url provided
+Read `skills/add-solution/templates/skill-md.md`. Replace all placeholders:
+- `{{slug}}` → slug
+- `{{name}}` → name
+- `{{industry}}` → industry
+- `{{features}}` → snowflake_features (comma-separated)
+- `{{repo_url}}` → repo_url
 
-Write the result to `skills/<slug>/SKILL.md`.
+Write to `skills/<slug>/SKILL.md`.
 
 ### Create skills/<slug>/NEXT_ACTIONS.md
 
-Fill `skills/add-solution/templates/next-actions.md` with:
-- `{{name}}` → the name provided
+Read `skills/add-solution/templates/next-actions.md`. Replace:
+- `{{name}}` → name
 
-Write the result to `skills/<slug>/NEXT_ACTIONS.md`.
+Write to `skills/<slug>/NEXT_ACTIONS.md`.
 
 ### Create skills/<slug>/evals/evals.json
 
-Write a minimal evals file:
 ```json
 {
   "skill_name": "<slug>",
@@ -114,32 +116,62 @@ To teardown: say "<slug> teardown"
 To see what's next: say "<slug> next actions"
 ```
 
-### Patch skills/list/SKILL.md
+### Patch catalog.yaml
 
-Read the file. Locate the catalog table. Append a new row with the next sequential number, slug, name, industry, features, and repo link. Write the file.
+Read `catalog.yaml`. Append to the `solutions:` list:
 
-### Patch README.md
-
-Read the file. Locate the Solution Catalog table. Append a new row with the same values. Write the file.
+```yaml
+- slug: <slug>
+  name: <name>
+  industry: <industry>
+  snowflake_features:
+    - <feature 1>
+    - <feature 2>
+  tags: [<tag1>, <tag2>]
+  repo: <repo_url>
+  status: <status>
+  version: "1.0.0"
+```
 
 ### Patch .cortex-plugin/plugin.json
 
-Read the file. Add a new entry to the `skills[]` array:
+Read the file. Add to `skills[]` array:
 ```json
 { "name": "<slug>", "path": "skills/<slug>/SKILL.md" }
 ```
-Write the file.
 
-## Phase 3: Verify and instruct
+## Phase 3: Review and verify
 
-Read back each created file and confirm it exists and has correct content:
+### Invoke skill-development for review
+
+**MANDATORY — DO NOT SKIP.**
+
+Invoke the bundled `skill-development` skill to review the generated `skills/<slug>/SKILL.md`:
+
+```
+skill(command="skill-development")
+```
+
+Pass the path `skills/<slug>/SKILL.md` for review. The skill-development skill will check:
+- Frontmatter completeness (`name`, `description`)
+- Description is "pushy" (enumerates trigger phrases)
+- Required sections present (Routing, Error Recovery, Completion Criteria)
+- No prohibited anti-patterns
+
+Apply any findings before proceeding to the file-existence check.
+
+### Verify file existence
+
+Read back each created file and confirm it exists with correct content:
 - `skills/<slug>/SKILL.md` — has `name:` frontmatter
 - `skills/<slug>/NEXT_ACTIONS.md` — has content
 - `.claude/commands/<slug>.md` — exists
-- `skills/list/SKILL.md` — contains the new table row
+- `catalog.yaml` — contains the new slug entry
 - `.cortex-plugin/plugin.json` — contains the new skills[] entry
 
-Show a summary table of created and patched files.
+### Show summary and manual step
+
+Present a summary table of created and patched files.
 
 Then instruct the user to complete the one manual step:
 
@@ -149,12 +181,15 @@ One manual step required — run this from the sf-solutions repo root:
   ln -s ../../skills/<slug> .cortex/skills/<slug>
 
 This registers the skill for CoCo local auto-discovery.
+After running it, verify with:
+  ls -la .cortex/skills/
 ```
 
 ## Error Recovery
 
 | Scenario | Action |
 |---|---|
-| `skills/<slug>/` already exists | Show existing content, ask user whether to overwrite |
-| Table row insertion point not found | Show the file and ask user to confirm the correct location |
-| JSON parse error in plugin.json | Show the current file and ask user to resolve before continuing |
+| `skills/<slug>/` already exists | Show existing content; ask user whether to overwrite |
+| YAML parse error in catalog.yaml | Show parse error and line number; ask user to fix before continuing |
+| JSON parse error in plugin.json | Show current file; ask user to resolve before continuing |
+| skill-development review finds blockers | Address each blocker before marking Phase 3 complete |
