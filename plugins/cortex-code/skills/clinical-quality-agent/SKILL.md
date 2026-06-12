@@ -71,9 +71,18 @@ Parse the action from `$ARGUMENTS`:
    - If not available: inform user the Agent will work without literature search, and suggest installing PubMed from Marketplace:
      `https://app.snowflake.com/marketplace/listing/GZTYZ4386LY/cybersyn-pubmed-biomedical-research-corpus`
 
-6. Read `solutions/clinical-quality-agent/scripts/setup.sql` and execute statement by statement using `snowflake_sql_execute`.
-   - Data generation may take 2-5 minutes (use `timeout_seconds: 600`)
-   - Log progress after each major section
+6. Read `solutions/clinical-quality-agent/scripts/setup.sql` and execute it.
+
+   **CRITICAL SESSION CONSTRAINT:** This script uses `SET` session variables (e.g., `$num_patients`, `$mortality_multiplier`) that the data generation INSERT statements depend on. These variables MUST persist within the same session.
+
+   Execution strategy:
+   - **Lines 1-208 (schema/table creation):** Execute statement by statement — these are independent DDL.
+   - **Lines 209-1963 (SET variables + data generation):** Execute as a SINGLE call using `snowflake_sql_execute` with all statements concatenated. The SET variables, TRUNCATE, and INSERT...GENERATOR statements MUST run in one session, otherwise the variables are lost and tables will be empty.
+     - Use `timeout_seconds: 1200` (data generation takes ~2-5 min on LARGE warehouse)
+   - **Lines 1964+ (stage, PUT, agent creation):** Execute statement by statement.
+     - NOTE: The `PUT file://semantic_model.yaml` command requires the file to be local. Read `solutions/clinical-quality-agent/scripts/semantic_model.yaml` and upload it using a workaround (e.g., COPY INTO with CHAR(10) concatenation, or skip PUT and inform user to upload manually).
+
+   Log progress after each major section.
 
 7. Verify:
    ```sql
