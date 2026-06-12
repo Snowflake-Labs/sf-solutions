@@ -46,10 +46,13 @@ $snowflake-solutions:ltv-prediction teardown
 # Add the marketplace
 claude plugin marketplace add https://github.com/Snowflake-Labs/sf-solutions.git --path plugins/claude-code
 
-# Install the plugin
-claude plugin install snowflake-solutions
+# Or load locally during development
+claude --plugin-dir ./plugins/claude-code
+```
 
-# Install a solution
+Then in a Cortex Code session, run a solution by name:
+```
+# Install a solution in Claude Code
 /snowflake-solutions:ltv-prediction
 ```
 
