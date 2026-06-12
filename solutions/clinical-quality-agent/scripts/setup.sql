@@ -19,7 +19,7 @@ USE DATABASE SF_SOLUTIONS;
 USE SCHEMA CLINICAL_QUALITY_SAFETY;
 
 CREATE WAREHOUSE IF NOT EXISTS SF_SOLUTIONS_WH
-    WAREHOUSE_SIZE = XSMALL
+    WAREHOUSE_SIZE = LARGE
     AUTO_SUSPEND = 120
     AUTO_RESUME = TRUE
     INITIALLY_SUSPENDED = TRUE;
@@ -207,139 +207,6 @@ CREATE OR REPLACE TABLE RISK_FACTORS (
 
 SELECT 'Clinical quality and patient safety tables created successfully (without indexes)!' AS status; 
 
-
-
--- Clinical Quality and Patient Safety Demo - SIMPLE Data Generation with HIGH Death Rates
--- This version uses the simplest possible logic to guarantee 25%+ death rates for excellent demo results
--- Run this after creating the tables with 02_create_tables_fixed.sql
-
-
-
--- Clear existing data first
-TRUNCATE TABLE PATIENTS;
-TRUNCATE TABLE ADMISSIONS;
-TRUNCATE TABLE DIAGNOSES;
-
--- 1. Generate PATIENTS data (50,000 records with realistic demographics)
-INSERT INTO PATIENTS (
-    patient_id, 
-    medical_record_number, 
-    first_name, 
-    last_name, 
-    date_of_birth, 
-    gender, 
-    race, 
-    ethnicity, 
-    primary_language, 
-    insurance_type
-)
-SELECT 
-    'PAT' || LPAD(SEQ4(), 10, '0') AS patient_id,
-    'MRN' || LPAD(SEQ4(), 8, '0') AS medical_record_number,
-    CASE (UNIFORM(1, 20, RANDOM()))
-        WHEN 1 THEN 'John' WHEN 2 THEN 'Mary' WHEN 3 THEN 'James' WHEN 4 THEN 'Patricia'
-        WHEN 5 THEN 'Robert' WHEN 6 THEN 'Jennifer' WHEN 7 THEN 'Michael' WHEN 8 THEN 'Linda'
-        WHEN 9 THEN 'William' WHEN 10 THEN 'Elizabeth' WHEN 11 THEN 'David' WHEN 12 THEN 'Barbara'
-        WHEN 13 THEN 'Richard' WHEN 14 THEN 'Susan' WHEN 15 THEN 'Joseph' WHEN 16 THEN 'Jessica'
-        WHEN 17 THEN 'Thomas' WHEN 18 THEN 'Sarah' WHEN 19 THEN 'Christopher' ELSE 'Karen'
-    END AS first_name,
-    CASE (UNIFORM(1, 20, RANDOM()))
-        WHEN 1 THEN 'Smith' WHEN 2 THEN 'Johnson' WHEN 3 THEN 'Williams' WHEN 4 THEN 'Brown'
-        WHEN 5 THEN 'Jones' WHEN 6 THEN 'Garcia' WHEN 7 THEN 'Miller' WHEN 8 THEN 'Davis'
-        WHEN 9 THEN 'Rodriguez' WHEN 10 THEN 'Martinez' WHEN 11 THEN 'Hernandez' WHEN 12 THEN 'Lopez'
-        WHEN 13 THEN 'Gonzalez' WHEN 14 THEN 'Wilson' WHEN 15 THEN 'Anderson' WHEN 16 THEN 'Thomas'
-        WHEN 17 THEN 'Taylor' WHEN 18 THEN 'Moore' WHEN 19 THEN 'Jackson' ELSE 'Martin'
-    END AS last_name,
-    DATEADD(DAY, -UNIFORM(18*365, 95*365, RANDOM()), CURRENT_DATE()) AS date_of_birth,
-    CASE WHEN UNIFORM(1, 100, RANDOM()) <= 50 THEN 'M' ELSE 'F' END AS gender,
-    CASE 
-        WHEN UNIFORM(1, 100, RANDOM()) <= 60 THEN 'White'
-        WHEN UNIFORM(1, 100, RANDOM()) <= 80 THEN 'Black or African American'
-        WHEN UNIFORM(1, 100, RANDOM()) <= 90 THEN 'Hispanic or Latino'
-        ELSE 'Asian'
-    END AS race,
-    CASE WHEN UNIFORM(1, 100, RANDOM()) <= 80 THEN 'Not Hispanic or Latino' ELSE 'Hispanic or Latino' END AS ethnicity,
-    CASE WHEN UNIFORM(1, 100, RANDOM()) <= 80 THEN 'English' ELSE 'Spanish' END AS primary_language,
-    CASE 
-        WHEN UNIFORM(1, 100, RANDOM()) <= 40 THEN 'Medicare'
-        WHEN UNIFORM(1, 100, RANDOM()) <= 70 THEN 'Commercial'
-        ELSE 'Medicaid'
-    END AS insurance_type
-FROM TABLE(GENERATOR(ROWCOUNT => 50000));
-
--- 2. Generate ADMISSIONS with SIMPLE but HIGH death rate logic
-INSERT INTO ADMISSIONS (
-    admission_id, patient_id, admission_date, discharge_date, admission_type, 
-    discharge_disposition, primary_service, room_type, length_of_stay_days, 
-    attending_physician, is_readmission, days_since_last_discharge, 
-    severity_of_illness_score, mortality_risk_score
-)
-SELECT 
-    'ADM' || LPAD(SEQ4(), 10, '0') AS admission_id,
-    p.patient_id,
-    DATEADD(DAY, UNIFORM(0, 730, RANDOM()), $start_date::DATE) AS admission_date,
-    NULL AS discharge_date, -- Will be calculated later
-    CASE WHEN UNIFORM(1, 100, RANDOM()) <= 50 THEN 'Emergency' ELSE 'Elective' END AS admission_type,
-    -- SIMPLE HIGH DEATH RATE: 30% die!
-    CASE WHEN UNIFORM(1, 100, RANDOM()) <= 30 THEN 'Expired' ELSE 'Home' END AS discharge_disposition,
-    CASE 
-        WHEN UNIFORM(1, 100, RANDOM()) <= 40 THEN 'Medicine'
-        WHEN UNIFORM(1, 100, RANDOM()) <= 70 THEN 'Surgery'
-        ELSE 'ICU'
-    END AS primary_service,
-    CASE WHEN UNIFORM(1, 100, RANDOM()) <= 50 THEN 'ICU' ELSE 'Med-Surg' END AS room_type,
-    UNIFORM(1, 14, RANDOM()) AS length_of_stay_days,
-    'Dr. Smith' AS attending_physician,
-    FALSE AS is_readmission,
-    NULL AS days_since_last_discharge,
-    ROUND(UNIFORM(1.0, 4.0, RANDOM()), 1) AS severity_of_illness_score,
-    ROUND(UNIFORM(0.001, 0.900, RANDOM()), 3) AS mortality_risk_score
-FROM PATIENTS p
-WHERE UNIFORM(1, 100, RANDOM()) <= 80; -- 80% of patients have admissions
-
--- Update discharge dates
-UPDATE ADMISSIONS 
-SET discharge_date = DATEADD(DAY, length_of_stay_days, admission_date);
-
--- Generate diagnoses for deaths
-INSERT INTO DIAGNOSES (
-    diagnosis_id, admission_id, patient_id, icd10_code, diagnosis_description, 
-    diagnosis_type, present_on_admission, diagnosis_date, physician_name,
-    complication_flag, hospital_acquired
-)
-SELECT 
-    'DX' || LPAD(SEQ4(), 10, '0') AS diagnosis_id,
-    a.admission_id,
-    a.patient_id,
-    'A41.9' AS icd10_code,
-    'Sepsis, unspecified organism' AS diagnosis_description,
-    'Primary' AS diagnosis_type,
-    TRUE AS present_on_admission,
-    a.admission_date AS diagnosis_date,
-    a.attending_physician AS physician_name,
-    TRUE AS complication_flag,
-    FALSE AS hospital_acquired
-FROM ADMISSIONS a
-WHERE a.discharge_disposition = 'Expired';
-
-COMMIT;
-
--- Verify high death rate
-SELECT 
-    'SIMPLE VERSION - HIGH DEATH RATE CONFIRMED!' AS message,
-    COUNT(*) AS total_admissions,
-    SUM(CASE WHEN discharge_disposition = 'Expired' THEN 1 ELSE 0 END) AS deaths,
-    ROUND(SUM(CASE WHEN discharge_disposition = 'Expired' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS death_rate_percent
-FROM ADMISSIONS;
-
--- Show all discharge dispositions
-SELECT 
-    discharge_disposition,
-    COUNT(*) AS count,
-    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) AS percentage
-FROM ADMISSIONS
-GROUP BY discharge_disposition
-ORDER BY count DESC; 
 
 -- Clinical Quality and Patient Safety Demo - REALISTIC Data Generation
 -- This version creates realistic healthcare relationships and statistics
@@ -2140,7 +2007,7 @@ CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.SEMANTIC_MODEL_S
 
 -- Upload semantic model YAML file from the scripts/ directory.
 -- Run this PUT from the same directory as setup.sql (or adjust the path).
-PUT file://semantic_model.yaml @SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.SEMANTIC_MODEL_STAGE/02_semantic_model_realistic.yaml
+PUT file://semantic_model.yaml @SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.SEMANTIC_MODEL_STAGE
     AUTO_COMPRESS = FALSE
     OVERWRITE = TRUE;
 
@@ -2264,7 +2131,7 @@ CREATE OR REPLACE AGENT clinical_quality_safety_agent
 
   tool_resources:
     PATIENT_QUALITY_ANALYST:
-      semantic_model_file: "@SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.SEMANTIC_MODEL_STAGE/02_semantic_model_realistic.yaml"
+      semantic_model_file: "@SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.SEMANTIC_MODEL_STAGE/semantic_model.yaml"
       execution_environment:
         type: warehouse
         warehouse: SF_SOLUTIONS_WH

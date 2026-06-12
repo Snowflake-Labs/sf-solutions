@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "industry": "Healthcare & Life Sciences",
   "description": "AI-powered Cortex Agent for Chief Quality Officers to analyze patient outcomes, infections, mortality rates, and safety indicators using natural language. Combines Cortex Analyst (text-to-SQL), PubMed Cortex Search (38M+ articles), and email notifications.",
-  "license": "MIT",
   "database": "SF_SOLUTIONS",
   "schemas": ["CLINICAL_QUALITY_SAFETY"],
   "role": "ACCOUNTADMIN",

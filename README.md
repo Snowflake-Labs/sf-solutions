@@ -21,12 +21,14 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 Install any solution using the Cortex Code plugin:
 
 ```bash
-# Install the plugin
+# Permanent install (copies plugin to cache — survives restarts)
 cortex plugin install https://github.com/Snowflake-Labs/sf-solutions.git
 
-# Or load locally during development
+# Or load locally during development (reads directly from disk, always up-to-date)
 cortex --plugin-dir ./plugins/cortex-code
 ```
+
+> **Note:** `cortex plugin install` copies the plugin into a local cache. If you add new skills later, you must `cortex plugin uninstall snowflake-solutions && cortex plugin install ...` to refresh. During development, use `--plugin-dir` instead — it always reads the latest files from disk without caching.
 
 Then in a Cortex Code session, run a solution by name:
 

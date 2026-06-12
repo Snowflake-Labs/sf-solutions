@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "industry": "Retail / CPG",
   "source": "",
-  "license": "MIT",
   "database": "SF_SOLUTIONS",
   "schemas": ["LTV_RAW", "LTV_ANALYTICS", "LTV_ML"],
   "role": "ACCOUNTADMIN",
