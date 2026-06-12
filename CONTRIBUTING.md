@@ -19,8 +19,7 @@ sf-solutions/
 │       ├── manifest.json
 │       ├── scripts/setup.sql
 │       ├── scripts/teardown.sql
-│       ├── streamlit/        # Optional dashboard
-│       └── prompts/          # Demo prompts (EN + JP)
+│       └── streamlit/        # Optional dashboard
 └── README.md
 ```
 
@@ -66,9 +65,11 @@ Required:
 ## SKILL.md Guidelines
 
 - Use `$ARGUMENTS` to differentiate install vs teardown
-- Step 7 must **always** retrieve and display the Streamlit URL (if applicable) — marked as `[MANDATORY — DO NOT SKIP]`
-- Step 8 shows the final summary with Next Actions
+- The **last two steps** before teardown must always be:
+  1. **Retrieve and display the Streamlit URL** (if applicable) — marked as `[MANDATORY — DO NOT SKIP]`
+  2. **Show the final summary with Next Actions**
 - Include a `## Next Actions` section that references NEXT_ACTIONS.md
+- The step numbers will vary by solution (e.g., a simple solution may use Steps 5-6, a complex one Steps 9-10)
 
 ## NEXT_ACTIONS.md Guidelines
 
@@ -102,8 +103,10 @@ SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/'
 ## Testing
 
 Before submitting a PR:
-1. Run `setup.sql` end-to-end on a clean account
-2. Verify all objects are created (check INFORMATION_SCHEMA)
-3. Open the Streamlit dashboard URL and confirm it loads without errors
-4. Run `teardown.sql` and verify everything is removed
-5. Test both Cortex Code (`$snowflake-solutions:<name>`) and Claude Code (`/snowflake-solutions:<name>`) skill execution
+1. Load plugin in Cortex Code CLI
+2. Load plugin in Claude Code CLI
+3. Run `setup.sql` end-to-end on a clean account
+4. Verify all objects are created (check INFORMATION_SCHEMA)
+5. Open the Streamlit dashboard URL and confirm it loads without errors
+6. Run `teardown.sql` and verify everything is removed
+7. Test both Cortex Code (`$snowflake-solutions:<name>`) and Claude Code (`/snowflake-solutions:<name>`) skill execution
