@@ -26,7 +26,7 @@ Parse the action from `$ARGUMENTS`:
 - **Industry:** Healthcare & Life Sciences
 - **Database:** SF_SOLUTIONS
 - **Schema:** CLINICAL_QUALITY_SAFETY
-- **Features:** Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Semantic Model, Snowflake Intelligence
+- **Features:** Cortex Agent, Cortex Analyst, Cortex Search (PubMed), Semantic Model, Snowflake CoWork
 - **Role Required:** ACCOUNTADMIN
 - **Optional Marketplace Dataset:** PubMed Biomedical Research Corpus (free, strongly recommended)
 
@@ -86,8 +86,10 @@ Parse the action from `$ARGUMENTS`:
 8. **[MANDATORY — DO NOT SKIP]** Show the Snowflake Intelligence Agent URL.
    Execute this query:
    ```sql
-   SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
-       || '/#/cortex-agents/SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.CLINICAL_QUALITY_SAFETY_AGENT' AS AGENT_URL;
+   SELECT 'https://app.snowflake.com/'
+       || LOWER(REPLACE(REPLACE(CURRENT_REGION(), 'AWS_', ''), '_', '-'))
+       || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+       || '/#/agents/database/SF_SOLUTIONS/schema/CLINICAL_QUALITY_SAFETY/agent/CLINICAL_QUALITY_SAFETY_AGENT/details' AS AGENT_URL;
    ```
    Display it to the user:
    ```
@@ -104,7 +106,7 @@ Parse the action from `$ARGUMENTS`:
    Installation complete: Clinical Quality and Patient Safety Agent v1.0.0
 
    Next Actions:
-   1. Open the Cortex Agent URL above in Snowflake Intelligence
+   1. Open the Cortex Agent URL above in Snowflake CoWorks
    2. Try: "How many patients died in the last year?"
    3. Try: "Show me catheter infections that resulted in death"
    4. Try: "Search PubMed for CAUTI prevention" (requires PubMed dataset)

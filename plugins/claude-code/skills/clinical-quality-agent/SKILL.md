@@ -81,8 +81,10 @@ Parse the action from `$ARGUMENTS`:
 8. **[MANDATORY — DO NOT SKIP]** Show the Snowflake Intelligence Agent URL.
    Execute this query:
    ```sql
-   SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
-       || '/#/cortex-agents/SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.CLINICAL_QUALITY_SAFETY_AGENT' AS AGENT_URL;
+   SELECT 'https://app.snowflake.com/'
+       || LOWER(REPLACE(REPLACE(CURRENT_REGION(), 'AWS_', ''), '_', '-'))
+       || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+       || '/#/agents/database/SF_SOLUTIONS/schema/CLINICAL_QUALITY_SAFETY/agent/CLINICAL_QUALITY_SAFETY_AGENT/details' AS AGENT_URL;
    ```
    Display it to the user:
    ```
