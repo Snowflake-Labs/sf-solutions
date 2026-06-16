@@ -5,7 +5,7 @@
   "industry": "Manufacturing",
   "source": "https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance",
   "license": "MIT",
-  "database": "SNOWCORE_INDUSTRIES",
+  "database": "SF_SOLUTIONS",
   "schemas": ["BRONZE", "SILVER", "GOLD"],
   "role": "ACCOUNTADMIN",
   "requires_warehouse": true,

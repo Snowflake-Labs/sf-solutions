@@ -18,7 +18,7 @@ Parse the action from `$ARGUMENTS`:
 ## Overview
 
 - **Industry:** Manufacturing
-- **Database:** SNOWCORE_INDUSTRIES
+- **Database:** SF_SOLUTIONS
 - **Schemas:** BRONZE, SILVER, GOLD
 - **Features:** Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit in Snowflake, SPCS
 - **Role Required:** ACCOUNTADMIN
@@ -38,7 +38,7 @@ Parse the action from `$ARGUMENTS`:
    ```
    Solution: Manufacturing Predictive Maintenance v1.0.0
    Industry: Manufacturing
-   Database: SNOWCORE_INDUSTRIES
+   Database: SF_SOLUTIONS
    Schemas:  BRONZE, SILVER, GOLD
    Role:     ACCOUNTADMIN
 
@@ -48,7 +48,7 @@ Parse the action from `$ARGUMENTS`:
      - Dimensional star schema (fact + dimension tables)
      - Semantic View for Cortex Analyst natural language queries
      - Cortex Agent (PREDICTIVE_MAINTENANCE_ASSISTANT) for Snowflake Intelligence
-     - Warehouses: SNOWCORE_INDUSTRIES_WH, SNOWCORE_INDUSTRIES_STREAMLIT_WH
+     - Warehouses: SF_SOLUTIONS_WH, SF_SOLUTIONS_STREAMLIT_WH
 
    Proceed with installation?
    ```
@@ -62,7 +62,7 @@ Parse the action from `$ARGUMENTS`:
 6. Verify installation:
    ```sql
    SELECT TABLE_SCHEMA, TABLE_NAME, ROW_COUNT
-   FROM SNOWCORE_INDUSTRIES.INFORMATION_SCHEMA.TABLES
+   FROM SF_SOLUTIONS.INFORMATION_SCHEMA.TABLES
    WHERE TABLE_SCHEMA IN ('BRONZE', 'SILVER', 'GOLD')
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
@@ -71,7 +71,7 @@ Parse the action from `$ARGUMENTS`:
    Execute this query:
    ```sql
    SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
-       || '/#/agents/database/SNOWCORE_INDUSTRIES/schema/GOLD/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
+       || '/#/agents/database/SF_SOLUTIONS/schema/GOLD/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
    ```
    Display it to the user:
    ```
@@ -101,7 +101,7 @@ Parse the action from `$ARGUMENTS`:
 
 If `$ARGUMENTS` is "teardown":
 
-1. Confirm with user: "This will drop the SNOWCORE_INDUSTRIES database, warehouses, and role. Proceed?"
+1. Confirm with user: "This will drop the SF_SOLUTIONS database, warehouses, and role. Proceed?"
 2. Read and execute `solutions/manufacturing-predictive-maintenance/scripts/teardown.sql` from the repository.
 3. Confirm: "Manufacturing Predictive Maintenance removed."
 

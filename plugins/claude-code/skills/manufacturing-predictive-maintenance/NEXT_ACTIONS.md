@@ -28,19 +28,19 @@ After installation, guide the user through these progressive steps.
    ```sql
    -- Asset health overview
    SELECT ASSET_ID, ASSET_NAME, HEALTH_SCORE, PREDICTED_FAILURE_DATE
-   FROM SNOWCORE_INDUSTRIES.GOLD.ASSET_HEALTH_METRICS
+   FROM SF_SOLUTIONS.GOLD.ASSET_HEALTH_METRICS
    WHERE HEALTH_SCORE < 70
    ORDER BY HEALTH_SCORE ASC;
 
    -- Maintenance costs by facility
    SELECT FACILITY_NAME, SUM(MAINTENANCE_COST) AS TOTAL_COST
-   FROM SNOWCORE_INDUSTRIES.GOLD.MAINTENANCE_SUMMARY
+   FROM SF_SOLUTIONS.GOLD.MAINTENANCE_SUMMARY
    GROUP BY FACILITY_NAME
    ORDER BY TOTAL_COST DESC;
 
    -- OEE metrics
    SELECT ASSET_ID, AVG(OEE) AS AVG_OEE
-   FROM SNOWCORE_INDUSTRIES.GOLD.OEE_METRICS
+   FROM SF_SOLUTIONS.GOLD.OEE_METRICS
    GROUP BY ASSET_ID
    ORDER BY AVG_OEE ASC
    LIMIT 10;
@@ -55,10 +55,10 @@ After installation, guide the user through these progressive steps.
 5. **Connect real-time IoT data**
    ```sql
    -- Set up Snowpipe for streaming sensor data
-   CREATE PIPE SNOWCORE_INDUSTRIES.BRONZE.SENSOR_PIPE
+   CREATE PIPE SF_SOLUTIONS.BRONZE.SENSOR_PIPE
        AUTO_INGEST = TRUE
    AS
-       COPY INTO SNOWCORE_INDUSTRIES.BRONZE.RAW_TELEMETRY
+       COPY INTO SF_SOLUTIONS.BRONZE.RAW_TELEMETRY
        FROM @your_iot_stage;
    ```
 
@@ -70,7 +70,7 @@ After installation, guide the user through these progressive steps.
 
 7. **Deploy the Streamlit dashboard**
    - Clone the source repo: `git clone https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance.git`
-   - Upload Streamlit files to `@SNOWCORE_INDUSTRIES.GOLD.STREAMLIT_STAGE`
+   - Upload Streamlit files to `@SF_SOLUTIONS.GOLD.STREAMLIT_STAGE`
    - Create the STREAMLIT object pointing to the stage
 
 8. **Add ML prediction models**
@@ -91,11 +91,11 @@ After installation, guide the user through these progressive steps.
 
 10. **Set up automated health monitoring**
     ```sql
-    CREATE OR REPLACE ALERT SNOWCORE_INDUSTRIES.GOLD.CRITICAL_HEALTH_ALERT
-        WAREHOUSE = SNOWCORE_INDUSTRIES_WH
+    CREATE OR REPLACE ALERT SF_SOLUTIONS.GOLD.CRITICAL_HEALTH_ALERT
+        WAREHOUSE = SF_SOLUTIONS_WH
         SCHEDULE = 'USING CRON 0 */4 * * * America/Los_Angeles'
         IF (EXISTS (
-            SELECT 1 FROM SNOWCORE_INDUSTRIES.GOLD.ASSET_HEALTH_METRICS
+            SELECT 1 FROM SF_SOLUTIONS.GOLD.ASSET_HEALTH_METRICS
             WHERE HEALTH_SCORE < 50
             HAVING COUNT(*) > 0
         ))
@@ -105,20 +105,20 @@ After installation, guide the user through these progressive steps.
 
 11. **Schedule data pipeline refresh**
     ```sql
-    CREATE OR REPLACE TASK SNOWCORE_INDUSTRIES.GOLD.REFRESH_METRICS
-        WAREHOUSE = SNOWCORE_INDUSTRIES_WH
+    CREATE OR REPLACE TASK SF_SOLUTIONS.GOLD.REFRESH_METRICS
+        WAREHOUSE = SF_SOLUTIONS_WH
         SCHEDULE = 'USING CRON 0 */6 * * * America/Los_Angeles'
     AS
         -- Rebuild Silver and Gold layers from Bronze
-        CALL SNOWCORE_INDUSTRIES.GOLD.REFRESH_PIPELINE();
+        CALL SF_SOLUTIONS.GOLD.REFRESH_PIPELINE();
     ```
 
 12. **Grant access to operations team**
     ```sql
     CREATE ROLE IF NOT EXISTS MAINTENANCE_VIEWER;
-    GRANT USAGE ON DATABASE SNOWCORE_INDUSTRIES TO ROLE MAINTENANCE_VIEWER;
-    GRANT USAGE ON SCHEMA SNOWCORE_INDUSTRIES.GOLD TO ROLE MAINTENANCE_VIEWER;
-    GRANT SELECT ON ALL VIEWS IN SCHEMA SNOWCORE_INDUSTRIES.GOLD TO ROLE MAINTENANCE_VIEWER;
+    GRANT USAGE ON DATABASE SF_SOLUTIONS TO ROLE MAINTENANCE_VIEWER;
+    GRANT USAGE ON SCHEMA SF_SOLUTIONS.GOLD TO ROLE MAINTENANCE_VIEWER;
+    GRANT SELECT ON ALL VIEWS IN SCHEMA SF_SOLUTIONS.GOLD TO ROLE MAINTENANCE_VIEWER;
     ```
 
 ## Summary

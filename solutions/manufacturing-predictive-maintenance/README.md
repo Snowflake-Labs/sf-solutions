@@ -23,9 +23,9 @@ This solution is based on [Getting Started with Predictive Maintenance](https://
 
 ### Key Objects Created
 
-- **Database:** `SNOWCORE_INDUSTRIES`
-- **Warehouses:** `SNOWCORE_INDUSTRIES_WH`, `SNOWCORE_INDUSTRIES_STREAMLIT_WH`
-- **Role:** `SNOWCORE_INDUSTRIES_ROLE`
+- **Database:** `SF_SOLUTIONS`
+- **Warehouses:** `SF_SOLUTIONS_WH`, `SF_SOLUTIONS_STREAMLIT_WH`
+- **Role:** `SF_SOLUTIONS_ROLE`
 - **~160,000+** telemetry records across 18 assets and 3 facilities
 - **12+ months** of maintenance history (Nov 2024 – current)
 - **Semantic View** for Cortex Analyst natural language queries
