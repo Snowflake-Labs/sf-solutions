@@ -19,7 +19,7 @@ Parse the action from `$ARGUMENTS`:
 
 - **Industry:** Manufacturing
 - **Database:** SF_SOLUTIONS
-- **Schemas:** BRONZE, SILVER, GOLD
+- **Schemas:** MPM_BRONZE, MPM_SILVER, MPM_GOLD
 - **Features:** Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit in Snowflake, SPCS
 - **Role Required:** ACCOUNTADMIN
 - **Source:** [sfguide-getting-started-with-predictive-maintenance](https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance)
@@ -39,7 +39,7 @@ Parse the action from `$ARGUMENTS`:
    Solution: Manufacturing Predictive Maintenance v1.0.0
    Industry: Manufacturing
    Database: SF_SOLUTIONS
-   Schemas:  BRONZE, SILVER, GOLD
+   Schemas:  MPM_BRONZE, MPM_SILVER, MPM_GOLD
    Role:     ACCOUNTADMIN
 
    What will be created:
@@ -63,7 +63,7 @@ Parse the action from `$ARGUMENTS`:
    ```sql
    SELECT TABLE_SCHEMA, TABLE_NAME, ROW_COUNT
    FROM SF_SOLUTIONS.INFORMATION_SCHEMA.TABLES
-   WHERE TABLE_SCHEMA IN ('BRONZE', 'SILVER', 'GOLD')
+   WHERE TABLE_SCHEMA IN ('MPM_BRONZE', 'MPM_SILVER', 'MPM_GOLD')
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
 
@@ -71,7 +71,7 @@ Parse the action from `$ARGUMENTS`:
    Execute this query:
    ```sql
    SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
-       || '/#/agents/database/SF_SOLUTIONS/schema/GOLD/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
+       || '/#/agents/database/SF_SOLUTIONS/schema/MPM_GOLD/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
    ```
    Display it to the user:
    ```

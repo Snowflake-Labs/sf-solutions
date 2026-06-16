@@ -28,19 +28,19 @@ After installation, guide the user through these progressive steps.
    ```sql
    -- Asset health overview
    SELECT ASSET_ID, ASSET_NAME, HEALTH_SCORE, PREDICTED_FAILURE_DATE
-   FROM SF_SOLUTIONS.GOLD.ASSET_HEALTH_METRICS
+   FROM SF_SOLUTIONS.MPM_GOLD.ASSET_HEALTH_METRICS
    WHERE HEALTH_SCORE < 70
    ORDER BY HEALTH_SCORE ASC;
 
    -- Maintenance costs by facility
    SELECT FACILITY_NAME, SUM(MAINTENANCE_COST) AS TOTAL_COST
-   FROM SF_SOLUTIONS.GOLD.MAINTENANCE_SUMMARY
+   FROM SF_SOLUTIONS.MPM_GOLD.MAINTENANCE_SUMMARY
    GROUP BY FACILITY_NAME
    ORDER BY TOTAL_COST DESC;
 
    -- OEE metrics
    SELECT ASSET_ID, AVG(OEE) AS AVG_OEE
-   FROM SF_SOLUTIONS.GOLD.OEE_METRICS
+   FROM SF_SOLUTIONS.MPM_GOLD.OEE_METRICS
    GROUP BY ASSET_ID
    ORDER BY AVG_OEE ASC
    LIMIT 10;
@@ -49,35 +49,35 @@ After installation, guide the user through these progressive steps.
 ## Customize with Your Data (30 min)
 
 4. **Replace demo data with real IoT telemetry**
-   - Map your data to BRONZE schema tables (telemetry, maintenance logs, equipment specs)
+   - Map your data to MPM_BRONZE schema tables (telemetry, maintenance logs, equipment specs)
    - Load via COPY INTO from your data lake or streaming ingestion
 
 5. **Connect real-time IoT data**
    ```sql
    -- Set up Snowpipe for streaming sensor data
-   CREATE PIPE SF_SOLUTIONS.BRONZE.SENSOR_PIPE
+   CREATE PIPE SF_SOLUTIONS.MPM_BRONZE.SENSOR_PIPE
        AUTO_INGEST = TRUE
    AS
-       COPY INTO SF_SOLUTIONS.BRONZE.RAW_TELEMETRY
+       COPY INTO SF_SOLUTIONS.MPM_BRONZE.RAW_TELEMETRY
        FROM @your_iot_stage;
    ```
 
 6. **Update the semantic view**
-   - Modify the semantic view in GOLD schema to match your column names
+   - Modify the semantic view in MPM_GOLD schema to match your column names
    - Re-create the Cortex Analyst tool with the updated model
 
 ## Extend the Solution (1 hour)
 
 7. **Deploy the Streamlit dashboard**
    - Clone the source repo: `git clone https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance.git`
-   - Upload Streamlit files to `@SF_SOLUTIONS.GOLD.STREAMLIT_STAGE`
+   - Upload Streamlit files to `@SF_SOLUTIONS.MPM_GOLD.STREAMLIT_STAGE`
    - Create the STREAMLIT object pointing to the stage
 
 8. **Add ML prediction models**
    ```sql
    -- Train a failure prediction model
    CREATE OR REPLACE SNOWFLAKE.ML.CLASSIFICATION FAILURE_PREDICTOR(
-       INPUT_DATA => SYSTEM$REFERENCE('VIEW', 'GOLD.ML_FEATURES'),
+       INPUT_DATA => SYSTEM$REFERENCE('VIEW', 'MPM_GOLD.ML_FEATURES'),
        TARGET_COLNAME => 'WILL_FAIL_30D'
    );
    ```
@@ -91,11 +91,11 @@ After installation, guide the user through these progressive steps.
 
 10. **Set up automated health monitoring**
     ```sql
-    CREATE OR REPLACE ALERT SF_SOLUTIONS.GOLD.CRITICAL_HEALTH_ALERT
+    CREATE OR REPLACE ALERT SF_SOLUTIONS.MPM_GOLD.CRITICAL_HEALTH_ALERT
         WAREHOUSE = SF_SOLUTIONS_WH
         SCHEDULE = 'USING CRON 0 */4 * * * America/Los_Angeles'
         IF (EXISTS (
-            SELECT 1 FROM SF_SOLUTIONS.GOLD.ASSET_HEALTH_METRICS
+            SELECT 1 FROM SF_SOLUTIONS.MPM_GOLD.ASSET_HEALTH_METRICS
             WHERE HEALTH_SCORE < 50
             HAVING COUNT(*) > 0
         ))
@@ -105,20 +105,20 @@ After installation, guide the user through these progressive steps.
 
 11. **Schedule data pipeline refresh**
     ```sql
-    CREATE OR REPLACE TASK SF_SOLUTIONS.GOLD.REFRESH_METRICS
+    CREATE OR REPLACE TASK SF_SOLUTIONS.MPM_GOLD.REFRESH_METRICS
         WAREHOUSE = SF_SOLUTIONS_WH
         SCHEDULE = 'USING CRON 0 */6 * * * America/Los_Angeles'
     AS
         -- Rebuild Silver and Gold layers from Bronze
-        CALL SF_SOLUTIONS.GOLD.REFRESH_PIPELINE();
+        CALL SF_SOLUTIONS.MPM_GOLD.REFRESH_PIPELINE();
     ```
 
 12. **Grant access to operations team**
     ```sql
     CREATE ROLE IF NOT EXISTS MAINTENANCE_VIEWER;
     GRANT USAGE ON DATABASE SF_SOLUTIONS TO ROLE MAINTENANCE_VIEWER;
-    GRANT USAGE ON SCHEMA SF_SOLUTIONS.GOLD TO ROLE MAINTENANCE_VIEWER;
-    GRANT SELECT ON ALL VIEWS IN SCHEMA SF_SOLUTIONS.GOLD TO ROLE MAINTENANCE_VIEWER;
+    GRANT USAGE ON SCHEMA SF_SOLUTIONS.MPM_GOLD TO ROLE MAINTENANCE_VIEWER;
+    GRANT SELECT ON ALL VIEWS IN SCHEMA SF_SOLUTIONS.MPM_GOLD TO ROLE MAINTENANCE_VIEWER;
     ```
 
 ## Summary

@@ -17,9 +17,9 @@ This solution is based on [Getting Started with Predictive Maintenance](https://
 
 | Layer | Schema | Contents |
 |-------|--------|----------|
-| **Bronze** | `BRONZE` | Raw IoT sensor telemetry, maintenance logs, equipment specs |
-| **Silver** | `SILVER` | Dimensional star schema — fact tables (telemetry, maintenance, production) + dimension tables (assets, facilities, technicians, parts) |
-| **Gold** | `GOLD` | Aggregated asset health metrics, ML feature store, semantic views, business KPIs |
+| **Bronze** | `MPM_BRONZE` | Raw IoT sensor telemetry, maintenance logs, equipment specs |
+| **Silver** | `MPM_SILVER` | Dimensional star schema — fact tables (telemetry, maintenance, production) + dimension tables (assets, facilities, technicians, parts) |
+| **Gold** | `MPM_GOLD` | Aggregated asset health metrics, ML feature store, semantic views, business KPIs |
 
 ### Key Objects Created
 

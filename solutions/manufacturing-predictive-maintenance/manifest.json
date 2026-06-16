@@ -6,7 +6,7 @@
   "source": "https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance",
   "license": "MIT",
   "database": "SF_SOLUTIONS",
-  "schemas": ["BRONZE", "SILVER", "GOLD"],
+  "schemas": ["MPM_BRONZE", "MPM_SILVER", "MPM_GOLD"],
   "role": "ACCOUNTADMIN",
   "requires_warehouse": true,
   "install_scripts": [

@@ -51,9 +51,9 @@ GRANT CREATE FUNCTION ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLU
 GRANT CREATE SEQUENCE ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
 GRANT CREATE STREAMLIT ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
 GRANT CREATE SEMANTIC VIEW ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
-CREATE OR REPLACE SCHEMA BRONZE COMMENT = 'Schema for raw, unaltered source data';
-CREATE OR REPLACE SCHEMA SILVER COMMENT = 'Schema for cleaned, conformed, and integrated data (Star Schema)';
-CREATE OR REPLACE SCHEMA GOLD COMMENT = 'Schema for business-level aggregates and ML feature stores';
+CREATE OR REPLACE SCHEMA MPM_BRONZE COMMENT = 'Schema for raw, unaltered source data';
+CREATE OR REPLACE SCHEMA MPM_SILVER COMMENT = 'Schema for cleaned, conformed, and integrated data (Star Schema)';
+CREATE OR REPLACE SCHEMA MPM_GOLD COMMENT = 'Schema for business-level aggregates and ML feature stores';
 
 -- Create an event table if it doesn't already exist
 CREATE or replace EVENT TABLE SF_SOLUTIONS.PUBLIC.SF_SOLUTIONS_EVENTS;
@@ -80,13 +80,13 @@ GRANT CREATE AGENT ON SCHEMA snowflake_intelligence.agents TO ROLE SF_SOLUTIONS_
 GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE SF_SOLUTIONS_ROLE;
 GRANT CREATE AGENT ON ALL SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
 GRANT CREATE AGENT ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
-GRANT CREATE AGENT ON SCHEMA SF_SOLUTIONS.GOLD TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE AGENT ON SCHEMA SF_SOLUTIONS.MPM_GOLD TO ROLE SF_SOLUTIONS_ROLE;
 
 
 GRANT SELECT ON ALL SEMANTIC VIEWS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
 GRANT SELECT ON FUTURE SEMANTIC VIEWS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
 
-GRANT ALL ON SCHEMA SF_SOLUTIONS.GOLD TO ROLE SF_SOLUTIONS_ROLE;
+GRANT ALL ON SCHEMA SF_SOLUTIONS.MPM_GOLD TO ROLE SF_SOLUTIONS_ROLE;
 
 -- Create warehouses
 CREATE WAREHOUSE IF NOT EXISTS SF_SOLUTIONS_WH
@@ -141,13 +141,13 @@ GRANT USAGE ON COMPUTE POOL SF_SOLUTIONS_STREAMLIT_POOL
   TO ROLE SF_SOLUTIONS_ROLE;
 
 -- Network rule for PyPI package installation
-CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE
+CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE
   MODE = EGRESS
   TYPE = HOST_PORT
   VALUE_LIST = ('pypi.org', 'pypi.python.org', 'pythonhosted.org', 'files.pythonhosted.org');
 
 -- Network rule for Snowflake Cortex Analyst API
-CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
+CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
   MODE = EGRESS
   TYPE = HOST_PORT
   VALUE_LIST = ('0.0.0.0:443', '0.0.0.0:80');
@@ -155,8 +155,8 @@ CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RUL
 -- External access integration combining both rules
 CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION SF_SOLUTIONS_EAI
   ALLOWED_NETWORK_RULES = (
-    SF_SOLUTIONS.GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE,
-    SF_SOLUTIONS.GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
+    SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE,
+    SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
   )
   ENABLED = TRUE
   COMMENT = 'External access for PyPI packages and Cortex Analyst API with OAuth authentication';
@@ -178,7 +178,7 @@ USE ROLE SF_SOLUTIONS_ROLE;
 -- ## BRONZE LAYER (Raw & Staging)
 -- Tables in this layer use the VARIANT data type to land semi-structured JSON as-is.
 ---------------------------------------------------------------------------------------------------
-USE SCHEMA SF_SOLUTIONS.BRONZE;
+USE SCHEMA SF_SOLUTIONS.MPM_BRONZE;
 
 CREATE OR REPLACE TABLE RAW_IOT_TELEMETRY (
     RAW_PAYLOAD         VARIANT,
@@ -203,7 +203,7 @@ CREATE OR REPLACE TABLE RAW_EQUIPMENT_MASTER (
 -- This is the single source of truth, structured for analytics.
 -- Rationalized to align with plant hierarchy and business impact modeling
 ---------------------------------------------------------------------------------------------------
-USE SCHEMA SF_SOLUTIONS.SILVER;
+USE SCHEMA SF_SOLUTIONS.MPM_SILVER;
 
 -- Dimension Tables (The "Who, What, Where")
 
@@ -406,7 +406,7 @@ CREATE OR REPLACE TABLE FCT_BUDGET (
 -- ## GOLD LAYER (Application & Feature Store)
 -- Purpose-built tables for high-speed dashboards and ML model training.
 ---------------------------------------------------------------------------------------------------
-USE SCHEMA SF_SOLUTIONS.GOLD;
+USE SCHEMA SF_SOLUTIONS.MPM_GOLD;
 
 CREATE OR REPLACE TABLE AGG_ASSET_HOURLY_HEALTH (
     HOUR_TIMESTAMP          TIMESTAMP_NTZ,
@@ -452,7 +452,7 @@ CREATE OR REPLACE TABLE AGG_DAILY_OEE (
     UNITS_PRODUCED          NUMBER(10, 0),
     UNITS_SCRAPPED          NUMBER(10, 0),
     GOOD_UNITS              NUMBER(10, 0),
-    FOREIGN KEY (ASSET_ID) REFERENCES SF_SOLUTIONS.SILVER.DIM_ASSET(ASSET_ID)
+    FOREIGN KEY (ASSET_ID) REFERENCES SF_SOLUTIONS.MPM_SILVER.DIM_ASSET(ASSET_ID)
 );
 
 -- Monthly Trend Aggregations (optimized for Intelligence Agent queries)
@@ -492,7 +492,7 @@ CREATE OR REPLACE TABLE AGG_MONTHLY_TRENDS (
 /*************************************************************************************************/
 
 -- Insert into BRONZE Layer
-USE SCHEMA SF_SOLUTIONS.BRONZE;
+USE SCHEMA SF_SOLUTIONS.MPM_BRONZE;
 INSERT INTO RAW_EQUIPMENT_MASTER (EQUIPMENT_DATA)
 SELECT PARSE_JSON(column1) FROM VALUES
 ('{ "serialNumber": "eq_pump_001", "model": "HydroFlow 5000",'
@@ -526,7 +526,7 @@ SELECT PARSE_JSON(column1) FROM VALUES
 
 
 -- Insert into SILVER Layer
-USE SCHEMA SF_SOLUTIONS.SILVER;
+USE SCHEMA SF_SOLUTIONS.MPM_SILVER;
 -- Populate Dimensions first
 SET (START_DATE, END_DATE) = ('1995-01-01', '2030-12-31');
 SET GENERATOR_RECORD_COUNT = (select DATEDIFF(DAY, $START_DATE, $END_DATE) + 1);
@@ -1235,7 +1235,7 @@ hourly_base AS (
         SELECT 
             da.ASSET_ID,
             da.PROCESS_ID
-        FROM SF_SOLUTIONS.SILVER.DIM_ASSET da
+        FROM SF_SOLUTIONS.MPM_SILVER.DIM_ASSET da
         WHERE da.IS_CURRENT = TRUE
     ) a
     CROSS JOIN (
@@ -1386,7 +1386,7 @@ daily_asset_base AS (
         SELECT 
             da.ASSET_ID,
             da.PROCESS_ID
-        FROM SF_SOLUTIONS.SILVER.DIM_ASSET da
+        FROM SF_SOLUTIONS.MPM_SILVER.DIM_ASSET da
         WHERE da.IS_CURRENT = TRUE
     ) a
     CROSS JOIN (
@@ -1526,7 +1526,7 @@ daily_production_base AS (
         SELECT 
             da.ASSET_ID,
             da.PROCESS_ID
-        FROM SF_SOLUTIONS.SILVER.DIM_ASSET da
+        FROM SF_SOLUTIONS.MPM_SILVER.DIM_ASSET da
         WHERE da.IS_CURRENT = TRUE
     ) a
     CROSS JOIN (
@@ -1547,7 +1547,7 @@ production_with_maint AS (
         COALESCE(ml.downtime_hours, 0) as maint_downtime,
         COALESCE(ml.failure_flag, FALSE) as had_failure
     FROM daily_production_base pb
-    LEFT JOIN SF_SOLUTIONS.SILVER.FCT_MAINTENANCE_LOG ml 
+    LEFT JOIN SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml 
         ON pb.asset_id = ml.asset_id 
         AND pb.date_sk = ml.action_date_sk
 )
@@ -1621,7 +1621,7 @@ WITH maintenance_logs_with_seq AS (
         ml.ASSET_ID,
         ml.PARTS_COST,
         ROW_NUMBER() OVER (ORDER BY ml.LOG_ID) as log_seq
-    FROM SF_SOLUTIONS.SILVER.FCT_MAINTENANCE_LOG ml
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml
 ),
 parts_per_maint AS (
     SELECT 
@@ -1737,7 +1737,7 @@ SELECT
 FROM parts_expanded pe;
 
 -- Insert into GOLD Layer
-USE SCHEMA SF_SOLUTIONS.GOLD;
+USE SCHEMA SF_SOLUTIONS.MPM_GOLD;
 
 -- AGG_ASSET_HOURLY_HEALTH: Aggregated hourly health metrics from telemetry data
 INSERT INTO AGG_ASSET_HOURLY_HEALTH (HOUR_TIMESTAMP,
@@ -1758,7 +1758,7 @@ SELECT
     MAX(t.HEALTH_SCORE) as latest_health_score,
     ROUND(AVG(t.FAILURE_PROBABILITY), 2) as avg_failure_probability,
     MIN(t.RUL_DAYS) as min_rul_days
-FROM SF_SOLUTIONS.SILVER.FCT_ASSET_TELEMETRY t
+FROM SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t
 WHERE t.RECORDED_AT >= '2024-11-01 00:00:00'::TIMESTAMP_NTZ
 GROUP BY 
     DATE_TRUNC('HOUR', t.RECORDED_AT),
@@ -1781,7 +1781,7 @@ WITH daily_observations AS (
         t.DATE_SK as observation_date_sk,
         t.ASSET_ID,
         t.RECORDED_AT::DATE as observation_date
-    FROM SF_SOLUTIONS.SILVER.FCT_ASSET_TELEMETRY t
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t
     WHERE t.RECORDED_AT >= '2024-11-01'::DATE
 ),
 temp_features AS (
@@ -1790,7 +1790,7 @@ temp_features AS (
         do.ASSET_ID,
         ROUND(AVG(t.TEMPERATURE_C), 2) as avg_temp_last_24h
     FROM daily_observations do
-    JOIN SF_SOLUTIONS.SILVER.FCT_ASSET_TELEMETRY t 
+    JOIN SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t 
         ON do.ASSET_ID = t.ASSET_ID
         AND t.RECORDED_AT >= DATEADD(HOUR, -24, do.observation_date::TIMESTAMP_NTZ)
         AND t.RECORDED_AT < DATEADD(DAY, 1, do.observation_date::TIMESTAMP_NTZ)
@@ -1802,7 +1802,7 @@ vibration_features AS (
         do.ASSET_ID,
         ROUND(STDDEV(t.VIBRATION_MM_S), 2) as vibration_stddev_7d
     FROM daily_observations do
-    JOIN SF_SOLUTIONS.SILVER.FCT_ASSET_TELEMETRY t 
+    JOIN SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t 
         ON do.ASSET_ID = t.ASSET_ID
         AND t.RECORDED_AT >= DATEADD(DAY, -7, do.observation_date::TIMESTAMP_NTZ)
         AND t.RECORDED_AT < DATEADD(DAY, 1, do.observation_date::TIMESTAMP_NTZ)
@@ -1816,7 +1816,7 @@ pressure_features AS (
             (MAX(t.PRESSURE_PSI) - MIN(t.PRESSURE_PSI)) / NULLIF(COUNT(*), 0), 
         2) as pressure_trend_7d
     FROM daily_observations do
-    JOIN SF_SOLUTIONS.SILVER.FCT_ASSET_TELEMETRY t 
+    JOIN SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t 
         ON do.ASSET_ID = t.ASSET_ID
         AND t.RECORDED_AT >= DATEADD(DAY, -7, do.observation_date::TIMESTAMP_NTZ)
         AND t.RECORDED_AT < DATEADD(DAY, 1, do.observation_date::TIMESTAMP_NTZ)
@@ -1839,7 +1839,7 @@ maintenance_features AS (
             do.observation_date), 
         999) as days_since_last_failure
     FROM daily_observations do
-    LEFT JOIN SF_SOLUTIONS.SILVER.FCT_MAINTENANCE_LOG ml 
+    LEFT JOIN SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml 
         ON do.ASSET_ID = ml.ASSET_ID
         AND ml.COMPLETED_DATE < do.observation_date
     GROUP BY do.observation_date_sk, do.ASSET_ID, do.observation_date
@@ -1857,7 +1857,7 @@ future_failures AS (
             ELSE FALSE 
         END) as failed_in_next_7_days
     FROM daily_observations do
-    LEFT JOIN SF_SOLUTIONS.SILVER.FCT_MAINTENANCE_LOG ml 
+    LEFT JOIN SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml 
         ON do.ASSET_ID = ml.ASSET_ID
     GROUP BY do.observation_date_sk, do.ASSET_ID
 )
@@ -1883,13 +1883,13 @@ LEFT JOIN vibration_features vf ON do.observation_date_sk = vf.observation_date_
 LEFT JOIN pressure_features pf ON do.observation_date_sk = pf.observation_date_sk AND do.ASSET_ID = pf.ASSET_ID
 LEFT JOIN maintenance_features mf ON do.observation_date_sk = mf.observation_date_sk AND do.ASSET_ID = mf.ASSET_ID
 LEFT JOIN future_failures ff ON do.observation_date_sk = ff.observation_date_sk AND do.ASSET_ID = ff.ASSET_ID
-LEFT JOIN SF_SOLUTIONS.SILVER.DIM_ASSET a ON do.ASSET_ID = a.ASSET_ID
+LEFT JOIN SF_SOLUTIONS.MPM_SILVER.DIM_ASSET a ON do.ASSET_ID = a.ASSET_ID
 LEFT JOIN (
     SELECT 
         ASSET_ID,
         DATE_SK,
         MAX(HEALTH_SCORE) as latest_health_score
-    FROM SF_SOLUTIONS.SILVER.FCT_ASSET_TELEMETRY
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY
     GROUP BY ASSET_ID, DATE_SK
 ) h ON do.ASSET_ID = h.ASSET_ID AND do.observation_date_sk = h.DATE_SK
 WHERE do.observation_date >= '2024-11-01'::DATE
@@ -1935,7 +1935,7 @@ SELECT
     pl.UNITS_PRODUCED,
     pl.UNITS_SCRAPPED,
     pl.UNITS_PRODUCED - pl.UNITS_SCRAPPED AS good_units
-FROM SF_SOLUTIONS.SILVER.FCT_PRODUCTION_LOG pl
+FROM SF_SOLUTIONS.MPM_SILVER.FCT_PRODUCTION_LOG pl
 WHERE pl.PRODUCTION_DATE >= '2024-11-01'::DATE
 ORDER BY pl.PRODUCTION_DATE, pl.ASSET_ID;
 
@@ -1965,10 +1965,10 @@ WITH monthly_oee AS (
         SUM(oee.UNITS_PRODUCED) as total_units_produced,
         SUM(oee.UNITS_SCRAPPED) as total_units_scrapped,
         COUNT(DISTINCT oee.ASSET_ID) as asset_count
-    FROM SF_SOLUTIONS.GOLD.AGG_DAILY_OEE oee
-    JOIN SF_SOLUTIONS.SILVER.DIM_ASSET a ON oee.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
-    JOIN SF_SOLUTIONS.SILVER.DIM_PROCESS p ON oee.PROCESS_ID = p.PROCESS_ID
-    JOIN SF_SOLUTIONS.SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
+    FROM SF_SOLUTIONS.MPM_GOLD.AGG_DAILY_OEE oee
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_ASSET a ON oee.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_PROCESS p ON oee.PROCESS_ID = p.PROCESS_ID
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
     WHERE oee.PRODUCTION_DATE >= '2024-11-01'::DATE
     GROUP BY 
         TO_CHAR(oee.PRODUCTION_DATE, 'YYYY-MM'),
@@ -1992,10 +1992,10 @@ monthly_maintenance AS (
         SUM(CASE WHEN ml.WO_TYPE_ID = 2 THEN 1 ELSE 0 END) as predictive_wo_count,
         SUM(CASE WHEN ml.WO_TYPE_ID = 1 THEN 1 ELSE 0 END) as emergency_wo_count,
         SUM(CASE WHEN ml.FAILURE_FLAG = TRUE THEN 1 ELSE 0 END) as failure_count
-    FROM SF_SOLUTIONS.SILVER.FCT_MAINTENANCE_LOG ml
-    JOIN SF_SOLUTIONS.SILVER.DIM_ASSET a ON ml.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
-    JOIN SF_SOLUTIONS.SILVER.DIM_PROCESS p ON ml.PROCESS_ID = p.PROCESS_ID
-    JOIN SF_SOLUTIONS.SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_ASSET a ON ml.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_PROCESS p ON ml.PROCESS_ID = p.PROCESS_ID
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
     WHERE ml.COMPLETED_DATE >= '2024-11-01'::DATE
     GROUP BY 
         TO_CHAR(ml.COMPLETED_DATE, 'YYYY-MM'),
@@ -2039,7 +2039,7 @@ ORDER BY oee.year_month, oee.plant_id, oee.line_id;
 -- Step 3: Create Stage and Semantic View for Cortex Analyst
 /*************************************************************************************************/
 
-USE SCHEMA SF_SOLUTIONS.GOLD;
+USE SCHEMA SF_SOLUTIONS.MPM_GOLD;
 
 -- Create a stage for uploading the semantic view definition
 CREATE STAGE IF NOT EXISTS SEMANTIC_VIEW_STAGE
@@ -2055,7 +2055,7 @@ CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE
 
 SELECT 'SF_SOLUTIONS database, data, and Cortex Analyst semantic view created successfully.' AS status;
 
-CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML('SF_SOLUTIONS.GOLD',
+CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML('SF_SOLUTIONS.MPM_GOLD',
 $$
 name: SF_SOLUTIONS_SV
 verified_queries:
@@ -2078,7 +2078,7 @@ verified_queries:
         SUM(total_units_produced) as total_units_produced,
         SUM(total_units_scrapped) as total_units_scrapped,
         SUM(asset_count) as total_assets
-      FROM SF_SOLUTIONS.GOLD.AGG_MONTHLY_TRENDS
+      FROM SF_SOLUTIONS.MPM_GOLD.AGG_MONTHLY_TRENDS
       WHERE year_month >= TO_CHAR(DATEADD(month, -12, DATE_TRUNC('month', CURRENT_DATE)), 'YYYY-MM')
         AND year_month <= TO_CHAR(DATE_TRUNC('month', CURRENT_DATE), 'YYYY-MM')
       GROUP BY year_month, year, month
@@ -2087,7 +2087,7 @@ tables:
   - name: AGG_ASSET_HOURLY_HEALTH
     base_table:
       database: SF_SOLUTIONS
-      schema: GOLD
+      schema: MPM_GOLD
       table: AGG_ASSET_HOURLY_HEALTH
     dimensions:
       - name: ASSET_ID
@@ -2166,7 +2166,7 @@ tables:
   - name: ML_FEATURE_STORE
     base_table:
       database: SF_SOLUTIONS
-      schema: GOLD
+      schema: MPM_GOLD
       table: ML_FEATURE_STORE
     dimensions:
       - name: FAILED_IN_NEXT_7_DAYS
@@ -2249,7 +2249,7 @@ tables:
   - name: AGG_DAILY_OEE
     base_table:
       database: SF_SOLUTIONS
-      schema: GOLD
+      schema: MPM_GOLD
       table: AGG_DAILY_OEE
     dimensions:
       - name: PRODUCTION_DATE
@@ -2351,7 +2351,7 @@ tables:
   - name: AGG_MONTHLY_TRENDS
     base_table:
       database: SF_SOLUTIONS
-      schema: GOLD
+      schema: MPM_GOLD
       table: AGG_MONTHLY_TRENDS
     dimensions:
       - name: YEAR_MONTH
@@ -2525,7 +2525,7 @@ tables:
   - name: DIM_PROCESS
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_PROCESS
     dimensions:
       - name: PROCESS_ID
@@ -2589,7 +2589,7 @@ tables:
   - name: DIM_ASSET
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_ASSET
     dimensions:
       - name: ASSET_CLASS_ID
@@ -2692,7 +2692,7 @@ tables:
   - name: DIM_ASSET_CLASS
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_ASSET_CLASS
     dimensions:
       - name: ASSET_CLASS_ID
@@ -2723,7 +2723,7 @@ tables:
   - name: DIM_DATE
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_DATE
     dimensions:
       - name: DATE_SK
@@ -2777,7 +2777,7 @@ tables:
   - name: DIM_LINE
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_LINE
     dimensions:
       - name: LINE_ID
@@ -2818,7 +2818,7 @@ tables:
   - name: DIM_PLANT
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_PLANT
     dimensions:
       - name: LOCATION
@@ -2849,7 +2849,7 @@ tables:
   - name: DIM_SENSOR
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_SENSOR
     dimensions:
       - name: ASSET_ID
@@ -2902,7 +2902,7 @@ tables:
   - name: DIM_WORK_ORDER_TYPE
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_WORK_ORDER_TYPE
     dimensions:
       - name: WO_TYPE_CODE
@@ -2939,7 +2939,7 @@ tables:
   - name: DIM_TECHNICIAN
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_TECHNICIAN
     dimensions:
       - name: TECHNICIAN_ID
@@ -3004,7 +3004,7 @@ tables:
   - name: DIM_FAILURE_CODE
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_FAILURE_CODE
     dimensions:
       - name: FAILURE_CODE_ID
@@ -3054,7 +3054,7 @@ tables:
   - name: DIM_MATERIAL
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: DIM_MATERIAL
     dimensions:
       - name: MATERIAL_ID
@@ -3104,7 +3104,7 @@ tables:
   - name: FCT_ASSET_TELEMETRY
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: FCT_ASSET_TELEMETRY
     dimensions:
       - name: ASSET_ID
@@ -3215,7 +3215,7 @@ tables:
   - name: FCT_MAINTENANCE_LOG
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: FCT_MAINTENANCE_LOG
     dimensions:
       - name: ACTION_DATE_SK
@@ -3314,7 +3314,7 @@ tables:
   - name: FCT_PRODUCTION_LOG
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: FCT_PRODUCTION_LOG
     dimensions:
       - name: ASSET_ID
@@ -3392,7 +3392,7 @@ tables:
   - name: FCT_MAINTENANCE_PARTS_USED
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: FCT_MAINTENANCE_PARTS_USED
     dimensions:
       - name: LOG_ID
@@ -3435,7 +3435,7 @@ tables:
   - name: FCT_BUDGET
     base_table:
       database: SF_SOLUTIONS
-      schema: SILVER
+      schema: MPM_SILVER
       table: FCT_BUDGET
     dimensions:
       - name: BUDGET_ID
@@ -3753,7 +3753,7 @@ FROM SPECIFICATION $$
             "tool_spec": {
                 "description": "
                     PREDICTIVE_MAINTENANCE_DATA:
-                    - Database: SF_SOLUTIONS, Schema: GOLD
+                    - Database: SF_SOLUTIONS, Schema: MPM_GOLD
                     - Semantic View: SF_SOLUTIONS_SV
                     - Contains comprehensive predictive maintenance data including:
                       * Asset health metrics: health scores, failure probability, remaining useful life (RUL), anomaly detection
@@ -3787,7 +3787,7 @@ FROM SPECIFICATION $$
                         level.
 
                     DESCRIPTION:
-                    The SF_SOLUTIONS_SV semantic view, located in SF_SOLUTIONS.GOLD, provides a comprehensive framework for
+                    The SF_SOLUTIONS_SV semantic view, located in SF_SOLUTIONS.MPM_GOLD, provides a comprehensive framework for
                         predictive maintenance and manufacturing operations analytics. It captures essential metrics across the entire
                         maintenance lifecycle from asset health monitoring to failure prediction, maintenance execution, and production
                         impact analysis. The view supports various use cases including: proactive maintenance scheduling, failure prediction
@@ -3805,7 +3805,7 @@ FROM SPECIFICATION $$
     "tool_resources": {
         "Predictive_maintenance_analysis": {
             "type": "cortex_analyst_text_to_sql",
-            "semantic_view": "SF_SOLUTIONS.GOLD.SF_SOLUTIONS_SV",
+            "semantic_view": "SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_SV",
             "execution_environment": {
                 "type": "warehouse",
                 "warehouse": "SF_SOLUTIONS_WH",
