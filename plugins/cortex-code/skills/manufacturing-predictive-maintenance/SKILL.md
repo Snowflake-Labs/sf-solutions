@@ -39,26 +39,23 @@ Parse the action from `$ARGUMENTS`:
 
 2. Read `solutions/manufacturing-predictive-maintenance/manifest.json`.
 
-3. Query the current account info and display it:
+3. Query the current account info and present the installation plan together:
    ```sql
    SELECT CURRENT_ORGANIZATION_NAME() AS ORG, CURRENT_ACCOUNT_NAME() AS ACCOUNT, CURRENT_REGION() AS REGION, CURRENT_ROLE() AS ROLE;
    ```
    Show to the user:
-   ```
-   Target Snowflake Account:
-     Organization: <ORG>
-     Account:      <ACCOUNT>
-     Region:       <REGION>
-     Current Role: <ROLE>
-   ```
-
-4. Present the installation plan:
    ```
    Solution: Manufacturing Predictive Maintenance v1.0.0
    Industry: Manufacturing
    Database: SF_SOLUTIONS
    Schemas:  MPM_BRONZE, MPM_SILVER, MPM_GOLD
    Role:     ACCOUNTADMIN
+
+   Target Account:
+     Organization: <ORG>
+     Account:      <ACCOUNT>
+     Region:       <REGION>
+     Current Role: <ROLE>
 
    What will be created:
      - Medallion architecture (Bronze/Silver/Gold) with IoT telemetry data
@@ -71,13 +68,13 @@ Parse the action from `$ARGUMENTS`:
    Proceed with installation?
    ```
 
-5. Wait for user confirmation.
+4. Wait for user confirmation.
 
-6. Read `solutions/manufacturing-predictive-maintenance/scripts/setup.sql` and execute statement by statement using `snowflake_sql_execute`.
+5. Read `solutions/manufacturing-predictive-maintenance/scripts/setup.sql` and execute statement by statement using `snowflake_sql_execute`.
    - Data generation may take several minutes: use `timeout_seconds: 600`
    - Log progress after each major section (Bronze, Silver, Gold, Semantic View, Agent)
 
-7. Verify:
+6. Verify:
    ```sql
    SELECT TABLE_SCHEMA, TABLE_NAME, ROW_COUNT
    FROM SF_SOLUTIONS.INFORMATION_SCHEMA.TABLES
@@ -85,7 +82,7 @@ Parse the action from `$ARGUMENTS`:
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
 
-8. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Snowflake CoWork Agent URL.
+7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Snowflake CoWork Agent URL.
    Execute this query to get the correct URL for the current account:
    ```sql
    SELECT
@@ -105,7 +102,7 @@ Parse the action from `$ARGUMENTS`:
 
    This step is NON-OPTIONAL. The user must always see the Agent URL after install.
 
-9. Show final summary:
+8. Show final summary:
    ```
    Installation complete: Manufacturing Predictive Maintenance v1.0.0
 
