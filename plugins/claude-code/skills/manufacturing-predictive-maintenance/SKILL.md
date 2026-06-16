@@ -78,36 +78,39 @@ Parse the action from `$ARGUMENTS`:
    ```
 
 7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Snowflake CoWork Agent URL.
-   Execute this query to get the correct URL for the current account:
+   Execute this query to get the correct URLs for the current account:
    ```sql
    SELECT
        CASE
            WHEN CURRENT_ORGANIZATION_NAME() IS NOT NULL AND CURRENT_ORGANIZATION_NAME() != ''
            THEN 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
            ELSE 'https://app.snowflake.com/' || LOWER(REPLACE(REPLACE(REPLACE(CURRENT_REGION(), 'AWS_', ''), 'AZURE_', ''), '_', '-')) || '/' || LOWER(CURRENT_ACCOUNT())
-       END || '/#/agents/database/SNOWFLAKE_INTELLIGENCE/schema/AGENTS/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
+       END AS BASE_URL;
    ```
-   Display it to the user:
+   Use the BASE_URL to construct both URLs and display them:
    ```
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Snowflake CoWork Agent:
-   <paste the full URL here>
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ```
+   Snowflake Agent:
+   <BASE_URL>/#/agents/database/SNOWFLAKE_INTELLIGENCE/schema/AGENTS/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details
 
-   This step is NON-OPTIONAL. The user must always see the Agent URL after install.
+   Snowflake CoWork:
+   https://ai.snowflake.com/<org_or_region>/<account>/#/ai
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ```
+   For CoWork URL: replace `app.snowflake.com` with `ai.snowflake.com` and use path `/#/ai`.
+
+   This step is NON-OPTIONAL. The user must always see both URLs after install.
 
 8. Show final summary:
    ```
    Installation complete: Manufacturing Predictive Maintenance v1.0.0
 
    Next Actions:
-   1. Open the Snowflake CoWork Agent URL above and try asking questions
-   2. Open Snowflake CoWork (https://app.snowflake.com/<same-base>/#/cowork) to chat with the agent
-   3. Try: "Show me assets with health scores below 70"
-   4. Try: "What are the total maintenance costs this month?"
-   5. Try: "Which assets are predicted to fail in the next 30 days?"
-   6. (Optional) Deploy Streamlit dashboard from source repo
+   1. Open Snowflake CoWork URL above to chat with the agent
+   2. Try: "Show me assets with health scores below 70"
+   3. Try: "What are the total maintenance costs this month?"
+   4. Try: "Which assets are predicted to fail in the next 30 days?"
+   5. (Optional) Deploy Streamlit dashboard from source repo
 
    Teardown: /snowflake-solutions:manufacturing-predictive-maintenance teardown
    ```
