@@ -113,60 +113,49 @@ GRANT USAGE ON WAREHOUSE SF_SOLUTIONS_STREAMLIT_WH TO ROLE SF_SOLUTIONS_ROLE;
 GRANT ROLE SF_SOLUTIONS_ROLE TO ROLE ACCOUNTADMIN;
 
 /*************************************************************************************************/
--- SPCS INFRASTRUCTURE (Snowpark Container Services)
--- NOTE: The following resources require ACCOUNTADMIN role and appropriate privileges:
---   - CREATE COMPUTE POOL (requires ACCOUNTADMIN or role with CREATE COMPUTE POOL privilege)
---   - CREATE NETWORK RULE (requires ACCOUNTADMIN or role with CREATE INTEGRATION privilege)
---   - CREATE EXTERNAL ACCESS INTEGRATION (requires ACCOUNTADMIN or role with CREATE INTEGRATION privilege)
---   - GRANT BIND SERVICE ENDPOINT (requires ACCOUNTADMIN)
--- 
--- If you do not have these privileges in your Snowflake account, you will need to:
---   1. Request them from your Snowflake administrator, OR
---   2. Deploy the Streamlit app using warehouse-based runtime instead of SPCS
---      (omit RUNTIME_NAME and COMPUTE_POOL parameters when creating the Streamlit app)
+-- SPCS INFRASTRUCTURE (OPTIONAL — skip on Trial accounts)
+-- These resources are ONLY needed for Streamlit-on-SPCS deployment.
+-- The core solution (tables, data, semantic view, agent) works WITHOUT them.
+-- Trial accounts cannot create External Access Integrations or Compute Pools.
 /*************************************************************************************************/
 
--- Create a compute pool for running Streamlit apps on containers
-CREATE COMPUTE POOL IF NOT EXISTS SF_SOLUTIONS_STREAMLIT_POOL
-  MIN_NODES = 1
-  MAX_NODES = 3
-  INSTANCE_FAMILY = CPU_X64_XS
-  AUTO_RESUME = TRUE
-  INITIALLY_SUSPENDED = FALSE
-  AUTO_SUSPEND_SECS = 3600
-  COMMENT = 'Compute pool for Predictive Maintenance Streamlit app on SPCS';
-
--- Grant usage to the role
-GRANT USAGE ON COMPUTE POOL SF_SOLUTIONS_STREAMLIT_POOL 
-  TO ROLE SF_SOLUTIONS_ROLE;
-
--- Network rule for PyPI package installation
-CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE
-  MODE = EGRESS
-  TYPE = HOST_PORT
-  VALUE_LIST = ('pypi.org', 'pypi.python.org', 'pythonhosted.org', 'files.pythonhosted.org');
-
--- Network rule for Snowflake Cortex Analyst API
-CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
-  MODE = EGRESS
-  TYPE = HOST_PORT
-  VALUE_LIST = ('0.0.0.0:443', '0.0.0.0:80');
-
--- External access integration combining both rules
-CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION SF_SOLUTIONS_EAI
-  ALLOWED_NETWORK_RULES = (
-    SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE,
-    SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
-  )
-  ENABLED = TRUE
-  COMMENT = 'External access for PyPI packages and Cortex Analyst API with OAuth authentication';
-
--- Grant usage to the role
-GRANT USAGE ON INTEGRATION SF_SOLUTIONS_EAI 
-  TO ROLE SF_SOLUTIONS_ROLE;
-
--- Grant additional permissions needed for SPCS
-GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE SF_SOLUTIONS_ROLE;
+-- UNCOMMENT the block below if you want SPCS-based Streamlit deployment
+-- (requires Enterprise edition or higher, NOT available on Trial accounts):
+--
+-- CREATE COMPUTE POOL IF NOT EXISTS SF_SOLUTIONS_STREAMLIT_POOL
+--   MIN_NODES = 1
+--   MAX_NODES = 3
+--   INSTANCE_FAMILY = CPU_X64_XS
+--   AUTO_RESUME = TRUE
+--   INITIALLY_SUSPENDED = FALSE
+--   AUTO_SUSPEND_SECS = 3600
+--   COMMENT = 'Compute pool for Predictive Maintenance Streamlit app on SPCS';
+--
+-- GRANT USAGE ON COMPUTE POOL SF_SOLUTIONS_STREAMLIT_POOL
+--   TO ROLE SF_SOLUTIONS_ROLE;
+--
+-- CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE
+--   MODE = EGRESS
+--   TYPE = HOST_PORT
+--   VALUE_LIST = ('pypi.org', 'pypi.python.org', 'pythonhosted.org', 'files.pythonhosted.org');
+--
+-- CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
+--   MODE = EGRESS
+--   TYPE = HOST_PORT
+--   VALUE_LIST = ('0.0.0.0:443', '0.0.0.0:80');
+--
+-- CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION SF_SOLUTIONS_EAI
+--   ALLOWED_NETWORK_RULES = (
+--     SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE,
+--     SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
+--   )
+--   ENABLED = TRUE
+--   COMMENT = 'External access for PyPI packages and Cortex Analyst API';
+--
+-- GRANT USAGE ON INTEGRATION SF_SOLUTIONS_EAI
+--   TO ROLE SF_SOLUTIONS_ROLE;
+--
+-- GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE SF_SOLUTIONS_ROLE;
 
 /*************************************************************************************************/
 
