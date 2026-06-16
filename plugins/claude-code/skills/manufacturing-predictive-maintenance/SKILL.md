@@ -92,11 +92,12 @@ Parse the action from `$ARGUMENTS`:
    Installation complete: Manufacturing Predictive Maintenance v1.0.0
 
    Next Actions:
-   1. Open the Snowflake Intelligence Agent URL above
-   2. Try: "Show me assets with health scores below 70"
-   3. Try: "What are the total maintenance costs this month?"
-   4. Try: "Which assets are predicted to fail in the next 30 days?"
-   5. (Optional) Deploy Streamlit dashboard from source repo
+   1. Open the Snowflake Intelligence Agent URL above and try asking questions
+   2. Open Snowflake CoWork (https://app.snowflake.com/<same-base>/#/cowork) to chat with the agent
+   3. Try: "Show me assets with health scores below 70"
+   4. Try: "What are the total maintenance costs this month?"
+   5. Try: "Which assets are predicted to fail in the next 30 days?"
+   6. (Optional) Deploy Streamlit dashboard from source repo
 
    Teardown: /snowflake-solutions:manufacturing-predictive-maintenance teardown
    ```
