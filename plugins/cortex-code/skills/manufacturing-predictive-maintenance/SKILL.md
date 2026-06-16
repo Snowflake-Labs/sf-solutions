@@ -75,8 +75,8 @@ Parse the action from `$ARGUMENTS`:
 7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Snowflake Intelligence Agent URL.
    Execute this query:
    ```sql
-   SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
-       || '/#/agents/database/SF_SOLUTIONS/schema/MPM_GOLD/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
+   SELECT 'https://app.snowflake.com/' || CURRENT_REGION() || '/' || CURRENT_ACCOUNT()
+       || '/#/agents/database/SNOWFLAKE_INTELLIGENCE/schema/AGENTS/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
    ```
    Display it to the user:
    ```
