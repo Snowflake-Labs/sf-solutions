@@ -3601,7 +3601,7 @@ relationships:
 $$);
 
 
-use role snowcore_industries_role; -- Use a role appropriate for creating agents and accessing the necessary database/schema
+use role SF_SOLUTIONS_ROLE; -- Use a role appropriate for creating agents and accessing the necessary database/schema
 --use warehouse SF_SOLUTIONS_WH; -- Use a warehouse for agent creation
 
 CREATE OR REPLACE AGENT SNOWFLAKE_INTELLIGENCE.AGENTS.PREDICTIVE_MAINTENANCE_ASSISTANT
