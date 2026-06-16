@@ -4,7 +4,7 @@ description: >
   Usage: /snowflake-solutions:manufacturing-predictive-maintenance install
          /snowflake-solutions:manufacturing-predictive-maintenance teardown
          /snowflake-solutions:manufacturing-predictive-maintenance (defaults to install)
-  IoT-powered predictive maintenance with Snowflake Intelligence.
+  IoT-powered predictive maintenance with Snowflake CoWork.
   Triggers: manufacturing, predictive maintenance, IoT, sensor, equipment health, OEE, SPCS.
 ---
 
@@ -20,7 +20,7 @@ Parse the action from `$ARGUMENTS`:
 - **Industry:** Manufacturing
 - **Database:** SF_SOLUTIONS
 - **Schemas:** MPM_BRONZE, MPM_SILVER, MPM_GOLD
-- **Features:** Snowflake Intelligence, Cortex Analyst, Semantic View, Streamlit in Snowflake, SPCS
+- **Features:** Snowflake CoWork, Cortex Analyst, Semantic View, Streamlit in Snowflake, SPCS
 - **Role Required:** ACCOUNTADMIN
 - **Source:** [sfguide-getting-started-with-predictive-maintenance](https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance)
 
@@ -47,7 +47,7 @@ Parse the action from `$ARGUMENTS`:
      - ~160K+ telemetry records across 18 assets and 3 facilities
      - Dimensional star schema (fact + dimension tables)
      - Semantic View for Cortex Analyst natural language queries
-     - Cortex Agent (PREDICTIVE_MAINTENANCE_ASSISTANT) for Snowflake Intelligence
+     - Cortex Agent (PREDICTIVE_MAINTENANCE_ASSISTANT) for Snowflake CoWork
      - Warehouses: SF_SOLUTIONS_WH, SF_SOLUTIONS_STREAMLIT_WH
 
    Proceed with installation?
@@ -67,7 +67,7 @@ Parse the action from `$ARGUMENTS`:
    ORDER BY TABLE_SCHEMA, TABLE_NAME;
    ```
 
-7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Snowflake Intelligence Agent URL.
+7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Snowflake CoWork Agent URL.
    Execute this query to get the correct URL for the current account:
    ```sql
    SELECT
@@ -80,7 +80,7 @@ Parse the action from `$ARGUMENTS`:
    Display it to the user:
    ```
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Snowflake Intelligence Agent:
+   Snowflake CoWork Agent:
    <paste the full URL here>
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ```
@@ -92,7 +92,7 @@ Parse the action from `$ARGUMENTS`:
    Installation complete: Manufacturing Predictive Maintenance v1.0.0
 
    Next Actions:
-   1. Open the Snowflake Intelligence Agent URL above and try asking questions
+   1. Open the Snowflake CoWork Agent URL above and try asking questions
    2. Open Snowflake CoWork (https://app.snowflake.com/<same-base>/#/cowork) to chat with the agent
    3. Try: "Show me assets with health scores below 70"
    4. Try: "What are the total maintenance costs this month?"

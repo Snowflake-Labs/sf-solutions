@@ -16,7 +16,7 @@
     "scripts/teardown.sql"
   ],
   "features": [
-    "Snowflake Intelligence",
+    "Snowflake CoWork",
     "Cortex Analyst",
     "Semantic View",
     "Streamlit in Snowflake",

@@ -11,7 +11,7 @@ After installation, guide the user through these progressive steps.
 
 ## Quick Exploration (5 min)
 
-1. **Open the Snowflake Intelligence Agent**
+1. **Open the Snowflake CoWork Agent**
    - URL was shown at the end of install
    - Or navigate: Snowsight > AI & ML > Agents > PREDICTIVE_MAINTENANCE_ASSISTANT
 
