@@ -73,10 +73,14 @@ Parse the action from `$ARGUMENTS`:
    ```
 
 7. **[MANDATORY — DO NOT SKIP]** Retrieve and display the Snowflake Intelligence Agent URL.
-   Execute this query:
+   Execute this query to get the correct URL for the current account:
    ```sql
-   SELECT 'https://app.snowflake.com/' || CURRENT_REGION() || '/' || CURRENT_ACCOUNT()
-       || '/#/agents/database/SNOWFLAKE_INTELLIGENCE/schema/AGENTS/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
+   SELECT
+       CASE
+           WHEN CURRENT_ORGANIZATION_NAME() IS NOT NULL AND CURRENT_ORGANIZATION_NAME() != ''
+           THEN 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+           ELSE 'https://app.snowflake.com/' || LOWER(REPLACE(REPLACE(REPLACE(CURRENT_REGION(), 'AWS_', ''), 'AZURE_', ''), '_', '-')) || '/' || LOWER(CURRENT_ACCOUNT())
+       END || '/#/agents/database/SNOWFLAKE_INTELLIGENCE/schema/AGENTS/agent/PREDICTIVE_MAINTENANCE_ASSISTANT/details' AS AGENT_URL;
    ```
    Display it to the user:
    ```
