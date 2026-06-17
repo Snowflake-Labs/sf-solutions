@@ -163,36 +163,54 @@ FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES
 WHERE ABS(HASH(CUSTOMER_ID)) % 100 >= 80;
 
 /*************************************************************************************************/
--- STEP 4: Train Snowflake ML Regression model
+-- STEP 4: Generate LTV predictions using weighted linear scoring
+-- Uses normalized features with domain-appropriate weights.
+-- This approach works on ALL Snowflake account types (including Trial).
+-- To use Snowflake ML Regression instead (if available), see CONTRIBUTING.md.
 /*************************************************************************************************/
-
-CREATE OR REPLACE SNOWFLAKE.ML.REGRESSION LTV_REGRESSION_MODEL(
-    INPUT_DATA => SYSTEM$REFERENCE('VIEW', 'TRAIN_DATA'),
-    TARGET_COLNAME => 'FUTURE_LTV',
-    CONFIG_OBJECT => {
-        'ON_ERROR': 'SKIP'
-    }
-);
-
-/*************************************************************************************************/
--- STEP 5: Generate predictions on full dataset
--- NOTE: RESULT_SCAN(LAST_QUERY_ID()) must run immediately after PREDICT
-/*************************************************************************************************/
-
-CALL LTV_REGRESSION_MODEL!PREDICT(
-    INPUT_DATA => SYSTEM$REFERENCE(
-        'TABLE', 'SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES'
-    )
-);
 
 CREATE OR REPLACE TABLE SF_SOLUTIONS.LTV_ML.LTV_PREDICTIONS AS
+WITH feature_stats AS (
+    SELECT
+        AVG(TOTAL_SPEND) AS AVG_SPEND, STDDEV(TOTAL_SPEND) AS STD_SPEND,
+        AVG(TXN_COUNT) AS AVG_TXN, STDDEV(TXN_COUNT) AS STD_TXN,
+        AVG(MONTHLY_FREQUENCY) AS AVG_FREQ, STDDEV(MONTHLY_FREQUENCY) AS STD_FREQ,
+        AVG(CUSTOMER_TENURE_DAYS) AS AVG_TENURE, STDDEV(CUSTOMER_TENURE_DAYS) AS STD_TENURE,
+        AVG(DISTINCT_CATEGORIES) AS AVG_CAT, STDDEV(DISTINCT_CATEGORIES) AS STD_CAT,
+        AVG(ONLINE_RATIO) AS AVG_ONLINE, STDDEV(ONLINE_RATIO) AS STD_ONLINE
+    FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES
+),
+scored AS (
+    SELECT
+        C.CUSTOMER_ID,
+        C.FUTURE_LTV AS ACTUAL_LTV,
+        -- Weighted linear scoring on normalized features
+        ROUND(
+            GREATEST(0,
+                (ZEROIFNULL((C.TOTAL_SPEND - S.AVG_SPEND) / NULLIF(S.STD_SPEND, 0))) * 0.35
+                + (ZEROIFNULL((C.TXN_COUNT - S.AVG_TXN) / NULLIF(S.STD_TXN, 0))) * 0.20
+                + (ZEROIFNULL((C.MONTHLY_FREQUENCY - S.AVG_FREQ) / NULLIF(S.STD_FREQ, 0))) * 0.20
+                + (ZEROIFNULL((C.CUSTOMER_TENURE_DAYS - S.AVG_TENURE) / NULLIF(S.STD_TENURE, 0))) * 0.10
+                + (ZEROIFNULL((C.DISTINCT_CATEGORIES - S.AVG_CAT) / NULLIF(S.STD_CAT, 0))) * 0.10
+                + (ZEROIFNULL((C.ONLINE_RATIO - S.AVG_ONLINE) / NULLIF(S.STD_ONLINE, 0))) * 0.05
+            ) * (SELECT STDDEV(FUTURE_LTV) FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES)
+            + (SELECT AVG(FUTURE_LTV) FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES)
+        , 2) AS PREDICTED_LTV,
+        C.TOTAL_SPEND,
+        C.TXN_COUNT,
+        C.CUSTOMER_TENURE_DAYS,
+        C.MONTHLY_FREQUENCY,
+        C.RECENCY_DAYS,
+        C.ONLINE_RATIO,
+        C.DISTINCT_CATEGORIES
+    FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES C
+    CROSS JOIN feature_stats S
+)
 SELECT
     CUSTOMER_ID,
-    FUTURE_LTV AS ACTUAL_LTV,
-    ROUND(PREDICTED_FUTURE_LTV, 2) AS PREDICTED_LTV,
-    ROUND(
-        ABS(PREDICTED_FUTURE_LTV - FUTURE_LTV), 2
-    ) AS ABSOLUTE_ERROR,
+    ACTUAL_LTV,
+    PREDICTED_LTV,
+    ROUND(ABS(PREDICTED_LTV - ACTUAL_LTV), 2) AS ABSOLUTE_ERROR,
     TOTAL_SPEND,
     TXN_COUNT,
     CUSTOMER_TENURE_DAYS,
@@ -200,10 +218,10 @@ SELECT
     RECENCY_DAYS,
     ONLINE_RATIO,
     DISTINCT_CATEGORIES
-FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
+FROM scored;
 
 /*************************************************************************************************/
--- STEP 6: Customer segments by predicted LTV
+-- STEP 5: Customer segments by predicted LTV
 /*************************************************************************************************/
 
 CREATE OR REPLACE VIEW SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_SEGMENTS AS
@@ -230,7 +248,7 @@ SELECT
 FROM SF_SOLUTIONS.LTV_ML.LTV_PREDICTIONS;
 
 /*************************************************************************************************/
--- STEP 7: AI-powered segment insights using Cortex AI Functions
+-- STEP 6: AI-powered segment insights using Cortex AI Functions
 /*************************************************************************************************/
 
 CREATE OR REPLACE TABLE SF_SOLUTIONS.LTV_ML.SEGMENT_INSIGHTS AS
@@ -271,7 +289,7 @@ SELECT
 FROM segment_stats S;
 
 /*************************************************************************************************/
--- STEP 8: Deploy Streamlit Dashboard
+-- STEP 7: Deploy Streamlit Dashboard
 /*************************************************************************************************/
 
 CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE
