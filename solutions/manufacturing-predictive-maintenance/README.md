@@ -5,7 +5,7 @@
 | **Solution Name** | Manufacturing Predictive Maintenance (Snowcore Industries) |
 | **Industry** | Manufacturing |
 
-An end-to-end predictive maintenance solution using Snowflake — from ingesting raw IoT sensor telemetry and maintenance logs to building analytics-ready tables, deploying an interactive Streamlit dashboard, and querying with Snowflake Intelligence.
+An end-to-end predictive maintenance solution using Snowflake — from ingesting raw IoT sensor telemetry and maintenance logs to building analytics-ready tables, deploying an interactive Streamlit dashboard, and querying with Snowflake CoWork.
 
 ## Source
 
@@ -17,19 +17,19 @@ This solution is based on [Getting Started with Predictive Maintenance](https://
 
 | Layer | Schema | Contents |
 |-------|--------|----------|
-| **Bronze** | `BRONZE` | Raw IoT sensor telemetry, maintenance logs, equipment specs |
-| **Silver** | `SILVER` | Dimensional star schema — fact tables (telemetry, maintenance, production) + dimension tables (assets, facilities, technicians, parts) |
-| **Gold** | `GOLD` | Aggregated asset health metrics, ML feature store, semantic views, business KPIs |
+| **Bronze** | `MPM_BRONZE` | Raw IoT sensor telemetry, maintenance logs, equipment specs |
+| **Silver** | `MPM_SILVER` | Dimensional star schema — fact tables (telemetry, maintenance, production) + dimension tables (assets, facilities, technicians, parts) |
+| **Gold** | `MPM_GOLD` | Aggregated asset health metrics, ML feature store, semantic views, business KPIs |
 
 ### Key Objects Created
 
-- **Database:** `SNOWCORE_INDUSTRIES`
-- **Warehouses:** `SNOWCORE_INDUSTRIES_WH`, `SNOWCORE_INDUSTRIES_STREAMLIT_WH`
-- **Role:** `SNOWCORE_INDUSTRIES_ROLE`
+- **Database:** `SF_SOLUTIONS`
+- **Warehouses:** `SF_SOLUTIONS_WH`, `SF_SOLUTIONS_STREAMLIT_WH`
+- **Role:** `SF_SOLUTIONS_ROLE`
 - **~160,000+** telemetry records across 18 assets and 3 facilities
 - **12+ months** of maintenance history (Nov 2024 – current)
 - **Semantic View** for Cortex Analyst natural language queries
-- **Cortex Agent** (`PREDICTIVE_MAINTENANCE_ASSISTANT`) for Snowflake Intelligence
+- **Cortex Agent** (`PREDICTIVE_MAINTENANCE_ASSISTANT`) for Snowflake CoWork
 
 ### Streamlit Dashboard (6 pages)
 
@@ -60,9 +60,9 @@ Execute `scripts/setup.sql` in a Snowsight SQL Worksheet (requires ACCOUNTADMIN)
 
 Follow the [original repository instructions](https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance#step-2-upload-streamlit-files-to-stage) to upload and deploy the multi-page Streamlit dashboard.
 
-### Step 3. Use Snowflake Intelligence
+### Step 3. Use Snowflake CoWork
 
-Open [Snowflake Intelligence](https://ai.snowflake.com/) and select the **Predictive Maintenance Analytics Agent** to ask natural language questions:
+Open [Snowflake CoWork](https://ai.snowflake.com/) and select the **Predictive Maintenance Analytics Agent** to ask natural language questions:
 
 - "Show me assets with health scores below 70"
 - "What are the total maintenance costs this month?"

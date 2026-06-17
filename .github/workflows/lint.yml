@@ -1,0 +1,32 @@
+name: lint
+
+on:
+    pull_request:
+
+jobs:
+    markdownlint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install markdownlint-cli
+              run: npm install -g markdownlint-cli
+            - name: Lint markdown files
+              run: markdownlint --config .markdownlint.yaml --ignore-path .markdownlintignore "**/*.md"
+
+    skills-purity:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Check no code files in skills/
+              run: |
+                  bad=$(find skills -type f \
+                    ! -name "*.md" \
+                    ! -name "*.json" \
+                    ! -name "*.yaml" \
+                    ! -name "*.yml")
+                  if [ -n "$bad" ]; then
+                    echo "Code files found in skills/ (not allowed):"
+                    echo "$bad"
+                    exit 1
+                  fi
+                  echo "skills/ is clean"

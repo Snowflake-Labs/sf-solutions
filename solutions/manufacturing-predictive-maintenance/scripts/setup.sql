@@ -12,10 +12,10 @@
 --   - BIND SERVICE ENDPOINT (account-level permission for SPCS)
 --
 -- WHAT THIS SCRIPT CREATES:
---   - Database: SNOWCORE_INDUSTRIES with Bronze, Silver, Gold schemas
---   - Warehouses: SNOWCORE_INDUSTRIES_WH, SNOWCORE_INDUSTRIES_STREAMLIT_WH
---   - Compute Pool: SNOWCORE_INDUSTRIES_STREAMLIT_POOL (for SPCS)
---   - External Access Integration: SNOWCORE_INDUSTRIES_EAI (for PyPI & APIs)
+--   - Database: SF_SOLUTIONS with Bronze, Silver, Gold schemas
+--   - Warehouses: SF_SOLUTIONS_WH, SF_SOLUTIONS_STREAMLIT_WH
+--   - Compute Pool: SF_SOLUTIONS_STREAMLIT_POOL (for SPCS)
+--   - External Access Integration: SF_SOLUTIONS_EAI (for PyPI & APIs)
 --   - Sample data: ~160,000+ telemetry records, 12+ months of maintenance history
 --   - Semantic View: For natural language queries via Cortex Analyst
 --   - Intelligence Agent: PREDICTIVE_MAINTENANCE_ASSISTANT
@@ -30,155 +30,144 @@ ALTER SESSION SET query_tag = '{"origin":"sf_sit-is",'
     || '"version":{"major":1,"minor":0},'
     || '"attributes":{"is_quickstart":1,"source":"sql"}}';
 
-CREATE ROLE IF NOT EXISTS SNOWCORE_INDUSTRIES_ROLE;
+CREATE ROLE IF NOT EXISTS SF_SOLUTIONS_ROLE;
 
 /*************************************************************************************************/
--- SNOWCORE_INDUSTRIES PREDICTIVE MAINTENANCE DATABASE
+-- SF_SOLUTIONS PREDICTIVE MAINTENANCE DATABASE
 -- Description: DDL and sample DML for the Bronze, Silver, and Gold layers.
 /*************************************************************************************************/
 
 -- Step 0: Setup Database and Schemas
-CREATE OR REPLACE DATABASE SNOWCORE_INDUSTRIES;
+CREATE OR REPLACE DATABASE SF_SOLUTIONS;
 
 
-USE DATABASE SNOWCORE_INDUSTRIES;
+USE DATABASE SF_SOLUTIONS;
 USE SCHEMA PUBLIC;
 
-GRANT CREATE TABLE ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE VIEW ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE PROCEDURE ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE FUNCTION ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE SEQUENCE ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE STREAMLIT ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE SEMANTIC VIEW ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-CREATE OR REPLACE SCHEMA BRONZE COMMENT = 'Schema for raw, unaltered source data';
-CREATE OR REPLACE SCHEMA SILVER COMMENT = 'Schema for cleaned, conformed, and integrated data (Star Schema)';
-CREATE OR REPLACE SCHEMA GOLD COMMENT = 'Schema for business-level aggregates and ML feature stores';
+GRANT CREATE TABLE ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE VIEW ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE PROCEDURE ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE FUNCTION ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE SEQUENCE ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE STREAMLIT ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE SEMANTIC VIEW ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+CREATE OR REPLACE SCHEMA MPM_BRONZE COMMENT = 'Schema for raw, unaltered source data';
+CREATE OR REPLACE SCHEMA MPM_SILVER COMMENT = 'Schema for cleaned, conformed, and integrated data (Star Schema)';
+CREATE OR REPLACE SCHEMA MPM_GOLD COMMENT = 'Schema for business-level aggregates and ML feature stores';
 
 -- Create an event table if it doesn't already exist
-CREATE or replace EVENT TABLE SNOWCORE_INDUSTRIES.PUBLIC.SNOWCORE_INDUSTRIES_EVENTS;
+CREATE or replace EVENT TABLE SF_SOLUTIONS.PUBLIC.SF_SOLUTIONS_EVENTS;
 -- Associate the event table with the account
-ALTER ACCOUNT SET EVENT_TABLE = SNOWCORE_INDUSTRIES.PUBLIC.SNOWCORE_INDUSTRIES_EVENTS;
+ALTER ACCOUNT SET EVENT_TABLE = SF_SOLUTIONS.PUBLIC.SF_SOLUTIONS_EVENTS;
 
 -- Set the log level for the database containing your app
-ALTER DATABASE SNOWCORE_INDUSTRIES SET LOG_LEVEL = INFO;
+ALTER DATABASE SF_SOLUTIONS SET LOG_LEVEL = INFO;
 
 -- Set the trace level for the database containing your app
-ALTER DATABASE SNOWCORE_INDUSTRIES SET TRACE_LEVEL = ON_EVENT;
+ALTER DATABASE SF_SOLUTIONS SET TRACE_LEVEL = ON_EVENT;
 
-GRANT CREATE STAGE ON ALL SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE STAGE ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE STREAMLIT ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT USAGE ON ALL STAGES IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
+GRANT CREATE STAGE ON ALL SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE STAGE ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE STREAMLIT ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT USAGE ON ALL STAGES IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
 
 -- Grants for the Snowflake Intelligence Roles
 CREATE DATABASE IF NOT EXISTS snowflake_intelligence;
 CREATE SCHEMA IF NOT EXISTS snowflake_intelligence.agents;
-GRANT USAGE ON DATABASE snowflake_intelligence TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT USAGE ON SCHEMA snowflake_intelligence.agents TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE AGENT ON SCHEMA snowflake_intelligence.agents TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE AGENT ON ALL SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE AGENT ON FUTURE SCHEMAS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT CREATE AGENT ON SCHEMA SNOWCORE_INDUSTRIES.GOLD TO ROLE SNOWCORE_INDUSTRIES_ROLE;
+GRANT USAGE ON DATABASE snowflake_intelligence TO ROLE SF_SOLUTIONS_ROLE;
+GRANT USAGE ON SCHEMA snowflake_intelligence.agents TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE AGENT ON SCHEMA snowflake_intelligence.agents TO ROLE SF_SOLUTIONS_ROLE;
+GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE AGENT ON ALL SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE AGENT ON FUTURE SCHEMAS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT CREATE AGENT ON SCHEMA SF_SOLUTIONS.MPM_GOLD TO ROLE SF_SOLUTIONS_ROLE;
 
 
-GRANT SELECT ON ALL SEMANTIC VIEWS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-GRANT SELECT ON FUTURE SEMANTIC VIEWS IN DATABASE SNOWCORE_INDUSTRIES TO ROLE SNOWCORE_INDUSTRIES_ROLE;
+GRANT SELECT ON ALL SEMANTIC VIEWS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
+GRANT SELECT ON FUTURE SEMANTIC VIEWS IN DATABASE SF_SOLUTIONS TO ROLE SF_SOLUTIONS_ROLE;
 
-GRANT ALL ON SCHEMA SNOWCORE_INDUSTRIES.GOLD TO ROLE SNOWCORE_INDUSTRIES_ROLE;
+GRANT ALL ON SCHEMA SF_SOLUTIONS.MPM_GOLD TO ROLE SF_SOLUTIONS_ROLE;
 
 -- Create warehouses
-CREATE WAREHOUSE IF NOT EXISTS SNOWCORE_INDUSTRIES_WH
-  WAREHOUSE_SIZE = 'XSMALL'
+CREATE WAREHOUSE IF NOT EXISTS SF_SOLUTIONS_WH
+  WAREHOUSE_SIZE = 'LARGE'
   AUTO_SUSPEND = 60
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE
   COMMENT = 'Default Warehouse';
 
-GRANT USAGE ON WAREHOUSE snowcore_industries_wh TO ROLE public;
+GRANT USAGE ON WAREHOUSE sf_solutions_wh TO ROLE public;
 
 -- Create warehouse for Streamlit apps
-CREATE WAREHOUSE IF NOT EXISTS SNOWCORE_INDUSTRIES_STREAMLIT_WH
-  WAREHOUSE_SIZE = 'XSMALL'
+CREATE WAREHOUSE IF NOT EXISTS SF_SOLUTIONS_STREAMLIT_WH
+  WAREHOUSE_SIZE = 'LARGE'
   AUTO_SUSPEND = 60
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE
   COMMENT = 'Warehouse for Snowcore Streamlit applications';
 
 -- Grant warehouse usage to roles
-GRANT USAGE ON WAREHOUSE SNOWCORE_INDUSTRIES_STREAMLIT_WH TO ROLE SNOWCORE_INDUSTRIES_ROLE;
+GRANT USAGE ON WAREHOUSE SF_SOLUTIONS_STREAMLIT_WH TO ROLE SF_SOLUTIONS_ROLE;
 
 -- Grant the new role to user 
-GRANT ROLE SNOWCORE_INDUSTRIES_ROLE TO ROLE ACCOUNTADMIN;
+GRANT ROLE SF_SOLUTIONS_ROLE TO ROLE ACCOUNTADMIN;
 
 /*************************************************************************************************/
--- SPCS INFRASTRUCTURE (Snowpark Container Services)
--- NOTE: The following resources require ACCOUNTADMIN role and appropriate privileges:
---   - CREATE COMPUTE POOL (requires ACCOUNTADMIN or role with CREATE COMPUTE POOL privilege)
---   - CREATE NETWORK RULE (requires ACCOUNTADMIN or role with CREATE INTEGRATION privilege)
---   - CREATE EXTERNAL ACCESS INTEGRATION (requires ACCOUNTADMIN or role with CREATE INTEGRATION privilege)
---   - GRANT BIND SERVICE ENDPOINT (requires ACCOUNTADMIN)
--- 
--- If you do not have these privileges in your Snowflake account, you will need to:
---   1. Request them from your Snowflake administrator, OR
---   2. Deploy the Streamlit app using warehouse-based runtime instead of SPCS
---      (omit RUNTIME_NAME and COMPUTE_POOL parameters when creating the Streamlit app)
+-- SPCS INFRASTRUCTURE (OPTIONAL — skip on Trial accounts)
+-- These resources are ONLY needed for Streamlit-on-SPCS deployment.
+-- The core solution (tables, data, semantic view, agent) works WITHOUT them.
+-- Trial accounts cannot create External Access Integrations or Compute Pools.
 /*************************************************************************************************/
 
--- Create a compute pool for running Streamlit apps on containers
-CREATE COMPUTE POOL IF NOT EXISTS SNOWCORE_INDUSTRIES_STREAMLIT_POOL
-  MIN_NODES = 1
-  MAX_NODES = 3
-  INSTANCE_FAMILY = CPU_X64_XS
-  AUTO_RESUME = TRUE
-  INITIALLY_SUSPENDED = FALSE
-  AUTO_SUSPEND_SECS = 3600
-  COMMENT = 'Compute pool for Predictive Maintenance Streamlit app on SPCS';
-
--- Grant usage to the role
-GRANT USAGE ON COMPUTE POOL SNOWCORE_INDUSTRIES_STREAMLIT_POOL 
-  TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-
--- Network rule for PyPI package installation
-CREATE OR REPLACE NETWORK RULE SNOWCORE_INDUSTRIES.GOLD.SNOWCORE_INDUSTRIES_PYPI_NETWORK_RULE
-  MODE = EGRESS
-  TYPE = HOST_PORT
-  VALUE_LIST = ('pypi.org', 'pypi.python.org', 'pythonhosted.org', 'files.pythonhosted.org');
-
--- Network rule for Snowflake Cortex Analyst API
-CREATE OR REPLACE NETWORK RULE SNOWCORE_INDUSTRIES.GOLD.SNOWCORE_INDUSTRIES_CORTEX_NETWORK_RULE
-  MODE = EGRESS
-  TYPE = HOST_PORT
-  VALUE_LIST = ('0.0.0.0:443', '0.0.0.0:80');
-
--- External access integration combining both rules
-CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION SNOWCORE_INDUSTRIES_EAI
-  ALLOWED_NETWORK_RULES = (
-    SNOWCORE_INDUSTRIES.GOLD.SNOWCORE_INDUSTRIES_PYPI_NETWORK_RULE,
-    SNOWCORE_INDUSTRIES.GOLD.SNOWCORE_INDUSTRIES_CORTEX_NETWORK_RULE
-  )
-  ENABLED = TRUE
-  COMMENT = 'External access for PyPI packages and Cortex Analyst API with OAuth authentication';
-
--- Grant usage to the role
-GRANT USAGE ON INTEGRATION SNOWCORE_INDUSTRIES_EAI 
-  TO ROLE SNOWCORE_INDUSTRIES_ROLE;
-
--- Grant additional permissions needed for SPCS
-GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE SNOWCORE_INDUSTRIES_ROLE;
+-- UNCOMMENT the block below if you want SPCS-based Streamlit deployment
+-- (requires Enterprise edition or higher, NOT available on Trial accounts):
+--
+-- CREATE COMPUTE POOL IF NOT EXISTS SF_SOLUTIONS_STREAMLIT_POOL
+--   MIN_NODES = 1
+--   MAX_NODES = 3
+--   INSTANCE_FAMILY = CPU_X64_XS
+--   AUTO_RESUME = TRUE
+--   INITIALLY_SUSPENDED = FALSE
+--   AUTO_SUSPEND_SECS = 3600
+--   COMMENT = 'Compute pool for Predictive Maintenance Streamlit app on SPCS';
+--
+-- GRANT USAGE ON COMPUTE POOL SF_SOLUTIONS_STREAMLIT_POOL
+--   TO ROLE SF_SOLUTIONS_ROLE;
+--
+-- CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE
+--   MODE = EGRESS
+--   TYPE = HOST_PORT
+--   VALUE_LIST = ('pypi.org', 'pypi.python.org', 'pythonhosted.org', 'files.pythonhosted.org');
+--
+-- CREATE OR REPLACE NETWORK RULE SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
+--   MODE = EGRESS
+--   TYPE = HOST_PORT
+--   VALUE_LIST = ('0.0.0.0:443', '0.0.0.0:80');
+--
+-- CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION SF_SOLUTIONS_EAI
+--   ALLOWED_NETWORK_RULES = (
+--     SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_PYPI_NETWORK_RULE,
+--     SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_CORTEX_NETWORK_RULE
+--   )
+--   ENABLED = TRUE
+--   COMMENT = 'External access for PyPI packages and Cortex Analyst API';
+--
+-- GRANT USAGE ON INTEGRATION SF_SOLUTIONS_EAI
+--   TO ROLE SF_SOLUTIONS_ROLE;
+--
+-- GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE SF_SOLUTIONS_ROLE;
 
 /*************************************************************************************************/
 
 
-USE ROLE SNOWCORE_INDUSTRIES_ROLE;
+USE ROLE SF_SOLUTIONS_ROLE;
 
 
 ---------------------------------------------------------------------------------------------------
 -- ## BRONZE LAYER (Raw & Staging)
 -- Tables in this layer use the VARIANT data type to land semi-structured JSON as-is.
 ---------------------------------------------------------------------------------------------------
-USE SCHEMA SNOWCORE_INDUSTRIES.BRONZE;
+USE SCHEMA SF_SOLUTIONS.MPM_BRONZE;
 
 CREATE OR REPLACE TABLE RAW_IOT_TELEMETRY (
     RAW_PAYLOAD         VARIANT,
@@ -203,7 +192,7 @@ CREATE OR REPLACE TABLE RAW_EQUIPMENT_MASTER (
 -- This is the single source of truth, structured for analytics.
 -- Rationalized to align with plant hierarchy and business impact modeling
 ---------------------------------------------------------------------------------------------------
-USE SCHEMA SNOWCORE_INDUSTRIES.SILVER;
+USE SCHEMA SF_SOLUTIONS.MPM_SILVER;
 
 -- Dimension Tables (The "Who, What, Where")
 
@@ -406,7 +395,7 @@ CREATE OR REPLACE TABLE FCT_BUDGET (
 -- ## GOLD LAYER (Application & Feature Store)
 -- Purpose-built tables for high-speed dashboards and ML model training.
 ---------------------------------------------------------------------------------------------------
-USE SCHEMA SNOWCORE_INDUSTRIES.GOLD;
+USE SCHEMA SF_SOLUTIONS.MPM_GOLD;
 
 CREATE OR REPLACE TABLE AGG_ASSET_HOURLY_HEALTH (
     HOUR_TIMESTAMP          TIMESTAMP_NTZ,
@@ -452,7 +441,7 @@ CREATE OR REPLACE TABLE AGG_DAILY_OEE (
     UNITS_PRODUCED          NUMBER(10, 0),
     UNITS_SCRAPPED          NUMBER(10, 0),
     GOOD_UNITS              NUMBER(10, 0),
-    FOREIGN KEY (ASSET_ID) REFERENCES SNOWCORE_INDUSTRIES.SILVER.DIM_ASSET(ASSET_ID)
+    FOREIGN KEY (ASSET_ID) REFERENCES SF_SOLUTIONS.MPM_SILVER.DIM_ASSET(ASSET_ID)
 );
 
 -- Monthly Trend Aggregations (optimized for Intelligence Agent queries)
@@ -492,7 +481,7 @@ CREATE OR REPLACE TABLE AGG_MONTHLY_TRENDS (
 /*************************************************************************************************/
 
 -- Insert into BRONZE Layer
-USE SCHEMA SNOWCORE_INDUSTRIES.BRONZE;
+USE SCHEMA SF_SOLUTIONS.MPM_BRONZE;
 INSERT INTO RAW_EQUIPMENT_MASTER (EQUIPMENT_DATA)
 SELECT PARSE_JSON(column1) FROM VALUES
 ('{ "serialNumber": "eq_pump_001", "model": "HydroFlow 5000",'
@@ -526,7 +515,7 @@ SELECT PARSE_JSON(column1) FROM VALUES
 
 
 -- Insert into SILVER Layer
-USE SCHEMA SNOWCORE_INDUSTRIES.SILVER;
+USE SCHEMA SF_SOLUTIONS.MPM_SILVER;
 -- Populate Dimensions first
 SET (START_DATE, END_DATE) = ('1995-01-01', '2030-12-31');
 SET GENERATOR_RECORD_COUNT = (select DATEDIFF(DAY, $START_DATE, $END_DATE) + 1);
@@ -1235,7 +1224,7 @@ hourly_base AS (
         SELECT 
             da.ASSET_ID,
             da.PROCESS_ID
-        FROM SNOWCORE_INDUSTRIES.SILVER.DIM_ASSET da
+        FROM SF_SOLUTIONS.MPM_SILVER.DIM_ASSET da
         WHERE da.IS_CURRENT = TRUE
     ) a
     CROSS JOIN (
@@ -1386,7 +1375,7 @@ daily_asset_base AS (
         SELECT 
             da.ASSET_ID,
             da.PROCESS_ID
-        FROM SNOWCORE_INDUSTRIES.SILVER.DIM_ASSET da
+        FROM SF_SOLUTIONS.MPM_SILVER.DIM_ASSET da
         WHERE da.IS_CURRENT = TRUE
     ) a
     CROSS JOIN (
@@ -1526,7 +1515,7 @@ daily_production_base AS (
         SELECT 
             da.ASSET_ID,
             da.PROCESS_ID
-        FROM SNOWCORE_INDUSTRIES.SILVER.DIM_ASSET da
+        FROM SF_SOLUTIONS.MPM_SILVER.DIM_ASSET da
         WHERE da.IS_CURRENT = TRUE
     ) a
     CROSS JOIN (
@@ -1547,7 +1536,7 @@ production_with_maint AS (
         COALESCE(ml.downtime_hours, 0) as maint_downtime,
         COALESCE(ml.failure_flag, FALSE) as had_failure
     FROM daily_production_base pb
-    LEFT JOIN SNOWCORE_INDUSTRIES.SILVER.FCT_MAINTENANCE_LOG ml 
+    LEFT JOIN SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml 
         ON pb.asset_id = ml.asset_id 
         AND pb.date_sk = ml.action_date_sk
 )
@@ -1621,7 +1610,7 @@ WITH maintenance_logs_with_seq AS (
         ml.ASSET_ID,
         ml.PARTS_COST,
         ROW_NUMBER() OVER (ORDER BY ml.LOG_ID) as log_seq
-    FROM SNOWCORE_INDUSTRIES.SILVER.FCT_MAINTENANCE_LOG ml
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml
 ),
 parts_per_maint AS (
     SELECT 
@@ -1737,7 +1726,7 @@ SELECT
 FROM parts_expanded pe;
 
 -- Insert into GOLD Layer
-USE SCHEMA SNOWCORE_INDUSTRIES.GOLD;
+USE SCHEMA SF_SOLUTIONS.MPM_GOLD;
 
 -- AGG_ASSET_HOURLY_HEALTH: Aggregated hourly health metrics from telemetry data
 INSERT INTO AGG_ASSET_HOURLY_HEALTH (HOUR_TIMESTAMP,
@@ -1758,7 +1747,7 @@ SELECT
     MAX(t.HEALTH_SCORE) as latest_health_score,
     ROUND(AVG(t.FAILURE_PROBABILITY), 2) as avg_failure_probability,
     MIN(t.RUL_DAYS) as min_rul_days
-FROM SNOWCORE_INDUSTRIES.SILVER.FCT_ASSET_TELEMETRY t
+FROM SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t
 WHERE t.RECORDED_AT >= '2024-11-01 00:00:00'::TIMESTAMP_NTZ
 GROUP BY 
     DATE_TRUNC('HOUR', t.RECORDED_AT),
@@ -1781,7 +1770,7 @@ WITH daily_observations AS (
         t.DATE_SK as observation_date_sk,
         t.ASSET_ID,
         t.RECORDED_AT::DATE as observation_date
-    FROM SNOWCORE_INDUSTRIES.SILVER.FCT_ASSET_TELEMETRY t
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t
     WHERE t.RECORDED_AT >= '2024-11-01'::DATE
 ),
 temp_features AS (
@@ -1790,7 +1779,7 @@ temp_features AS (
         do.ASSET_ID,
         ROUND(AVG(t.TEMPERATURE_C), 2) as avg_temp_last_24h
     FROM daily_observations do
-    JOIN SNOWCORE_INDUSTRIES.SILVER.FCT_ASSET_TELEMETRY t 
+    JOIN SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t 
         ON do.ASSET_ID = t.ASSET_ID
         AND t.RECORDED_AT >= DATEADD(HOUR, -24, do.observation_date::TIMESTAMP_NTZ)
         AND t.RECORDED_AT < DATEADD(DAY, 1, do.observation_date::TIMESTAMP_NTZ)
@@ -1802,7 +1791,7 @@ vibration_features AS (
         do.ASSET_ID,
         ROUND(STDDEV(t.VIBRATION_MM_S), 2) as vibration_stddev_7d
     FROM daily_observations do
-    JOIN SNOWCORE_INDUSTRIES.SILVER.FCT_ASSET_TELEMETRY t 
+    JOIN SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t 
         ON do.ASSET_ID = t.ASSET_ID
         AND t.RECORDED_AT >= DATEADD(DAY, -7, do.observation_date::TIMESTAMP_NTZ)
         AND t.RECORDED_AT < DATEADD(DAY, 1, do.observation_date::TIMESTAMP_NTZ)
@@ -1816,7 +1805,7 @@ pressure_features AS (
             (MAX(t.PRESSURE_PSI) - MIN(t.PRESSURE_PSI)) / NULLIF(COUNT(*), 0), 
         2) as pressure_trend_7d
     FROM daily_observations do
-    JOIN SNOWCORE_INDUSTRIES.SILVER.FCT_ASSET_TELEMETRY t 
+    JOIN SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY t 
         ON do.ASSET_ID = t.ASSET_ID
         AND t.RECORDED_AT >= DATEADD(DAY, -7, do.observation_date::TIMESTAMP_NTZ)
         AND t.RECORDED_AT < DATEADD(DAY, 1, do.observation_date::TIMESTAMP_NTZ)
@@ -1839,7 +1828,7 @@ maintenance_features AS (
             do.observation_date), 
         999) as days_since_last_failure
     FROM daily_observations do
-    LEFT JOIN SNOWCORE_INDUSTRIES.SILVER.FCT_MAINTENANCE_LOG ml 
+    LEFT JOIN SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml 
         ON do.ASSET_ID = ml.ASSET_ID
         AND ml.COMPLETED_DATE < do.observation_date
     GROUP BY do.observation_date_sk, do.ASSET_ID, do.observation_date
@@ -1857,7 +1846,7 @@ future_failures AS (
             ELSE FALSE 
         END) as failed_in_next_7_days
     FROM daily_observations do
-    LEFT JOIN SNOWCORE_INDUSTRIES.SILVER.FCT_MAINTENANCE_LOG ml 
+    LEFT JOIN SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml 
         ON do.ASSET_ID = ml.ASSET_ID
     GROUP BY do.observation_date_sk, do.ASSET_ID
 )
@@ -1883,13 +1872,13 @@ LEFT JOIN vibration_features vf ON do.observation_date_sk = vf.observation_date_
 LEFT JOIN pressure_features pf ON do.observation_date_sk = pf.observation_date_sk AND do.ASSET_ID = pf.ASSET_ID
 LEFT JOIN maintenance_features mf ON do.observation_date_sk = mf.observation_date_sk AND do.ASSET_ID = mf.ASSET_ID
 LEFT JOIN future_failures ff ON do.observation_date_sk = ff.observation_date_sk AND do.ASSET_ID = ff.ASSET_ID
-LEFT JOIN SNOWCORE_INDUSTRIES.SILVER.DIM_ASSET a ON do.ASSET_ID = a.ASSET_ID
+LEFT JOIN SF_SOLUTIONS.MPM_SILVER.DIM_ASSET a ON do.ASSET_ID = a.ASSET_ID
 LEFT JOIN (
     SELECT 
         ASSET_ID,
         DATE_SK,
         MAX(HEALTH_SCORE) as latest_health_score
-    FROM SNOWCORE_INDUSTRIES.SILVER.FCT_ASSET_TELEMETRY
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_ASSET_TELEMETRY
     GROUP BY ASSET_ID, DATE_SK
 ) h ON do.ASSET_ID = h.ASSET_ID AND do.observation_date_sk = h.DATE_SK
 WHERE do.observation_date >= '2024-11-01'::DATE
@@ -1935,7 +1924,7 @@ SELECT
     pl.UNITS_PRODUCED,
     pl.UNITS_SCRAPPED,
     pl.UNITS_PRODUCED - pl.UNITS_SCRAPPED AS good_units
-FROM SNOWCORE_INDUSTRIES.SILVER.FCT_PRODUCTION_LOG pl
+FROM SF_SOLUTIONS.MPM_SILVER.FCT_PRODUCTION_LOG pl
 WHERE pl.PRODUCTION_DATE >= '2024-11-01'::DATE
 ORDER BY pl.PRODUCTION_DATE, pl.ASSET_ID;
 
@@ -1965,10 +1954,10 @@ WITH monthly_oee AS (
         SUM(oee.UNITS_PRODUCED) as total_units_produced,
         SUM(oee.UNITS_SCRAPPED) as total_units_scrapped,
         COUNT(DISTINCT oee.ASSET_ID) as asset_count
-    FROM SNOWCORE_INDUSTRIES.GOLD.AGG_DAILY_OEE oee
-    JOIN SNOWCORE_INDUSTRIES.SILVER.DIM_ASSET a ON oee.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
-    JOIN SNOWCORE_INDUSTRIES.SILVER.DIM_PROCESS p ON oee.PROCESS_ID = p.PROCESS_ID
-    JOIN SNOWCORE_INDUSTRIES.SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
+    FROM SF_SOLUTIONS.MPM_GOLD.AGG_DAILY_OEE oee
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_ASSET a ON oee.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_PROCESS p ON oee.PROCESS_ID = p.PROCESS_ID
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
     WHERE oee.PRODUCTION_DATE >= '2024-11-01'::DATE
     GROUP BY 
         TO_CHAR(oee.PRODUCTION_DATE, 'YYYY-MM'),
@@ -1992,10 +1981,10 @@ monthly_maintenance AS (
         SUM(CASE WHEN ml.WO_TYPE_ID = 2 THEN 1 ELSE 0 END) as predictive_wo_count,
         SUM(CASE WHEN ml.WO_TYPE_ID = 1 THEN 1 ELSE 0 END) as emergency_wo_count,
         SUM(CASE WHEN ml.FAILURE_FLAG = TRUE THEN 1 ELSE 0 END) as failure_count
-    FROM SNOWCORE_INDUSTRIES.SILVER.FCT_MAINTENANCE_LOG ml
-    JOIN SNOWCORE_INDUSTRIES.SILVER.DIM_ASSET a ON ml.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
-    JOIN SNOWCORE_INDUSTRIES.SILVER.DIM_PROCESS p ON ml.PROCESS_ID = p.PROCESS_ID
-    JOIN SNOWCORE_INDUSTRIES.SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
+    FROM SF_SOLUTIONS.MPM_SILVER.FCT_MAINTENANCE_LOG ml
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_ASSET a ON ml.ASSET_ID = a.ASSET_ID AND a.IS_CURRENT = TRUE
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_PROCESS p ON ml.PROCESS_ID = p.PROCESS_ID
+    JOIN SF_SOLUTIONS.MPM_SILVER.DIM_LINE l ON p.LINE_ID = l.LINE_ID
     WHERE ml.COMPLETED_DATE >= '2024-11-01'::DATE
     GROUP BY 
         TO_CHAR(ml.COMPLETED_DATE, 'YYYY-MM'),
@@ -2039,7 +2028,7 @@ ORDER BY oee.year_month, oee.plant_id, oee.line_id;
 -- Step 3: Create Stage and Semantic View for Cortex Analyst
 /*************************************************************************************************/
 
-USE SCHEMA SNOWCORE_INDUSTRIES.GOLD;
+USE SCHEMA SF_SOLUTIONS.MPM_GOLD;
 
 -- Create a stage for uploading the semantic view definition
 CREATE STAGE IF NOT EXISTS SEMANTIC_VIEW_STAGE
@@ -2053,11 +2042,11 @@ CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE
 -- Note: The YAML file upload and semantic view creation are handled by the deploy.sh script
 -- This ensures proper file staging and semantic view creation in the correct sequence
 
-SELECT 'SNOWCORE_INDUSTRIES database, data, and Cortex Analyst semantic view created successfully.' AS status;
+SELECT 'SF_SOLUTIONS database, data, and Cortex Analyst semantic view created successfully.' AS status;
 
-CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML('SNOWCORE_INDUSTRIES.GOLD',
+CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML('SF_SOLUTIONS.MPM_GOLD',
 $$
-name: SNOWCORE_INDUSTRIES_SV
+name: SF_SOLUTIONS_SV
 verified_queries:
   - name: oee_vs_maintenance_cost_12_month_trend
     question: "Show me the trend of our OEE versus our total maintenance cost over the last 12 months"
@@ -2078,7 +2067,7 @@ verified_queries:
         SUM(total_units_produced) as total_units_produced,
         SUM(total_units_scrapped) as total_units_scrapped,
         SUM(asset_count) as total_assets
-      FROM SNOWCORE_INDUSTRIES.GOLD.AGG_MONTHLY_TRENDS
+      FROM SF_SOLUTIONS.MPM_GOLD.AGG_MONTHLY_TRENDS
       WHERE year_month >= TO_CHAR(DATEADD(month, -12, DATE_TRUNC('month', CURRENT_DATE)), 'YYYY-MM')
         AND year_month <= TO_CHAR(DATE_TRUNC('month', CURRENT_DATE), 'YYYY-MM')
       GROUP BY year_month, year, month
@@ -2086,8 +2075,8 @@ verified_queries:
 tables:
   - name: AGG_ASSET_HOURLY_HEALTH
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: GOLD
+      database: SF_SOLUTIONS
+      schema: MPM_GOLD
       table: AGG_ASSET_HOURLY_HEALTH
     dimensions:
       - name: ASSET_ID
@@ -2165,8 +2154,8 @@ tables:
           - '5.8'
   - name: ML_FEATURE_STORE
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: GOLD
+      database: SF_SOLUTIONS
+      schema: MPM_GOLD
       table: ML_FEATURE_STORE
     dimensions:
       - name: FAILED_IN_NEXT_7_DAYS
@@ -2248,8 +2237,8 @@ tables:
           - '0.12'
   - name: AGG_DAILY_OEE
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: GOLD
+      database: SF_SOLUTIONS
+      schema: MPM_GOLD
       table: AGG_DAILY_OEE
     dimensions:
       - name: PRODUCTION_DATE
@@ -2350,8 +2339,8 @@ tables:
           - '8415'
   - name: AGG_MONTHLY_TRENDS
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: GOLD
+      database: SF_SOLUTIONS
+      schema: MPM_GOLD
       table: AGG_MONTHLY_TRENDS
     dimensions:
       - name: YEAR_MONTH
@@ -2524,8 +2513,8 @@ tables:
           - '6'
   - name: DIM_PROCESS
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_PROCESS
     dimensions:
       - name: PROCESS_ID
@@ -2588,8 +2577,8 @@ tables:
         - PROCESS_ID
   - name: DIM_ASSET
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_ASSET
     dimensions:
       - name: ASSET_CLASS_ID
@@ -2691,8 +2680,8 @@ tables:
         - ASSET_ID
   - name: DIM_ASSET_CLASS
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_ASSET_CLASS
     dimensions:
       - name: ASSET_CLASS_ID
@@ -2722,8 +2711,8 @@ tables:
         - ASSET_CLASS_ID
   - name: DIM_DATE
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_DATE
     dimensions:
       - name: DATE_SK
@@ -2776,8 +2765,8 @@ tables:
         - DATE_SK
   - name: DIM_LINE
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_LINE
     dimensions:
       - name: LINE_ID
@@ -2817,8 +2806,8 @@ tables:
         - LINE_ID
   - name: DIM_PLANT
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_PLANT
     dimensions:
       - name: LOCATION
@@ -2848,8 +2837,8 @@ tables:
         - PLANT_ID
   - name: DIM_SENSOR
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_SENSOR
     dimensions:
       - name: ASSET_ID
@@ -2901,8 +2890,8 @@ tables:
         - SENSOR_SK
   - name: DIM_WORK_ORDER_TYPE
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_WORK_ORDER_TYPE
     dimensions:
       - name: WO_TYPE_CODE
@@ -2938,8 +2927,8 @@ tables:
         - WO_TYPE_ID
   - name: DIM_TECHNICIAN
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_TECHNICIAN
     dimensions:
       - name: TECHNICIAN_ID
@@ -3003,8 +2992,8 @@ tables:
         - TECHNICIAN_ID
   - name: DIM_FAILURE_CODE
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_FAILURE_CODE
     dimensions:
       - name: FAILURE_CODE_ID
@@ -3053,8 +3042,8 @@ tables:
         - FAILURE_CODE_ID
   - name: DIM_MATERIAL
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: DIM_MATERIAL
     dimensions:
       - name: MATERIAL_ID
@@ -3103,8 +3092,8 @@ tables:
         - MATERIAL_ID
   - name: FCT_ASSET_TELEMETRY
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: FCT_ASSET_TELEMETRY
     dimensions:
       - name: ASSET_ID
@@ -3214,8 +3203,8 @@ tables:
         - TELEMETRY_ID
   - name: FCT_MAINTENANCE_LOG
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: FCT_MAINTENANCE_LOG
     dimensions:
       - name: ACTION_DATE_SK
@@ -3313,8 +3302,8 @@ tables:
         - LOG_ID
   - name: FCT_PRODUCTION_LOG
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: FCT_PRODUCTION_LOG
     dimensions:
       - name: ASSET_ID
@@ -3391,8 +3380,8 @@ tables:
         - PROD_LOG_ID
   - name: FCT_MAINTENANCE_PARTS_USED
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: FCT_MAINTENANCE_PARTS_USED
     dimensions:
       - name: LOG_ID
@@ -3434,8 +3423,8 @@ tables:
         - MATERIAL_ID
   - name: FCT_BUDGET
     base_table:
-      database: SNOWCORE_INDUSTRIES
-      schema: SILVER
+      database: SF_SOLUTIONS
+      schema: MPM_SILVER
       table: FCT_BUDGET
     dimensions:
       - name: BUDGET_ID
@@ -3612,8 +3601,8 @@ relationships:
 $$);
 
 
-use role snowcore_industries_role; -- Use a role appropriate for creating agents and accessing the necessary database/schema
---use warehouse SNOWCORE_INDUSTRIES_WH; -- Use a warehouse for agent creation
+use role SF_SOLUTIONS_ROLE; -- Use a role appropriate for creating agents and accessing the necessary database/schema
+--use warehouse SF_SOLUTIONS_WH; -- Use a warehouse for agent creation
 
 CREATE OR REPLACE AGENT SNOWFLAKE_INTELLIGENCE.AGENTS.PREDICTIVE_MAINTENANCE_ASSISTANT
 WITH PROFILE='{ "display_name": "Predictive Maintenance Analytics" }'
@@ -3753,8 +3742,8 @@ FROM SPECIFICATION $$
             "tool_spec": {
                 "description": "
                     PREDICTIVE_MAINTENANCE_DATA:
-                    - Database: SNOWCORE_INDUSTRIES, Schema: GOLD
-                    - Semantic View: SNOWCORE_INDUSTRIES_SV
+                    - Database: SF_SOLUTIONS, Schema: MPM_GOLD
+                    - Semantic View: SF_SOLUTIONS_SV
                     - Contains comprehensive predictive maintenance data including:
                       * Asset health metrics: health scores, failure probability, remaining useful life (RUL), anomaly detection
                       * Sensor telemetry: temperature (Celsius), vibration (mm/s), pressure (PSI) with hourly aggregations
@@ -3787,7 +3776,7 @@ FROM SPECIFICATION $$
                         level.
 
                     DESCRIPTION:
-                    The SNOWCORE_INDUSTRIES_SV semantic view, located in SNOWCORE_INDUSTRIES.GOLD, provides a comprehensive framework for
+                    The SF_SOLUTIONS_SV semantic view, located in SF_SOLUTIONS.MPM_GOLD, provides a comprehensive framework for
                         predictive maintenance and manufacturing operations analytics. It captures essential metrics across the entire
                         maintenance lifecycle from asset health monitoring to failure prediction, maintenance execution, and production
                         impact analysis. The view supports various use cases including: proactive maintenance scheduling, failure prediction
@@ -3805,10 +3794,10 @@ FROM SPECIFICATION $$
     "tool_resources": {
         "Predictive_maintenance_analysis": {
             "type": "cortex_analyst_text_to_sql",
-            "semantic_view": "SNOWCORE_INDUSTRIES.GOLD.SNOWCORE_INDUSTRIES_SV",
+            "semantic_view": "SF_SOLUTIONS.MPM_GOLD.SF_SOLUTIONS_SV",
             "execution_environment": {
                 "type": "warehouse",
-                "warehouse": "SNOWCORE_INDUSTRIES_WH",
+                "warehouse": "SF_SOLUTIONS_WH",
                 "query_timeout": 60
             }
         }

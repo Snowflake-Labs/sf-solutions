@@ -5,8 +5,8 @@
   "industry": "Manufacturing",
   "source": "https://github.com/Snowflake-Labs/sfguide-getting-started-with-predictive-maintenance",
   "license": "MIT",
-  "database": "SNOWCORE_INDUSTRIES",
-  "schemas": ["BRONZE", "SILVER", "GOLD"],
+  "database": "SF_SOLUTIONS",
+  "schemas": ["MPM_BRONZE", "MPM_SILVER", "MPM_GOLD"],
   "role": "ACCOUNTADMIN",
   "requires_warehouse": true,
   "install_scripts": [
@@ -16,7 +16,7 @@
     "scripts/teardown.sql"
   ],
   "features": [
-    "Snowflake Intelligence",
+    "Snowflake CoWork",
     "Cortex Analyst",
     "Semantic View",
     "Streamlit in Snowflake",

@@ -61,6 +61,8 @@ snowflake_jwt_*.json
 
 # Local files
 local.README.md
+20260518_ISF_solutions.csv
+retail-demand-forecasting/
 
 .snowflake
 .cortex
