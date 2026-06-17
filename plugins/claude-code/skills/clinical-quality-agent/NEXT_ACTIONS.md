@@ -86,7 +86,7 @@ After installation, guide the user through these progressive steps.
 11. **Set up automated quality monitoring**
     ```sql
     CREATE OR REPLACE ALERT SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.MORTALITY_SPIKE_ALERT
-        WAREHOUSE = COMPUTE_WH
+        WAREHOUSE = SF_SOLUTIONS_WH
         SCHEDULE = 'USING CRON 0 7 * * * America/Los_Angeles'
         IF (EXISTS (
             SELECT 1 FROM SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.OUTCOMES
@@ -109,7 +109,7 @@ After installation, guide the user through these progressive steps.
 13. **Schedule data refresh**
     ```sql
     CREATE OR REPLACE TASK SF_SOLUTIONS.CLINICAL_QUALITY_SAFETY.REFRESH_DATA
-        WAREHOUSE = COMPUTE_WH
+        WAREHOUSE = SF_SOLUTIONS_WH
         SCHEDULE = 'USING CRON 0 1 * * * America/Los_Angeles'
     AS
         -- Refresh from your EHR/data warehouse
