@@ -118,9 +118,23 @@ When writing SKILL.md files, always use the correct prefix for the target platfo
 After installation, always output clickable URLs for deployed resources. Use SQL to construct them dynamically:
 
 ```sql
--- Base URL construction
-SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME()) AS BASE_URL;
+-- Base URL construction (handles both org accounts and legacy accounts)
+SELECT
+    CASE
+        WHEN CURRENT_ORGANIZATION_NAME() IS NOT NULL AND CURRENT_ORGANIZATION_NAME() != ''
+        THEN 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+        ELSE 'https://app.snowflake.com/' || LOWER(REPLACE(REPLACE(REPLACE(CURRENT_REGION(), 'AWS_', ''), 'AZURE_', ''), '_', '-')) || '/' || LOWER(CURRENT_ACCOUNT())
+    END AS BASE_URL;
 ```
+
+There are two URL formats depending on the account type:
+
+| Account Type | URL Format | Example |
+|--------------|-----------|---------|
+| Organization (Trial, standard) | `https://app.snowflake.com/<org_name>/<account_name>/` | `https://app.snowflake.com/iwqhwyc/mtb35883/` |
+| Legacy (older accounts) | `https://app.snowflake.com/<region>/<account_locator>/` | `https://app.snowflake.com/sfdevrel/sfdevrel_enterprise/` |
+
+The CASE expression above handles both. For simplicity, most setup scripts use just `CURRENT_ORGANIZATION_NAME() || '/' || CURRENT_ACCOUNT_NAME()` which works for modern accounts.
 
 URL path patterns by resource type:
 
