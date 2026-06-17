@@ -17,7 +17,6 @@ FROM (
 SELECT 'import streamlit as st' || CHAR(10) ||
 'import pandas as pd' || CHAR(10) ||
 'import plotly.express as px' || CHAR(10) ||
-'import plotly.graph_objects as go' || CHAR(10) ||
 'from snowflake.snowpark.context import get_active_session' || CHAR(10) ||
 CHAR(10) ||
 'st.set_page_config(page_title="LTV Prediction Dashboard", layout="wide")' || CHAR(10) ||
@@ -68,20 +67,18 @@ CHAR(10) ||
 '    left, right = st.columns(2)' || CHAR(10) ||
 '    with left:' || CHAR(10) ||
 '        st.subheader("Segment Distribution")' || CHAR(10) ||
-'        fig = px.bar(segments, x="LTV_SEGMENT", y="CUSTOMER_COUNT", color="LTV_SEGMENT", color_discrete_map={"Platinum": "#8B5CF6", "Gold": "#F59E0B", "Silver": "#6B7280", "Bronze": "#92400E"})' || CHAR(10) ||
+'        fig = px.bar(segments, x="LTV_SEGMENT", y="CUSTOMER_COUNT")' || CHAR(10) ||
 '        fig.update_layout(showlegend=False, height=350)' || CHAR(10) ||
 '        st.plotly_chart(fig, use_container_width=True)' || CHAR(10) ||
 '    with right:' || CHAR(10) ||
 '        st.subheader("Avg Predicted LTV by Segment")' || CHAR(10) ||
-'        fig = px.bar(segments, x="LTV_SEGMENT", y="AVG_PREDICTED_LTV", color="LTV_SEGMENT", color_discrete_map={"Platinum": "#8B5CF6", "Gold": "#F59E0B", "Silver": "#6B7280", "Bronze": "#92400E"})' || CHAR(10) ||
+'        fig = px.bar(segments, x="LTV_SEGMENT", y="AVG_PREDICTED_LTV")' || CHAR(10) ||
 '        fig.update_layout(showlegend=False, height=350, yaxis_tickprefix="$")' || CHAR(10) ||
 '        st.plotly_chart(fig, use_container_width=True)' || CHAR(10) ||
 '    st.divider()' || CHAR(10) ||
 '    st.subheader("Predicted vs Actual LTV")' || CHAR(10) ||
 '    if not predictions.empty:' || CHAR(10) ||
-'        fig = px.scatter(predictions, x="ACTUAL_LTV", y="PREDICTED_LTV", opacity=0.4, color_discrete_sequence=["#29B5E8"])' || CHAR(10) ||
-'        max_val = max(predictions["ACTUAL_LTV"].max(), predictions["PREDICTED_LTV"].max())' || CHAR(10) ||
-'        fig.add_trace(go.Scatter(x=[0, max_val], y=[0, max_val], mode="lines", line=dict(dash="dash", color="gray"), name="Perfect"))' || CHAR(10) ||
+'        fig = px.scatter(predictions, x="ACTUAL_LTV", y="PREDICTED_LTV", opacity=0.5)' || CHAR(10) ||
 '        fig.update_layout(height=400, xaxis_title="Actual LTV ($)", yaxis_title="Predicted LTV ($)")' || CHAR(10) ||
 '        st.plotly_chart(fig, use_container_width=True)' || CHAR(10) ||
 '    st.divider()' || CHAR(10) ||

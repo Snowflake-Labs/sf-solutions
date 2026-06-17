@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from snowflake.snowpark.context import get_active_session
 
 st.set_page_config(page_title="LTV Prediction Dashboard", layout="wide")
@@ -94,35 +93,13 @@ def main():
 
     with left:
         st.subheader("Segment Distribution")
-        fig = px.bar(
-            segments,
-            x="LTV_SEGMENT",
-            y="CUSTOMER_COUNT",
-            color="LTV_SEGMENT",
-            color_discrete_map={
-                "Platinum": "#8B5CF6",
-                "Gold": "#F59E0B",
-                "Silver": "#6B7280",
-                "Bronze": "#92400E",
-            },
-        )
+        fig = px.bar(segments, x="LTV_SEGMENT", y="CUSTOMER_COUNT")
         fig.update_layout(showlegend=False, height=350)
         st.plotly_chart(fig, use_container_width=True)
 
     with right:
         st.subheader("Avg Predicted LTV by Segment")
-        fig = px.bar(
-            segments,
-            x="LTV_SEGMENT",
-            y="AVG_PREDICTED_LTV",
-            color="LTV_SEGMENT",
-            color_discrete_map={
-                "Platinum": "#8B5CF6",
-                "Gold": "#F59E0B",
-                "Silver": "#6B7280",
-                "Bronze": "#92400E",
-            },
-        )
+        fig = px.bar(segments, x="LTV_SEGMENT", y="AVG_PREDICTED_LTV")
         fig.update_layout(showlegend=False, height=350, yaxis_tickprefix="$")
         st.plotly_chart(fig, use_container_width=True)
 
@@ -131,26 +108,8 @@ def main():
     # Predicted vs Actual scatter
     st.subheader("Predicted vs Actual LTV")
     if not predictions.empty:
-        fig = px.scatter(
-            predictions,
-            x="ACTUAL_LTV",
-            y="PREDICTED_LTV",
-            opacity=0.4,
-            color_discrete_sequence=["#29B5E8"],
-        )
-        max_val = max(predictions["ACTUAL_LTV"].max(), predictions["PREDICTED_LTV"].max())
-        fig.add_trace(
-            go.Scatter(
-                x=[0, max_val], y=[0, max_val],
-                mode="lines", line=dict(dash="dash", color="gray"),
-                name="Perfect",
-            )
-        )
-        fig.update_layout(
-            height=400,
-            xaxis_title="Actual LTV ($)",
-            yaxis_title="Predicted LTV ($)",
-        )
+        fig = px.scatter(predictions, x="ACTUAL_LTV", y="PREDICTED_LTV", opacity=0.5)
+        fig.update_layout(height=400, xaxis_title="Actual LTV ($)", yaxis_title="Predicted LTV ($)")
         st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
