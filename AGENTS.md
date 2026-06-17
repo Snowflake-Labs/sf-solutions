@@ -101,6 +101,17 @@ Plugin skills mirror this at:
 - `plugins/cortex-code/skills/<name>/SKILL.md` + `NEXT_ACTIONS.md`
 - `plugins/claude-code/skills/<name>/SKILL.md` + `NEXT_ACTIONS.md`
 
+### Skill Invocation Prefixes
+
+The two supported AI CLI platforms use different trigger characters:
+
+| Platform | Prefix | Example |
+|----------|--------|---------|
+| Cortex Code | `$` | `$snowflake-solutions:ltv-prediction` |
+| Claude Code CLI | `/` | `/snowflake-solutions:ltv-prediction` |
+
+When writing SKILL.md files, always use the correct prefix for the target platform in usage help and examples.
+
 ## CI Checks
 
 All PRs must pass:
