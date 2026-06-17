@@ -51,6 +51,11 @@ CHAR(10) ||
 '    if segments.empty:' || CHAR(10) ||
 '        st.warning("No data found. Run setup.sql first.")' || CHAR(10) ||
 '        return' || CHAR(10) ||
+'    for col in segments.columns:' || CHAR(10) ||
+'        if col != "LTV_SEGMENT":' || CHAR(10) ||
+'            segments[col] = pd.to_numeric(segments[col], errors="coerce")' || CHAR(10) ||
+'    for col in predictions.columns:' || CHAR(10) ||
+'        predictions[col] = pd.to_numeric(predictions[col], errors="coerce")' || CHAR(10) ||
 '    total_customers = int(segments["CUSTOMER_COUNT"].sum())' || CHAR(10) ||
 '    avg_ltv = float(segments["AVG_PREDICTED_LTV"].mean())' || CHAR(10) ||
 '    platinum_count = int(segments.loc[segments["LTV_SEGMENT"] == "Platinum", "CUSTOMER_COUNT"].sum())' || CHAR(10) ||

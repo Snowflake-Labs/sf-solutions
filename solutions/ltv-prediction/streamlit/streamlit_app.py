@@ -57,7 +57,7 @@ def main():
     session = get_session()
 
     st.title("Customer Lifetime Value Prediction")
-    st.caption("Snowflake ML Regression + Cortex AI Insights")
+    st.caption("Snowflake ML Forecast + Cortex AI Insights")
 
     segments = load_segments(session)
     predictions = load_predictions(session)
@@ -65,6 +65,14 @@ def main():
     if segments.empty:
         st.warning("No data found. Run setup.sql first.")
         return
+
+    # Convert Decimal types to float for Plotly compatibility
+    numeric_cols = segments.select_dtypes(include=["object", "number"]).columns
+    for col in segments.columns:
+        if col != "LTV_SEGMENT":
+            segments[col] = pd.to_numeric(segments[col], errors="coerce")
+    for col in predictions.columns:
+        predictions[col] = pd.to_numeric(predictions[col], errors="coerce")
 
     # KPI row
     total_customers = int(segments["CUSTOMER_COUNT"].sum())
