@@ -113,6 +113,45 @@ The two supported AI CLI platforms use different trigger characters:
 
 When writing SKILL.md files, always use the correct prefix for the target platform in usage help and examples.
 
+### Snowsight URL Patterns
+
+After installation, always output clickable URLs for deployed resources. Use SQL to construct them dynamically:
+
+```sql
+-- Base URL construction
+SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME()) AS BASE_URL;
+```
+
+URL path patterns by resource type:
+
+| Resource | URL Path |
+|----------|----------|
+| Streamlit App | `<BASE_URL>/#/streamlit-apps/<DB>.<SCHEMA>.<APP_NAME>` |
+| Intelligence Agent | `<BASE_URL>/#/agents/database/<DB>/schema/<SCHEMA>/agent/<AGENT_NAME>/details` |
+| Snowflake CoWork | `https://ai.snowflake.com/<org>/<account>/#/ai` (note: `ai.snowflake.com`, not `app.snowflake.com`) |
+
+Examples:
+
+```
+Streamlit:  https://app.snowflake.com/myorg/myaccount/#/streamlit-apps/SF_SOLUTIONS.LTV_ML.LTV_PREDICTION_DASHBOARD
+Agent:      https://app.snowflake.com/myorg/myaccount/#/agents/database/SF_SOLUTIONS/schema/SUPPLY_CHAIN_ENTITIES/agent/SUPPLY_CHAIN_ASSISTANT/details
+CoWork:     https://ai.snowflake.com/myorg/myaccount/#/ai
+```
+
+SQL for Streamlit URL:
+
+```sql
+SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+    || '/#/streamlit-apps/SF_SOLUTIONS.<SCHEMA>.<APP_NAME>' AS STREAMLIT_URL;
+```
+
+SQL for Agent URL:
+
+```sql
+SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+    || '/#/agents/database/SF_SOLUTIONS/schema/<SCHEMA>/agent/<AGENT_NAME>/details' AS AGENT_URL;
+```
+
 ## CI Checks
 
 All PRs must pass:
