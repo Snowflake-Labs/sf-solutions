@@ -50,7 +50,7 @@ Enables hospital Chief Quality Officers to analyze patient outcomes, healthcare-
 
 **Install PubMed (free, ~30 seconds):**
 
-1. Open: https://app.snowflake.com/marketplace/listing/GZTYZ4386LY/cybersyn-pubmed-biomedical-research-corpus
+1. Open: <https://app.snowflake.com/marketplace/listing/GZTYZ4386LY/cybersyn-pubmed-biomedical-research-corpus>
 2. Click **Get**
 3. Accept terms and install with default database name `PUBMED_BIOMEDICAL_RESEARCH_CORPUS`
 
