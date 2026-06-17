@@ -67,7 +67,8 @@ Additional SiS constraints:
 
 ### SQL Style
 
-- All solutions use `SF_SOLUTIONS` as the shared database (except manufacturing-predictive-maintenance which uses `SNOWCORE_INDUSTRIES`).
+- All solutions use `SF_SOLUTIONS` as the shared database.
+- All solutions use `SF_SOLUTIONS_WH` (LARGE) as the shared warehouse. Do not create solution-specific warehouses.
 - Teardown scripts drop solution schemas but NOT the shared SF_SOLUTIONS database or SF_SOLUTIONS_WH warehouse.
 - Use `USE ROLE ACCOUNTADMIN` at the top of setup/teardown scripts.
 
@@ -134,5 +135,5 @@ Reference when creating new solutions to avoid schema name conflicts and to foll
 
 Notes:
 - All solutions use `SF_SOLUTIONS` database.
+- All solutions use `SF_SOLUTIONS_WH` (LARGE) as the shared warehouse. Do not create separate warehouses per solution.
 - Schema names must be unique across solutions to avoid conflicts.
-- Warehouse is shared: `SF_SOLUTIONS_WH` (LARGE).
