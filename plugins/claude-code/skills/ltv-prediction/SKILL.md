@@ -73,7 +73,14 @@ Parse the action from `$ARGUMENTS`:
    **Batch 4 — FORECAST training:** CREATE SNOWFLAKE.ML.FORECAST (timeout_seconds: 600)
    **Batch 5 — Predictions:** CREATE TABLE LTV_FORECAST_RAW + LTV_PREDICTIONS
    **Batch 6 — Segments + AI:** CREATE VIEW CUSTOMER_SEGMENTS + CREATE TABLE SEGMENT_INSIGHTS (timeout_seconds: 300)
-   **Batch 7 — Streamlit:** Read and execute `solutions/ltv-prediction/scripts/deploy_streamlit.sql`
+   **Batch 7 — Streamlit deploy:**
+   Upload the Streamlit files to the stage and create the app:
+   ```bash
+   snow sql -q "CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);"
+   snow sql -q "PUT file://<repo_path>/solutions/ltv-prediction/streamlit/streamlit_app.py @SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+   snow sql -q "PUT file://<repo_path>/solutions/ltv-prediction/streamlit/environment.yml @SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+   ```
+   Then execute the SQL in `solutions/ltv-prediction/scripts/deploy_streamlit.sql` (CREATE STREAMLIT + ALTER).
 
    Total: 7 batches instead of ~20 individual statements.
 
@@ -104,12 +111,7 @@ Parse the action from `$ARGUMENTS`:
 
 8. Show final summary:
    ```
-   Installation complete: Customer Lifetime Value Prediction v1.0.0
-
-   Objects created:
-     LTV_RAW: ML_LTV_TRANSACTIONS (108K rows)
-     LTV_ANALYTICS: CUSTOMER_FEATURES, TRAIN_DATA, TEST_DATA, CUSTOMER_SEGMENTS
-     LTV_ML: LTV_PREDICTIONS, SEGMENT_INSIGHTS, LTV_REGRESSION_MODEL
+   Installation complete: Customer Lifetime Value Prediction v2.0.0
 
    Next Actions:
    1. Open the Streamlit dashboard URL above

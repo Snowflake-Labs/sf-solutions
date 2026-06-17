@@ -105,7 +105,14 @@ Parse the action from `$ARGUMENTS`:
 
    **Batch 6 — Segments + AI Insights (STEP 5-6):** Execute the CREATE VIEW CUSTOMER_SEGMENTS and CREATE TABLE SEGMENT_INSIGHTS together. Use `timeout_seconds: 300` for Cortex AI calls.
 
-   **Batch 7 — Streamlit deploy:** Read and execute `solutions/ltv-prediction/scripts/deploy_streamlit.sql` as a single batch.
+   **Batch 7 — Streamlit deploy:**
+   Upload the Streamlit files to the stage and create the app:
+   ```sql
+   CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);
+   PUT file://<repo_path>/solutions/ltv-prediction/streamlit/streamlit_app.py @SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+   PUT file://<repo_path>/solutions/ltv-prediction/streamlit/environment.yml @SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+   ```
+   Then execute `solutions/ltv-prediction/scripts/deploy_streamlit.sql` (CREATE STREAMLIT + ALTER).
 
    Total: 7 batches instead of ~20 individual statements.
 
