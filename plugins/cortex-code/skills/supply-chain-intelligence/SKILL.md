@@ -91,12 +91,9 @@ Parse the action from `$ARGUMENTS`:
    Execute all 11 CREATE TABLE statements (SUPPLIERS, BILL_OF_MATERIALS, COMPONENT, PRODUCT, MFG_PLANT, MFG_INVENTORY, CUSTOMER, SHIPMENT, ORDERS, RAW_MATERIAL, TRANSPORT_COST_SURCHARGE, CONVERSATION_HISTORY).
 
    **Batch 3 — Demo Data + Date Normalization (Sections 3-4):**
-   Execute `solutions/supply-chain-intelligence/scripts/data.sql` using bash:
-   ```bash
-   snow sql -f <repo_path>/solutions/supply-chain-intelligence/scripts/data.sql
-   ```
-   This file is too large for `sql_execute` (2,300+ lines). Always use `snow sql -f` via bash.
-   Use `timeout_seconds: 600` if running via bash tool.
+   Execute `solutions/supply-chain-intelligence/scripts/data.sql`:
+   - **Preferred:** Use bash: `snow sql -f <repo_path>/solutions/supply-chain-intelligence/scripts/data.sql`
+   - **Fallback (if snow sql fails due to auth):** Read data.sql and execute each INSERT/UPDATE statement via `sql_execute`. Group multiple statements per call where possible. Use `timeout_seconds: 300` per call.
 
    **Batch 4 — Semantic Model (Section 5):**
    Upload the semantic model YAML to the stage:
