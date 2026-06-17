@@ -33,20 +33,31 @@ Parse the action from `$ARGUMENTS`:
 
 2. Read `solutions/ltv-prediction/manifest.json` from the repository.
 
-3. Present the installation plan:
+3. Query the current account info and present the installation plan together:
+   ```sql
+   SELECT CURRENT_ORGANIZATION_NAME() AS ORG, CURRENT_ACCOUNT_NAME() AS ACCOUNT, CURRENT_REGION() AS REGION, CURRENT_ROLE() AS ROLE;
    ```
-   Solution: Customer Lifetime Value Prediction v1.0.0
+   Show to the user:
+   ```
+   Solution: Customer Lifetime Value Prediction v2.0.0
    Industry: Retail / CPG
    Database: SF_SOLUTIONS
    Schemas:  LTV_RAW, LTV_ANALYTICS, LTV_ML
    Role:     ACCOUNTADMIN
 
+   Target Account:
+     Organization: <ORG>
+     Account:      <ACCOUNT>
+     Region:       <REGION>
+     Current Role: <ROLE>
+
    What will be created:
      - Raw transaction data loaded from S3 (~108K records)
-     - Customer feature table with 15+ engineered features
-     - Snowflake ML Forecast model for LTV prediction
+     - Monthly customer spend time series
+     - Snowflake ML Forecast model (per-customer LTV prediction)
      - Customer segments (Platinum/Gold/Silver/Bronze)
      - AI-generated segment insights via Cortex AI
+     - Streamlit dashboard
 
    Proceed with installation?
    ```
