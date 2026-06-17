@@ -20,7 +20,7 @@ Parse the action from `$ARGUMENTS`:
 - **Industry:** Retail / CPG
 - **Database:** SF_SOLUTIONS
 - **Schemas:** LTV_RAW, LTV_ANALYTICS, LTV_ML
-- **Features:** Snowflake ML Regression, Cortex AI Functions (COMPLETE), Customer Segmentation
+- **Features:** Snowflake ML Forecast, Cortex AI Functions (COMPLETE), Customer Segmentation
 - **Role Required:** ACCOUNTADMIN
 
 ## Install
@@ -44,7 +44,7 @@ Parse the action from `$ARGUMENTS`:
    What will be created:
      - Raw transaction data loaded from S3 (~108K records)
      - Customer feature table with 15+ engineered features
-     - Snowflake ML Regression model for LTV prediction
+     - Snowflake ML Forecast model for LTV prediction
      - Customer segments (Platinum/Gold/Silver/Bronze)
      - AI-generated segment insights via Cortex AI
 
@@ -54,8 +54,8 @@ Parse the action from `$ARGUMENTS`:
 4. Wait for user confirmation.
 
 5. Read `solutions/ltv-prediction/scripts/setup.sql` from the repository and execute it against Snowflake statement by statement.
-   - The ML model training step may take 2-5 minutes (use timeout_seconds: 600)
-   - The PREDICT call depends on RESULT_SCAN — execute immediately after
+   - The FORECAST model training: use timeout_seconds: 600
+   - FORECAST!FORECAST call and the CREATE TABLE from RESULT_SCAN must run consecutively (no query in between)
 
 6. Verify installation:
    ```sql

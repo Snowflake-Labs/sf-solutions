@@ -1,5 +1,5 @@
 -- CUSTOMER LIFETIME VALUE PREDICTION SETUP
--- Version: 1.0
+-- Version: 2.0
 --
 -- PREREQUISITES:
 -- This script requires ACCOUNTADMIN role or a role with:
@@ -10,8 +10,8 @@
 --   - Database: SF_SOLUTIONS (if not exists)
 --   - Schemas: LTV_RAW, LTV_ANALYTICS, LTV_ML
 --   - Raw transaction data loaded from S3 (~100K+ records)
---   - Customer feature table for ML training
---   - Snowflake ML Regression model for LTV prediction
+--   - Monthly customer spend time series for ML FORECAST
+--   - Snowflake ML Forecast model for LTV prediction
 --   - Customer segments (Platinum/Gold/Silver/Bronze)
 /*************************************************************************************************/
 
@@ -57,168 +57,96 @@ COPY INTO ML_LTV_TRANSACTIONS
     FROM @ML_LTV_DATA_STAGE;
 
 /*************************************************************************************************/
--- STEP 2: Feature engineering — customer-level features
--- Split: first 80% of history for features, last 20% as LTV target
+-- STEP 2: Create monthly customer spend time series
+-- Aggregates transactions into (CUSTOMER_ID, MONTH, MONTHLY_SPEND) for FORECAST
 /*************************************************************************************************/
 
 USE SCHEMA LTV_ANALYTICS;
 
-CREATE OR REPLACE TABLE CUSTOMER_FEATURES AS
-WITH date_bounds AS (
-    SELECT
-        MIN(TRANSACTION_TIME) AS FIRST_TXN,
-        MAX(TRANSACTION_TIME) AS LAST_TXN,
-        DATEADD(
-            DAY,
-            DATEDIFF(DAY, MIN(TRANSACTION_TIME), MAX(TRANSACTION_TIME)) * 0.8,
-            MIN(TRANSACTION_TIME)
-        ) AS CUTOFF_DATE
-    FROM SF_SOLUTIONS.LTV_RAW.ML_LTV_TRANSACTIONS
-),
-
-feature_period AS (
-    SELECT T.*
-    FROM SF_SOLUTIONS.LTV_RAW.ML_LTV_TRANSACTIONS T
-    CROSS JOIN date_bounds D
-    WHERE T.TRANSACTION_TIME <= D.CUTOFF_DATE
-),
-
-target_period AS (
-    SELECT T.*
-    FROM SF_SOLUTIONS.LTV_RAW.ML_LTV_TRANSACTIONS T
-    CROSS JOIN date_bounds D
-    WHERE T.TRANSACTION_TIME > D.CUTOFF_DATE
-),
-
-features AS (
-    SELECT
-        CUSTOMER_ID,
-        COUNT(*) AS TXN_COUNT,
-        SUM(AMOUNT) AS TOTAL_SPEND,
-        AVG(AMOUNT) AS AVG_TXN_AMOUNT,
-        STDDEV(AMOUNT) AS STD_TXN_AMOUNT,
-        MIN(AMOUNT) AS MIN_TXN_AMOUNT,
-        MAX(AMOUNT) AS MAX_TXN_AMOUNT,
-        DATEDIFF(
-            DAY,
-            MIN(TRANSACTION_TIME),
-            MAX(TRANSACTION_TIME)
-        ) AS CUSTOMER_TENURE_DAYS,
-        COUNT(
-            DISTINCT DATE_TRUNC('MONTH', TRANSACTION_TIME)
-        ) AS ACTIVE_MONTHS,
-        COUNT(DISTINCT PRODUCT_CATEGORY) AS DISTINCT_CATEGORIES,
-        COUNT_IF(CHANNEL = 'online') AS ONLINE_TXN_COUNT,
-        COUNT_IF(CHANNEL = 'store') AS STORE_TXN_COUNT,
-        ROUND(
-            COUNT_IF(CHANNEL = 'online') * 1.0
-            / NULLIF(COUNT(*), 0), 4
-        ) AS ONLINE_RATIO,
-        DATEDIFF(
-            DAY,
-            MAX(TRANSACTION_TIME),
-            (SELECT CUTOFF_DATE FROM date_bounds)
-        ) AS RECENCY_DAYS,
-        CASE
-            WHEN DATEDIFF(
-                DAY,
-                MIN(TRANSACTION_TIME),
-                MAX(TRANSACTION_TIME)
-            ) > 0
-            THEN COUNT(*) * 30.0 / DATEDIFF(
-                DAY,
-                MIN(TRANSACTION_TIME),
-                MAX(TRANSACTION_TIME)
-            )
-            ELSE COUNT(*)
-        END AS MONTHLY_FREQUENCY
-    FROM feature_period
-    GROUP BY CUSTOMER_ID
-),
-
-target AS (
-    SELECT CUSTOMER_ID, SUM(AMOUNT) AS FUTURE_LTV
-    FROM target_period
-    GROUP BY CUSTOMER_ID
-)
-
-SELECT
-    F.*,
-    COALESCE(T.FUTURE_LTV, 0) AS FUTURE_LTV
-FROM features F
-LEFT JOIN target T ON F.CUSTOMER_ID = T.CUSTOMER_ID;
-
-/*************************************************************************************************/
--- STEP 3: Train/test split
-/*************************************************************************************************/
-
-CREATE OR REPLACE VIEW TRAIN_DATA AS
-SELECT *
-FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES
-WHERE ABS(HASH(CUSTOMER_ID)) % 100 < 80;
-
-CREATE OR REPLACE VIEW TEST_DATA AS
-SELECT *
-FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES
-WHERE ABS(HASH(CUSTOMER_ID)) % 100 >= 80;
-
-/*************************************************************************************************/
--- STEP 4: Generate LTV predictions using weighted linear scoring
--- Uses normalized features with domain-appropriate weights.
--- This approach works on ALL Snowflake account types (including Trial).
--- To use Snowflake ML Regression instead (if available), see CONTRIBUTING.md.
-/*************************************************************************************************/
-
-CREATE OR REPLACE TABLE SF_SOLUTIONS.LTV_ML.LTV_PREDICTIONS AS
-WITH feature_stats AS (
-    SELECT
-        AVG(TOTAL_SPEND) AS AVG_SPEND, STDDEV(TOTAL_SPEND) AS STD_SPEND,
-        AVG(TXN_COUNT) AS AVG_TXN, STDDEV(TXN_COUNT) AS STD_TXN,
-        AVG(MONTHLY_FREQUENCY) AS AVG_FREQ, STDDEV(MONTHLY_FREQUENCY) AS STD_FREQ,
-        AVG(CUSTOMER_TENURE_DAYS) AS AVG_TENURE, STDDEV(CUSTOMER_TENURE_DAYS) AS STD_TENURE,
-        AVG(DISTINCT_CATEGORIES) AS AVG_CAT, STDDEV(DISTINCT_CATEGORIES) AS STD_CAT,
-        AVG(ONLINE_RATIO) AS AVG_ONLINE, STDDEV(ONLINE_RATIO) AS STD_ONLINE
-    FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES
-),
-scored AS (
-    SELECT
-        C.CUSTOMER_ID,
-        C.FUTURE_LTV AS ACTUAL_LTV,
-        -- Weighted linear scoring on normalized features
-        ROUND(
-            GREATEST(0,
-                (ZEROIFNULL((C.TOTAL_SPEND - S.AVG_SPEND) / NULLIF(S.STD_SPEND, 0))) * 0.35
-                + (ZEROIFNULL((C.TXN_COUNT - S.AVG_TXN) / NULLIF(S.STD_TXN, 0))) * 0.20
-                + (ZEROIFNULL((C.MONTHLY_FREQUENCY - S.AVG_FREQ) / NULLIF(S.STD_FREQ, 0))) * 0.20
-                + (ZEROIFNULL((C.CUSTOMER_TENURE_DAYS - S.AVG_TENURE) / NULLIF(S.STD_TENURE, 0))) * 0.10
-                + (ZEROIFNULL((C.DISTINCT_CATEGORIES - S.AVG_CAT) / NULLIF(S.STD_CAT, 0))) * 0.10
-                + (ZEROIFNULL((C.ONLINE_RATIO - S.AVG_ONLINE) / NULLIF(S.STD_ONLINE, 0))) * 0.05
-            ) * (SELECT STDDEV(FUTURE_LTV) FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES)
-            + (SELECT AVG(FUTURE_LTV) FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES)
-        , 2) AS PREDICTED_LTV,
-        C.TOTAL_SPEND,
-        C.TXN_COUNT,
-        C.CUSTOMER_TENURE_DAYS,
-        C.MONTHLY_FREQUENCY,
-        C.RECENCY_DAYS,
-        C.ONLINE_RATIO,
-        C.DISTINCT_CATEGORIES
-    FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES C
-    CROSS JOIN feature_stats S
-)
+CREATE OR REPLACE TABLE CUSTOMER_MONTHLY_SPEND AS
 SELECT
     CUSTOMER_ID,
-    ACTUAL_LTV,
-    PREDICTED_LTV,
-    ROUND(ABS(PREDICTED_LTV - ACTUAL_LTV), 2) AS ABSOLUTE_ERROR,
-    TOTAL_SPEND,
-    TXN_COUNT,
-    CUSTOMER_TENURE_DAYS,
-    MONTHLY_FREQUENCY,
-    RECENCY_DAYS,
-    ONLINE_RATIO,
-    DISTINCT_CATEGORIES
-FROM scored;
+    DATE_TRUNC('MONTH', TRANSACTION_TIME)::DATE AS MONTH,
+    SUM(AMOUNT) AS MONTHLY_SPEND,
+    COUNT(*) AS TXN_COUNT
+FROM SF_SOLUTIONS.LTV_RAW.ML_LTV_TRANSACTIONS
+GROUP BY CUSTOMER_ID, DATE_TRUNC('MONTH', TRANSACTION_TIME)
+ORDER BY CUSTOMER_ID, MONTH;
+
+-- Also create customer-level features for segmentation context
+CREATE OR REPLACE TABLE CUSTOMER_FEATURES AS
+SELECT
+    CUSTOMER_ID,
+    COUNT(*) AS TXN_COUNT,
+    SUM(AMOUNT) AS TOTAL_SPEND,
+    AVG(AMOUNT) AS AVG_TXN_AMOUNT,
+    DATEDIFF(DAY, MIN(TRANSACTION_TIME), MAX(TRANSACTION_TIME)) AS CUSTOMER_TENURE_DAYS,
+    COUNT(DISTINCT DATE_TRUNC('MONTH', TRANSACTION_TIME)) AS ACTIVE_MONTHS,
+    COUNT(DISTINCT PRODUCT_CATEGORY) AS DISTINCT_CATEGORIES,
+    ROUND(COUNT_IF(CHANNEL = 'online') * 1.0 / NULLIF(COUNT(*), 0), 4) AS ONLINE_RATIO,
+    CASE
+        WHEN DATEDIFF(DAY, MIN(TRANSACTION_TIME), MAX(TRANSACTION_TIME)) > 0
+        THEN COUNT(*) * 30.0 / DATEDIFF(DAY, MIN(TRANSACTION_TIME), MAX(TRANSACTION_TIME))
+        ELSE COUNT(*)
+    END AS MONTHLY_FREQUENCY,
+    DATEDIFF(DAY, MAX(TRANSACTION_TIME), (SELECT MAX(TRANSACTION_TIME) FROM SF_SOLUTIONS.LTV_RAW.ML_LTV_TRANSACTIONS)) AS RECENCY_DAYS
+FROM SF_SOLUTIONS.LTV_RAW.ML_LTV_TRANSACTIONS
+GROUP BY CUSTOMER_ID;
+
+/*************************************************************************************************/
+-- STEP 3: Train Snowflake ML FORECAST model
+-- Predicts future monthly spend per customer for 3 months ahead
+/*************************************************************************************************/
+
+USE SCHEMA LTV_ML;
+
+CREATE OR REPLACE SNOWFLAKE.ML.FORECAST LTV_FORECAST_MODEL(
+    INPUT_DATA => SYSTEM$REFERENCE('TABLE', 'SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_MONTHLY_SPEND'),
+    SERIES_COLNAME => 'CUSTOMER_ID',
+    TIMESTAMP_COLNAME => 'MONTH',
+    TARGET_COLNAME => 'MONTHLY_SPEND'
+);
+
+/*************************************************************************************************/
+-- STEP 4: Generate LTV predictions (sum of forecasted next 3 months)
+/*************************************************************************************************/
+
+-- Generate 3-month forecast for all customers
+CALL LTV_FORECAST_MODEL!FORECAST(FORECASTING_PERIODS => 3);
+
+-- Store predictions: sum forecasted months per customer = predicted LTV
+CREATE OR REPLACE TABLE SF_SOLUTIONS.LTV_ML.LTV_PREDICTIONS AS
+WITH forecast_results AS (
+    SELECT
+        SERIES AS CUSTOMER_ID,
+        SUM(FORECAST) AS PREDICTED_LTV
+    FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()))
+    GROUP BY SERIES
+),
+actual_ltv AS (
+    -- Actual spend in the last 3 months of historical data as comparison
+    SELECT
+        CUSTOMER_ID,
+        SUM(MONTHLY_SPEND) AS ACTUAL_LTV
+    FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_MONTHLY_SPEND
+    WHERE MONTH >= (SELECT DATEADD(MONTH, -3, MAX(MONTH)) FROM SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_MONTHLY_SPEND)
+    GROUP BY CUSTOMER_ID
+)
+SELECT
+    F.CUSTOMER_ID,
+    COALESCE(A.ACTUAL_LTV, 0) AS ACTUAL_LTV,
+    ROUND(F.PREDICTED_LTV, 2) AS PREDICTED_LTV,
+    ROUND(ABS(F.PREDICTED_LTV - COALESCE(A.ACTUAL_LTV, 0)), 2) AS ABSOLUTE_ERROR,
+    C.TOTAL_SPEND,
+    C.TXN_COUNT,
+    C.CUSTOMER_TENURE_DAYS,
+    C.MONTHLY_FREQUENCY,
+    C.RECENCY_DAYS,
+    C.ONLINE_RATIO,
+    C.DISTINCT_CATEGORIES
+FROM forecast_results F
+LEFT JOIN actual_ltv A ON F.CUSTOMER_ID = A.CUSTOMER_ID
+LEFT JOIN SF_SOLUTIONS.LTV_ANALYTICS.CUSTOMER_FEATURES C ON F.CUSTOMER_ID = C.CUSTOMER_ID;
 
 /*************************************************************************************************/
 -- STEP 5: Customer segments by predicted LTV

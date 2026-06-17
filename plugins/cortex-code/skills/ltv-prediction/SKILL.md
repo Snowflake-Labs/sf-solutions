@@ -26,7 +26,7 @@ Parse the action from `$ARGUMENTS`:
 - **Industry:** Retail / CPG
 - **Database:** SF_SOLUTIONS
 - **Schemas:** LTV_RAW, LTV_ANALYTICS, LTV_ML
-- **Features:** Snowflake ML Regression, Cortex AI Functions (COMPLETE), Customer Segmentation
+- **Features:** Snowflake ML Forecast, Cortex AI Functions (COMPLETE), Customer Segmentation
 - **Role Required:** ACCOUNTADMIN
 
 ## Install
@@ -59,8 +59,8 @@ Parse the action from `$ARGUMENTS`:
 4. Wait for user confirmation.
 
 5. Read `solutions/ltv-prediction/scripts/setup.sql` and execute statement by statement using `snowflake_sql_execute`.
-   - ML model training: use `timeout_seconds: 600`
-   - PREDICT call depends on RESULT_SCAN — execute immediately after model call
+   - FORECAST model training: use `timeout_seconds: 600`
+   - FORECAST!FORECAST call and the CREATE TABLE from RESULT_SCAN must run consecutively (no query in between)
    - Log progress after each major section
 
 6. Verify:
