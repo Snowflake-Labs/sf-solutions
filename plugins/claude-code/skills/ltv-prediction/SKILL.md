@@ -20,7 +20,7 @@ Parse the action from `$ARGUMENTS`:
 - **Industry:** Retail / CPG
 - **Database:** SF_SOLUTIONS
 - **Schemas:** LTV_RAW, LTV_ANALYTICS, LTV_ML
-- **Features:** Snowflake ML Regression, Cortex AI Functions (COMPLETE), Customer Segmentation
+- **Features:** Snowflake ML Forecast, Cortex AI Functions (COMPLETE), Customer Segmentation
 - **Role Required:** ACCOUNTADMIN
 
 ## Install
@@ -33,29 +33,56 @@ Parse the action from `$ARGUMENTS`:
 
 2. Read `solutions/ltv-prediction/manifest.json` from the repository.
 
-3. Present the installation plan:
+3. Query the current account info and present the installation plan together:
+   ```sql
+   SELECT CURRENT_ORGANIZATION_NAME() AS ORG, CURRENT_ACCOUNT_NAME() AS ACCOUNT, CURRENT_REGION() AS REGION, CURRENT_ROLE() AS ROLE;
    ```
-   Solution: Customer Lifetime Value Prediction v1.0.0
+   Show to the user:
+   ```
+   Solution: Customer Lifetime Value Prediction v2.0.0
    Industry: Retail / CPG
    Database: SF_SOLUTIONS
    Schemas:  LTV_RAW, LTV_ANALYTICS, LTV_ML
    Role:     ACCOUNTADMIN
 
+   Target Account:
+     Organization: <ORG>
+     Account:      <ACCOUNT>
+     Region:       <REGION>
+     Current Role: <ROLE>
+
    What will be created:
      - Raw transaction data loaded from S3 (~108K records)
-     - Customer feature table with 15+ engineered features
-     - Snowflake ML Regression model for LTV prediction
+     - Monthly customer spend time series
+     - Snowflake ML Forecast model (per-customer LTV prediction)
      - Customer segments (Platinum/Gold/Silver/Bronze)
      - AI-generated segment insights via Cortex AI
+     - Streamlit dashboard
 
    Proceed with installation?
    ```
 
 4. Wait for user confirmation.
 
-5. Read `solutions/ltv-prediction/scripts/setup.sql` from the repository and execute it against Snowflake statement by statement.
-   - The ML model training step may take 2-5 minutes (use timeout_seconds: 600)
-   - The PREDICT call depends on RESULT_SCAN — execute immediately after
+5. Read `solutions/ltv-prediction/scripts/setup.sql` and execute in BATCHES to minimize round-trips.
+   Group independent statements together with semicolons in a single execution:
+
+   **Batch 1 — Setup:** USE ROLE, CREATE DATABASE/SCHEMA/WAREHOUSE (all DDL together)
+   **Batch 2 — Load data:** FILE FORMAT, STAGE, CREATE TABLE, COPY INTO
+   **Batch 3 — Feature engineering:** CREATE TABLE CUSTOMER_MONTHLY_SPEND + CUSTOMER_FEATURES
+   **Batch 4 — FORECAST training:** CREATE SNOWFLAKE.ML.FORECAST (timeout_seconds: 600)
+   **Batch 5 — Predictions:** CREATE TABLE LTV_FORECAST_RAW + LTV_PREDICTIONS
+   **Batch 6 — Segments + AI:** CREATE VIEW CUSTOMER_SEGMENTS + CREATE TABLE SEGMENT_INSIGHTS (timeout_seconds: 300)
+   **Batch 7 — Streamlit deploy:**
+   Upload the Streamlit files to the stage and create the app:
+   ```bash
+   snow sql -q "CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);"
+   snow sql -q "PUT file://<repo_path>/solutions/ltv-prediction/streamlit/streamlit_app.py @SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+   snow sql -q "PUT file://<repo_path>/solutions/ltv-prediction/streamlit/environment.yml @SF_SOLUTIONS.LTV_ML.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+   ```
+   Then execute the SQL in `solutions/ltv-prediction/scripts/deploy_streamlit.sql` (CREATE STREAMLIT + ALTER).
+
+   Total: 7 batches instead of ~20 individual statements.
 
 6. Verify installation:
    ```sql
@@ -84,12 +111,7 @@ Parse the action from `$ARGUMENTS`:
 
 8. Show final summary:
    ```
-   Installation complete: Customer Lifetime Value Prediction v1.0.0
-
-   Objects created:
-     LTV_RAW: ML_LTV_TRANSACTIONS (108K rows)
-     LTV_ANALYTICS: CUSTOMER_FEATURES, TRAIN_DATA, TEST_DATA, CUSTOMER_SEGMENTS
-     LTV_ML: LTV_PREDICTIONS, SEGMENT_INSIGHTS, LTV_REGRESSION_MODEL
+   Installation complete: Customer Lifetime Value Prediction v2.0.0
 
    Next Actions:
    1. Open the Streamlit dashboard URL above

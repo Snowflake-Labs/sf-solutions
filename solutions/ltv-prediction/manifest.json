@@ -1,7 +1,7 @@
 {
   "name": "ltv-prediction",
   "display_name": "Customer Lifetime Value Prediction",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "industry": "Retail / CPG",
   "source": "",
   "database": "SF_SOLUTIONS",
@@ -15,7 +15,7 @@
     "scripts/teardown.sql"
   ],
   "features": [
-    "Snowflake ML Regression",
+    "Snowflake ML Forecast",
     "Cortex AI Functions (COMPLETE)",
     "Customer Segmentation",
     "Feature Engineering"
