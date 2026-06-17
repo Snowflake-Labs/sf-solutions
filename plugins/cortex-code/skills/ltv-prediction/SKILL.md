@@ -69,10 +69,45 @@ Parse the action from `$ARGUMENTS`:
 
 4. Wait for user confirmation.
 
-5. Read `solutions/ltv-prediction/scripts/setup.sql` and execute statement by statement using `snowflake_sql_execute`.
-   - FORECAST model training: use `timeout_seconds: 600`
-   - FORECAST!FORECAST call and the CREATE TABLE from RESULT_SCAN must run consecutively (no query in between)
-   - Log progress after each major section
+5. Read `solutions/ltv-prediction/scripts/setup.sql` and execute in BATCHES to minimize round-trips.
+   Group independent statements together with semicolons in a single `snowflake_sql_execute` call:
+
+   **Batch 1 — Setup (combine all DDL):**
+   ```sql
+   USE ROLE ACCOUNTADMIN;
+   CREATE DATABASE IF NOT EXISTS SF_SOLUTIONS;
+   CREATE SCHEMA IF NOT EXISTS SF_SOLUTIONS.LTV_RAW;
+   CREATE SCHEMA IF NOT EXISTS SF_SOLUTIONS.LTV_ANALYTICS;
+   CREATE SCHEMA IF NOT EXISTS SF_SOLUTIONS.LTV_ML;
+   CREATE WAREHOUSE IF NOT EXISTS SF_SOLUTIONS_WH WAREHOUSE_SIZE='LARGE' AUTO_SUSPEND=60 AUTO_RESUME=TRUE;
+   USE DATABASE SF_SOLUTIONS;
+   USE WAREHOUSE SF_SOLUTIONS_WH;
+   ```
+
+   **Batch 2 — Load data (STEP 1):**
+   ```sql
+   USE SCHEMA LTV_RAW;
+   CREATE OR REPLACE FILE FORMAT ML_CSVFORMAT SKIP_HEADER=1 FIELD_OPTIONALLY_ENCLOSED_BY='"' TYPE='CSV';
+   CREATE OR REPLACE STAGE ML_LTV_DATA_STAGE FILE_FORMAT=ML_CSVFORMAT URL='s3://sfquickstarts/sfguide_getting_started_with_cortex_code_for_ds_ml/ltv_transactions/';
+   CREATE OR REPLACE TABLE ML_LTV_TRANSACTIONS (CUSTOMER_ID VARCHAR(50), TRANSACTION_TIME TIMESTAMP_NTZ(9), AMOUNT NUMBER(12,2), PRODUCT_CATEGORY VARCHAR(15), CHANNEL VARCHAR(8));
+   COPY INTO ML_LTV_TRANSACTIONS FROM @ML_LTV_DATA_STAGE;
+   ```
+
+   **Batch 3 — Feature engineering (STEP 2):** Execute the full CREATE TABLE CUSTOMER_MONTHLY_SPEND and CREATE TABLE CUSTOMER_FEATURES statements.
+
+   **Batch 4 — FORECAST model training (STEP 3):** Use `timeout_seconds: 600`
+   ```sql
+   USE SCHEMA LTV_ML;
+   CREATE OR REPLACE SNOWFLAKE.ML.FORECAST LTV_FORECAST_MODEL(...);
+   ```
+
+   **Batch 5 — Predictions (STEP 4):** Execute the CREATE TABLE LTV_FORECAST_RAW and CREATE TABLE LTV_PREDICTIONS.
+
+   **Batch 6 — Segments + AI Insights (STEP 5-6):** Execute the CREATE VIEW CUSTOMER_SEGMENTS and CREATE TABLE SEGMENT_INSIGHTS together. Use `timeout_seconds: 300` for Cortex AI calls.
+
+   **Batch 7 — Streamlit deploy:** Read and execute `solutions/ltv-prediction/scripts/deploy_streamlit.sql` as a single batch.
+
+   Total: 7 batches instead of ~20 individual statements.
 
 6. Verify:
    ```sql

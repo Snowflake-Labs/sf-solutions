@@ -64,9 +64,18 @@ Parse the action from `$ARGUMENTS`:
 
 4. Wait for user confirmation.
 
-5. Read `solutions/ltv-prediction/scripts/setup.sql` from the repository and execute it against Snowflake statement by statement.
-   - The FORECAST model training: use timeout_seconds: 600
-   - FORECAST!FORECAST call and the CREATE TABLE from RESULT_SCAN must run consecutively (no query in between)
+5. Read `solutions/ltv-prediction/scripts/setup.sql` and execute in BATCHES to minimize round-trips.
+   Group independent statements together with semicolons in a single execution:
+
+   **Batch 1 — Setup:** USE ROLE, CREATE DATABASE/SCHEMA/WAREHOUSE (all DDL together)
+   **Batch 2 — Load data:** FILE FORMAT, STAGE, CREATE TABLE, COPY INTO
+   **Batch 3 — Feature engineering:** CREATE TABLE CUSTOMER_MONTHLY_SPEND + CUSTOMER_FEATURES
+   **Batch 4 — FORECAST training:** CREATE SNOWFLAKE.ML.FORECAST (timeout_seconds: 600)
+   **Batch 5 — Predictions:** CREATE TABLE LTV_FORECAST_RAW + LTV_PREDICTIONS
+   **Batch 6 — Segments + AI:** CREATE VIEW CUSTOMER_SEGMENTS + CREATE TABLE SEGMENT_INSIGHTS (timeout_seconds: 300)
+   **Batch 7 — Streamlit:** Read and execute `solutions/ltv-prediction/scripts/deploy_streamlit.sql`
+
+   Total: 7 batches instead of ~20 individual statements.
 
 6. Verify installation:
    ```sql
