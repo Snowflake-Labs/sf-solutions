@@ -68,11 +68,16 @@ Parse the action from `$ARGUMENTS`:
 
    **Batch 1 — Setup:** USE ROLE, CREATE DATABASE/SCHEMA/WAREHOUSE(LARGE)/Stages/File Format (all DDL together)
    **Batch 2 — Table DDL:** All 11 CREATE TABLE statements
-   **Batch 3 — Demo Data:** All INSERT statements (timeout_seconds: 300)
-   **Batch 4 — Date Normalization:** UPDATE statements for current period
-   **Batch 5 — Semantic Model:** Large INSERT/COPY for YAML staging (timeout_seconds: 600)
-   **Batch 6 — Cortex Search + Agent:** CREATE CORTEX SEARCH SERVICE + CREATE AGENT (timeout_seconds: 300)
-   **Batch 7 — Streamlit deploy:**
+   **Batch 3 — Demo Data + Date Normalization (Sections 3-4):**
+   Execute `solutions/supply-chain-intelligence/scripts/data.sql` directly:
+   ```bash
+   snow sql -f <repo_path>/solutions/supply-chain-intelligence/scripts/data.sql
+   ```
+   Use timeout 300 seconds.
+
+   **Batch 4 — Semantic Model:** Large INSERT/COPY for YAML staging (timeout_seconds: 600)
+   **Batch 5 — Cortex Search + Agent:** CREATE CORTEX SEARCH SERVICE + CREATE AGENT (timeout_seconds: 300)
+   **Batch 6 — Streamlit deploy:**
    Upload the Streamlit files to the stage and create the app:
    ```bash
    snow sql -q "CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);"
@@ -84,9 +89,9 @@ Parse the action from `$ARGUMENTS`:
    snow sql -q "CREATE OR REPLACE STREAMLIT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP FROM '@SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE' MAIN_FILE = 'streamlit_app.py' QUERY_WAREHOUSE = SF_SOLUTIONS_WH;"
    snow sql -q "ALTER STREAMLIT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP ADD LIVE VERSION FROM LAST;"
    ```
-   **Batch 8 — Verification:** Final SELECT to confirm row counts
+   **Batch 7 — Verification:** Final SELECT to confirm row counts
 
-   Total: 8 batches instead of running the entire 4,487-line script statement by statement.
+   Total: 7 batches instead of running the entire script statement by statement.
 
 6. Verify installation:
    ```sql

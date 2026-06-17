@@ -91,12 +91,15 @@ solutions/<name>/
 ├── manifest.json          # Metadata: name, version, industry, schemas, features
 ├── README.md              # Architecture overview, quick start, example usage
 ├── scripts/
-│   ├── setup.sql          # Self-contained install (DDL + data + all objects)
+│   ├── setup.sql          # DDL + object creation (no large data inserts)
+│   ├── data.sql           # Demo data INSERT statements (optional, for large datasets)
 │   └── teardown.sql       # Drop solution schemas only
 └── streamlit/             # Optional
     ├── streamlit_app.py
     └── environment.yml
 ```
+
+When demo data exceeds ~200 lines, extract it into a separate `data.sql` file. This prevents CoCo CLI context overflow and allows direct execution via `snow sql -f scripts/data.sql`.
 
 Plugin skills mirror this at:
 - `plugins/cortex-code/skills/<name>/SKILL.md` + `NEXT_ACTIONS.md`

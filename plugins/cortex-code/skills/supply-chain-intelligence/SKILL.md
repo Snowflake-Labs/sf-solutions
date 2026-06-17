@@ -90,22 +90,24 @@ Parse the action from `$ARGUMENTS`:
    **Batch 2 — Table DDL (Section 2):**
    Execute all 11 CREATE TABLE statements (SUPPLIERS, BILL_OF_MATERIALS, COMPONENT, PRODUCT, MFG_PLANT, MFG_INVENTORY, CUSTOMER, SHIPMENT, ORDERS, RAW_MATERIAL, TRANSPORT_COST_SURCHARGE, CONVERSATION_HISTORY).
 
-   **Batch 3 — Demo Data (Section 3):** Execute all INSERT statements. Use `timeout_seconds: 300`.
+   **Batch 3 — Demo Data + Date Normalization (Sections 3-4):**
+   Execute `solutions/supply-chain-intelligence/scripts/data.sql` directly:
+   ```sql
+   -- Execute the full data.sql file (2,300+ lines of INSERT + UPDATE statements)
+   ```
+   Use `timeout_seconds: 300`.
 
-   **Batch 4 — Date Normalization (Section 4):**
-   Execute the UPDATE statements that normalize dates to current period.
-
-   **Batch 5 — Semantic Model (Section 5):**
+   **Batch 4 — Semantic Model (Section 5):**
    Execute the full semantic model staging (large INSERT/COPY for YAML). Use `timeout_seconds: 600`.
 
-   **Batch 6 — Cortex Search + Agent (Sections 6-7):**
+   **Batch 5 — Cortex Search + Agent (Sections 6-7):**
    ```sql
    CREATE OR REPLACE CORTEX SEARCH SERVICE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_INFO ...;
    CREATE OR REPLACE AGENT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_ASSISTANT ...;
    ```
    Use `timeout_seconds: 300`.
 
-   **Batch 7 — Streamlit deploy:**
+   **Batch 6 — Streamlit deploy:**
    Upload the Streamlit files to the stage:
    ```sql
    CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);
@@ -121,7 +123,7 @@ Parse the action from `$ARGUMENTS`:
    ALTER STREAMLIT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP ADD LIVE VERSION FROM LAST;
    ```
 
-   **Batch 8 — Verification (Section 8):**
+   **Batch 7 — Verification (Section 8):**
    ```sql
    SELECT
        'Supply Chain Intelligence Platform deployed successfully!' AS STATUS,
@@ -132,7 +134,7 @@ Parse the action from `$ARGUMENTS`:
        (SELECT COUNT(*) FROM SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.CUSTOMER) AS CUSTOMERS;
    ```
 
-   Total: 8 batches instead of running the entire 4,487-line script statement by statement.
+   Total: 7 batches instead of running the entire script statement by statement.
 
 6. **[MANDATORY — DO NOT SKIP]** Retrieve and display the agent URL and Streamlit URL.
    Execute this query:
