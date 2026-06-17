@@ -1,13 +1,12 @@
-import streamlit as st
 import json
-import requests
 import os
-
+import uuid
 from abc import ABC, abstractmethod
 
-import pandas as pd
-import uuid
 import numpy as np
+import pandas as pd
+import requests
+import streamlit as st
 
 session = st.connection("snowflake").session()
 
@@ -25,10 +24,14 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': None,
-        'Report a bug': None,
-        'About': "This app contains a chat assistant for a 3-tier supply chain containing Cortex Search and Cortex Analyst services. It also contains a Supply Chain Optimization Solver."
-    }
+        "Get Help": None,
+        "Report a bug": None,
+        "About": (
+            "This app contains a chat assistant for a 3-tier supply chain"
+            " containing Cortex Search and Cortex Analyst services."
+            " It also contains a Supply Chain Optimization Solver."
+        ),
+    },
 )
 
 # Set starting page
@@ -36,12 +39,14 @@ if "page" not in st.session_state:
     st.session_state.page = "Welcome"
 
 
-# Sets the page based on page name
 def set_page(page: str):
+    """Set the active page by name."""
     st.session_state.page = page
 
+
 # Custom CSS styling
-st.markdown("""
+st.markdown(
+    """
 <style>
 /* Unified Color Palette */
 :root {
@@ -191,165 +196,156 @@ button[data-testid="stBaseButton-secondaryFormSubmit"] {
     font-weight: bold;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 class Page(ABC):
+    """Abstract base class for application pages."""
+
     @abstractmethod
     def __init__(self):
         pass
 
     @abstractmethod
     def print_page(self):
-        pass
+        """Render the main page content."""
 
     @abstractmethod
     def print_sidebar(self):
-        pass
+        """Render the sidebar content."""
+
 
 def set_default_sidebar():
-    # Sidebar for navigating pages
+    """Render the default sidebar with navigation buttons."""
     with st.sidebar:
         st.title("Supply Chain Network Assistant 🚚")
         st.markdown("")
-        st.markdown("This application contains a chat assistant for a supply chain network containing Cortex Search and Cortex Analyst services. It also contains a Supply Chain Optimization Solver.")
+        st.markdown(
+            "This application contains a chat assistant for a supply chain"
+            " network containing Cortex Search and Cortex Analyst services."
+            " It also contains a Supply Chain Optimization Solver."
+        )
         st.markdown("")
         if st.button(label="Supply Chain Assistant 💬"):
-            set_page('Assistant')
+            set_page("Assistant")
             st.rerun()
         if st.button(label="Optimization Execution 🚀"):
-            set_page('Optimization')
+            set_page("Optimization")
             st.rerun()
         st.markdown("")
         st.markdown("")
         st.markdown("")
         st.markdown("")
         if st.button(label="Return Home"):
-            set_page('Welcome')
+            set_page("Welcome")
             st.rerun()
 
+
 def run_snowflake_query(query):
+    """Execute a SQL query via Snowpark and return the result DataFrame."""
     try:
-        df = session.sql(query.replace(';',''))
-        
+        df = session.sql(query.replace(";", ""))
+
         return df
 
     except Exception as e:
         st.error(f"Error executing SQL: {str(e)}")
         return None, None
 
+
 def get_token() -> str:
-    with open("/snowflake/session/token", "r") as f:
+    """Read the Snowflake session token from the container filesystem."""
+    with open("/snowflake/session/token") as f:
         return f.read()
 
+
 def snowflake_api_call(query: str, limit: int = 10):
-    
+    """Call the Cortex Agent API with a user query and return the response."""
     payload = {
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": query
-                    }
-                ]
-            }
-        ],
+        "messages": [{"role": "user", "content": [{"type": "text", "text": query}]}],
         "stream": False,
-        "models": {
-            "orchestration": "claude-sonnet-4-5"
-        },
+        "models": {"orchestration": "claude-sonnet-4-5"},
         "tools": [
-            {
-                "tool_spec": {
-                    "type": "cortex_analyst_text_to_sql",
-                    "name": "analyst1"
-                }
-            },
-            {
-                "tool_spec": {
-                    "type": "cortex_search",
-                    "name": "search1"
-                }
-            }
+            {"tool_spec": {"type": "cortex_analyst_text_to_sql", "name": "analyst1"}},
+            {"tool_spec": {"type": "cortex_search", "name": "search1"}},
         ],
         "tool_resources": {
             "analyst1": {
                 "semantic_model_file": SEMANTIC_MODELS,
-                "execution_environment": {
-                    "type": "warehouse",
-                    "warehouse": "SF_SOLUTIONS_WH"
-                }
+                "execution_environment": {"type": "warehouse", "warehouse": "SF_SOLUTIONS_WH"},
             },
-            "search1": {
-                "search_service": CORTEX_SEARCH_SERVICES,
-                "max_results": limit
-            }
+            "search1": {"search_service": CORTEX_SEARCH_SERVICES, "max_results": limit},
         },
         "instructions": {
-            "response": "You will always maintain a friendly tone and provide a concise response. Don't say things like 'According to the information provided'"
-        }
+            "response": (
+                "You will always maintain a friendly tone and provide a concise response."
+                " Don't say things like 'According to the information provided'"
+            )
+        },
     }
-    
+
     try:
         url = f"https://{SNOWFLAKE_HOST}{API_ENDPOINT}"
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
             "Authorization": f"Bearer {get_token()}",
-            "X-Snowflake-Authorization-Token-Type": "OAUTH"
+            "X-Snowflake-Authorization-Token-Type": "OAUTH",
         }
         resp = requests.post(url, headers=headers, json=payload, timeout=API_TIMEOUT / 1000)
-        
+
         if resp.status_code != 200:
             st.error(f"Error: {resp.status_code} - {resp.text}")
             return None
-        
+
         try:
             response_content = resp.json()
         except json.JSONDecodeError:
             st.error("❌ Failed to parse API response. The server may have returned an invalid JSON format.")
             return None
-            
+
         return response_content
-            
+
     except Exception as e:
         st.error(f"Error making request: {str(e)}")
         return None
 
+
 def process_sse_response(response):
-    """Process non-streaming agent response"""
+    """Process non-streaming agent response."""
     text = ""
     sql = ""
     interpretation = ""
     citation = ""
-    
+
     if not response:
         return text, sql, interpretation, citation
-        
+
     try:
-        content = response.get('content', [])
+        content = response.get("content", [])
         for content_item in content:
-            content_type = content_item.get('type')
-            if content_type == 'text':
-                text += content_item.get('text', '')
-                annotations = content_item.get('annotations', [])
+            content_type = content_item.get("type")
+            if content_type == "text":
+                text += content_item.get("text", "")
+                annotations = content_item.get("annotations", [])
                 for ann in annotations:
-                    if ann.get('type') == 'cortex_search_citation':
+                    if ann.get("type") == "cortex_search_citation":
                         citation += f"\n• {ann.get('text', '')}"
-            elif content_type == 'tool_result':
-                tool_result = content_item.get('tool_result', {})
-                for result in tool_result.get('content', []):
-                    if result.get('type') == 'json':
-                        json_data = result.get('json', {})
-                        interpretation += json_data.get('text', '')
-                        sql = json_data.get('sql', '') or sql
-                                
+            elif content_type == "tool_result":
+                tool_result = content_item.get("tool_result", {})
+                for result in tool_result.get("content", []):
+                    if result.get("type") == "json":
+                        json_data = result.get("json", {})
+                        interpretation += json_data.get("text", "")
+                        sql = json_data.get("sql", "") or sql
+
     except Exception as e:
         st.error(f"Error processing response: {str(e)}")
-        
+
     return text, sql, interpretation, citation
+
 
 low_excess_query = """
     WITH low_inventory AS (
@@ -410,8 +406,7 @@ low_excess_df = run_snowflake_query(low_excess_query)
 
 
 def optimize_transfers():
-    """
-    Optimizes material transfers between plants with low and excess inventory.
+    """Optimizes material transfers between plants with low and excess inventory.
 
     This function:
     1. Executes a modified version of the provided SQL query to get
@@ -426,7 +421,6 @@ def optimize_transfers():
     Returns:
         A string indicating success and the number of transfer actions created.
     """
-
     # --- 1. Get Data from Snowflake (Modified Query) ---
 
     low_excess_df_pd = low_excess_df.to_pandas()
@@ -436,9 +430,9 @@ def optimize_transfers():
     if low_excess_df_pd.empty:
         return "No transfer opportunities found."
 
-    low_plants = low_excess_df_pd['LOW_PLANT_ID'].unique().tolist()
-    excess_plants = low_excess_df_pd['EXCESS_PLANT_ID'].unique().tolist()
-    materials = low_excess_df_pd['MATERIAL_ID'].unique().tolist()
+    low_plants = low_excess_df_pd["LOW_PLANT_ID"].unique().tolist()
+    excess_plants = low_excess_df_pd["EXCESS_PLANT_ID"].unique().tolist()
+    materials = low_excess_df_pd["MATERIAL_ID"].unique().tolist()
 
     # --- Add Supplier as an "Excess Plant" ---
     supplier_id = "999"  # Use '999' as the supplier ID
@@ -458,17 +452,19 @@ def optimize_transfers():
                 idx = i * num_excess_plants * num_materials + j * num_excess_plants + k
 
                 if excess_plant_id == supplier_id:
-                    material_cost = low_excess_df_pd[low_excess_df_pd['MATERIAL_ID'] == material_id]['MATERIAL_COST'].iloc[0]
+                    material_cost = low_excess_df_pd[low_excess_df_pd["MATERIAL_ID"] == material_id][
+                        "MATERIAL_COST"
+                    ].iloc[0]
                     c[idx] = material_cost
                 else:
                     match = low_excess_df_pd[
-                        (low_excess_df_pd['LOW_PLANT_ID'] == low_plant_id) &
-                        (low_excess_df_pd['EXCESS_PLANT_ID'] == excess_plant_id) &
-                        (low_excess_df_pd['MATERIAL_ID'] == material_id)
-                        ]
+                        (low_excess_df_pd["LOW_PLANT_ID"] == low_plant_id)
+                        & (low_excess_df_pd["EXCESS_PLANT_ID"] == excess_plant_id)
+                        & (low_excess_df_pd["MATERIAL_ID"] == material_id)
+                    ]
                     if not match.empty:
                         row = match.iloc[0]
-                        c[idx] = row['TRANSFER_COST_PER_UNIT']
+                        c[idx] = row["TRANSFER_COST_PER_UNIT"]
                     else:
                         c[idx] = 1e9
 
@@ -482,19 +478,18 @@ def optimize_transfers():
                 supply_remaining[(j, k)] = 1e9
             else:
                 match = low_excess_df_pd[
-                    (low_excess_df_pd['EXCESS_PLANT_ID'] == excess_plant_id) &
-                    (low_excess_df_pd['MATERIAL_ID'] == material_id)
+                    (low_excess_df_pd["EXCESS_PLANT_ID"] == excess_plant_id)
+                    & (low_excess_df_pd["MATERIAL_ID"] == material_id)
                 ]
-                supply_remaining[(j, k)] = match['AVAILABLE_TO_TRANSFER'].iloc[0] if not match.empty else 0
+                supply_remaining[(j, k)] = match["AVAILABLE_TO_TRANSFER"].iloc[0] if not match.empty else 0
 
     demand_remaining = {}
     for i, low_plant_id in enumerate(low_plants):
         for j, material_id in enumerate(materials):
             match = low_excess_df_pd[
-                (low_excess_df_pd['LOW_PLANT_ID'] == low_plant_id) &
-                (low_excess_df_pd['MATERIAL_ID'] == material_id)
+                (low_excess_df_pd["LOW_PLANT_ID"] == low_plant_id) & (low_excess_df_pd["MATERIAL_ID"] == material_id)
             ]
-            demand_remaining[(i, j)] = match['UNITS_NEEDED'].iloc[0] if not match.empty else 0
+            demand_remaining[(i, j)] = match["UNITS_NEEDED"].iloc[0] if not match.empty else 0
 
     candidates = []
     for i in range(num_low_plants):
@@ -522,55 +517,71 @@ def optimize_transfers():
                 idx += 1
                 if transfer_quantity > 0:
                     if excess_plant_id == supplier_id:
-                        material_cost = low_excess_df_pd[low_excess_df_pd['MATERIAL_ID'] == material_id]['MATERIAL_COST'].iloc[0]
-                        transfer_actions.append({
-                            'action_type': 'PURCHASE',
-                            'source_plant_id': excess_plant_id,
-                            'destination_plant_id': low_plant_id,
-                            'material_id': material_id,
-                            'transfer_quantity': transfer_quantity,
-                            'transfer_cost': transfer_quantity * material_cost,
-                            'savings': 0.00,
-                            'transfer_id': str(uuid.uuid4()),
-                            'transfer_date': pd.to_datetime('today').normalize()
-                        })
+                        material_cost = low_excess_df_pd[low_excess_df_pd["MATERIAL_ID"] == material_id][
+                            "MATERIAL_COST"
+                        ].iloc[0]
+                        transfer_actions.append(
+                            {
+                                "action_type": "PURCHASE",
+                                "source_plant_id": excess_plant_id,
+                                "destination_plant_id": low_plant_id,
+                                "material_id": material_id,
+                                "transfer_quantity": transfer_quantity,
+                                "transfer_cost": transfer_quantity * material_cost,
+                                "savings": 0.00,
+                                "transfer_id": str(uuid.uuid4()),
+                                "transfer_date": pd.to_datetime("today").normalize(),
+                            }
+                        )
                     else:
                         match = low_excess_df_pd[
-                            (low_excess_df_pd['LOW_PLANT_ID'] == low_plant_id) &
-                            (low_excess_df_pd['EXCESS_PLANT_ID'] == excess_plant_id) &
-                            (low_excess_df_pd['MATERIAL_ID'] == material_id)
+                            (low_excess_df_pd["LOW_PLANT_ID"] == low_plant_id)
+                            & (low_excess_df_pd["EXCESS_PLANT_ID"] == excess_plant_id)
+                            & (low_excess_df_pd["MATERIAL_ID"] == material_id)
                         ]
                         if not match.empty:
-                            cost_per_unit = match.iloc[0]['TRANSFER_COST_PER_UNIT']
-                            material_cost = low_excess_df_pd[low_excess_df_pd['MATERIAL_ID'] == material_id]['MATERIAL_COST'].iloc[0]
-                            transfer_actions.append({
-                                'action_type': 'TRANSFER',
-                                'source_plant_id': excess_plant_id,
-                                'destination_plant_id': low_plant_id,
-                                'material_id': material_id,
-                                'transfer_quantity': transfer_quantity,
-                                'transfer_cost': transfer_quantity * cost_per_unit,
-                                'savings': transfer_quantity * (material_cost - cost_per_unit),
-                                'transfer_id': str(uuid.uuid4()),
-                                'transfer_date': pd.to_datetime('today').normalize()
-                            })
+                            cost_per_unit = match.iloc[0]["TRANSFER_COST_PER_UNIT"]
+                            material_cost = low_excess_df_pd[low_excess_df_pd["MATERIAL_ID"] == material_id][
+                                "MATERIAL_COST"
+                            ].iloc[0]
+                            transfer_actions.append(
+                                {
+                                    "action_type": "TRANSFER",
+                                    "source_plant_id": excess_plant_id,
+                                    "destination_plant_id": low_plant_id,
+                                    "material_id": material_id,
+                                    "transfer_quantity": transfer_quantity,
+                                    "transfer_cost": transfer_quantity * cost_per_unit,
+                                    "savings": transfer_quantity * (material_cost - cost_per_unit),
+                                    "transfer_id": str(uuid.uuid4()),
+                                    "transfer_date": pd.to_datetime("today").normalize(),
+                                }
+                            )
 
     if not transfer_actions:
         return "No optimal transfers found."
 
     # Create Snowpark DataFrame and write to Snowflake
     transfer_actions_df = session.create_dataframe(pd.DataFrame(transfer_actions))
-    # transfer_actions_df = transfer_actions_df.rename(columns={col: col.upper() for col in transfer_actions_df.columns}) #Uppercase
-    transfer_actions_df.write.mode("overwrite").save_as_table("supply_chain_network_optimization_db.entities.transfer_actions")
+    # Uppercase column rename (not needed currently)
+    # transfer_actions_df = transfer_actions_df.rename(
+    #     columns={col: col.upper() for col in transfer_actions_df.columns}
+    # )
+    transfer_actions_df.write.mode("overwrite").save_as_table(
+        "supply_chain_network_optimization_db.entities.transfer_actions"
+    )
 
     return f"Successfully created {len(transfer_actions)} transfer actions."
-    
+
 
 class WelcomePage(Page):
+    """Landing page with overview information."""
+
     def __init__(self):
         self.name = "Welcome"
 
     def print_page(self):
+        """Render the welcome page content."""
         # Set up main page
         col1, col2 = st.columns((6, 1))
         col1.title("Supply Chain Network Assistant 🚚")
@@ -578,40 +589,47 @@ class WelcomePage(Page):
         # Welcome page
         st.subheader("Welcome to your Intelligent Supply Chain Assistant ❄️")
 
-        st.write('''This assistant is built in Streamlit, and leverages a Cortex Analyst
-        Service that knows semantic detail about our supply chain data and can turn Text-to-SQL,
-        a Cortex Search Serviceon top of unstructured PDFs about our Supply Chain, and the 
-        Cortex Agents API to correctly route our questions the correct service and format the answer.''')
+        st.write(
+            "This assistant is built in Streamlit, and leverages a Cortex Analyst"
+            " Service that knows semantic detail about our supply chain data and can"
+            " turn Text-to-SQL, a Cortex Search Service on top of unstructured PDFs"
+            " about our Supply Chain, and the Cortex Agents API to correctly route"
+            " our questions the correct service and format the answer."
+        )
 
-        st.write('')
-        st.write('')
-        st.write('')
+        st.write("")
+        st.write("")
+        st.write("")
 
     def print_sidebar(self):
+        """Render the welcome page sidebar."""
         set_default_sidebar()
 
 
 class AssistantPage(Page):
+    """Chat interface for the supply chain assistant."""
+
     def __init__(self):
         self.name = "Assistant"
 
     def print_page(self):
-      # Initialize session state
+        """Render the assistant chat page."""
+        # Initialize session state
         st.title("Intelligent Supply Chain Network Assistant")
-        
-        if 'messages' not in st.session_state:
+
+        if "messages" not in st.session_state:
             st.session_state.messages = []
-    
+
         for message in st.session_state.messages:
-            with st.chat_message(message['role']):
-                st.markdown(message['content'].replace("•", "\n\n-"))
-    
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"].replace("•", "\n\n-"))
+
         if query := st.chat_input("What would you like to learn?"):
             # Add user message to chat
             with st.chat_message("user"):
                 st.markdown(query)
             st.session_state.messages.append({"role": "user", "content": query})
-            
+
             # Get response from API
             with st.spinner("Processing your request..."):
                 response = snowflake_api_call(query, 1)
@@ -621,7 +639,7 @@ class AssistantPage(Page):
                     st.session_state.messages.append({"role": "assistant", "content": citation})
                     with st.expander("Citations", expanded=True):
                         st.markdown(citation.replace("•", "\n\n-"))
-                
+
                 # Add assistant response to chat
                 if text:
                     st.session_state.messages.append({"role": "assistant", "content": text})
@@ -633,7 +651,7 @@ class AssistantPage(Page):
                     st.session_state.messages.append({"role": "assistant", "content": interpretation})
                     with st.chat_message("assistant"):
                         st.markdown(interpretation.replace("•", "\n\n-"))
-    
+
                 # Display SQL if present
                 if sql:
                     st.markdown("### Generated SQL")
@@ -644,14 +662,18 @@ class AssistantPage(Page):
                         st.dataframe(scn_results)
 
     def print_sidebar(self):
+        """Render the assistant page sidebar."""
         set_default_sidebar()
 
 
 class OptimizationPage(Page):
+    """Page for supply chain optimization solver."""
+
     def __init__(self):
         self.name = "Optimization"
 
     def print_page(self):
+        """Render the optimization page with linear programming solver."""
         # Set up main page
         col1, col2 = st.columns((6, 1))
         col1.title("Optimization Execution 🚀")
@@ -659,57 +681,72 @@ class OptimizationPage(Page):
         # Welcome page
         st.subheader("Our Problem")
 
+        st.write("")
+        st.write("""At this point, we've identified manufacturing plants with low inventory of a raw material
+        and other plants with excess. An intelligent assistant is great for answering ad-hoc questions like this.""")
 
-        st.write('')
-        st.write('''At this point, we've identified manufacturing plants with low inventory of a raw material
-        and other plants with excess. An intelligent assistant is great for answering ad-hoc questions like this.''')
-
-        st.write('')
+        st.write("")
         st.dataframe(low_excess_df)
-        
-        st.write('''However, this seems to be a regular challenge we want to stay on top of. Let's use [Linear Programming](
-        https://en.wikipedia.org/wiki/Linear_programming), also called linear optimization or constraint programming,
-        to identify the most cost effective way to replenish each plant, either by transfer or a new purchase from suppliers.''')
 
-        st.write('''Linear programming uses a system of inequalities to define a feasible regional mathematical space, and a 
-        'solver' that traverses that space by adjusting a number of decision variables, efficiently finding the most optimal 
-        set of decisions given constraints to meet a stated objective function.''')
+        st.write(
+            "However, this seems to be a regular challenge we want to stay on top of."
+            " Let's use [Linear Programming]("
+            "https://en.wikipedia.org/wiki/Linear_programming),"
+            " also called linear optimization or constraint programming,"
+            " to identify the most cost effective way to replenish each plant,"
+            " either by transfer or a new purchase from suppliers."
+        )
 
-        st.write('''It is possible to also introduce integer-based decision 
-        variables, which transforms the problem from a linear program into a mixed integer program, but the mechanics are 
-        fundamentally the same.''')
+        st.write(
+            "Linear programming uses a system of inequalities to define a feasible"
+            " regional mathematical space, and a 'solver' that traverses that space"
+            " by adjusting a number of decision variables, efficiently finding the"
+            " most optimal set of decisions given constraints to meet a stated"
+            " objective function."
+        )
+
+        st.write(
+            "It is possible to also introduce integer-based decision variables,"
+            " which transforms the problem from a linear program into a mixed"
+            " integer program, but the mechanics are fundamentally the same."
+        )
 
         st.write("The objective function defines the goal - maximizing or minimizing a value, such as profit or costs.")
-        st.write("Decision variables are a set of decisions - the values that the solver can change to impact the "
-                 "objective value.")
         st.write(
-            "The constraints define the realities of the business - such as only shipping up to a stated capacity.")
+            "Decision variables are a set of decisions - the values that the solver can change to impact the "
+            "objective value."
+        )
+        st.write(
+            "The constraints define the realities of the business - such as only shipping up to a stated capacity."
+        )
 
-        st.write("We are utilizing the linprog methods from the [SciPy library](https://scipy.org/), which "
-                 "is available natively in Snowpark and allows us to define a linear program and use virtually any "
-                 "solver we want.  In this case, we are using the [HiGHS solver](https://highs.dev/) for our "
-                 "models.")
+        st.write(
+            "We are utilizing the linprog methods from the [SciPy library](https://scipy.org/), which "
+            "is available natively in Snowpark and allows us to define a linear program and use virtually any "
+            "solver we want.  In this case, we are using the [HiGHS solver](https://highs.dev/) for our "
+            "models."
+        )
 
         submitted = st.button("Optimize for Cost 📊")
 
         if submitted:
             with st.spinner("Solving Models..."):
                 optimize_transfers()
-                st.write('')
+                st.write("")
                 transfer_actions = session.table("SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.TRANSFER_ACTIONS")
                 st.dataframe(transfer_actions)
-                st.write('')
-                
+                st.write("")
+
                 # Calculate the statistics
                 df_pandas = transfer_actions.to_pandas()
-                transfers_count = len(df_pandas[df_pandas['action_type'] == 'TRANSFER'])
-                purchases_count = len(df_pandas[df_pandas['action_type'] == 'PURCHASE'])
-                total_spend = df_pandas['transfer_cost'].sum()
-                total_savings = df_pandas['savings'].sum()
-                
+                transfers_count = len(df_pandas[df_pandas["action_type"] == "TRANSFER"])
+                purchases_count = len(df_pandas[df_pandas["action_type"] == "PURCHASE"])
+                total_spend = df_pandas["transfer_cost"].sum()
+                total_savings = df_pandas["savings"].sum()
+
                 # Use Streamlit columns to display the boxes in a row
                 col1, col2, col3, col4 = st.columns(4)
-                
+
                 with col1:
                     st.markdown(
                         f"""
@@ -720,7 +757,7 @@ class OptimizationPage(Page):
                         """,
                         unsafe_allow_html=True,
                     )
-                
+
                 with col2:
                     st.markdown(
                         f"""
@@ -731,7 +768,7 @@ class OptimizationPage(Page):
                         """,
                         unsafe_allow_html=True,
                     )
-                
+
                 with col3:
                     st.markdown(
                         f"""
@@ -742,7 +779,7 @@ class OptimizationPage(Page):
                         """,
                         unsafe_allow_html=True,
                     )
-                
+
                 with col4:
                     st.markdown(
                         f"""
@@ -753,12 +790,9 @@ class OptimizationPage(Page):
                         """,
                         unsafe_allow_html=True,
                     )
-                
-                
-        
-        
 
     def print_sidebar(self):
+        """Render the optimization page sidebar."""
         set_default_sidebar()
 
 
@@ -766,6 +800,7 @@ pages = [WelcomePage(), AssistantPage(), OptimizationPage()]
 
 
 def main():
+    """Route to the active page and render it."""
     for page in pages:
         if page.name == st.session_state.page:
             page.print_page()
