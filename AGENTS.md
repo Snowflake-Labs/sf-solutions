@@ -119,3 +119,20 @@ All PRs must pass:
 2. **sqruff** — all `*.sql` files (`--format github-annotation-native`)
 3. **ruff check + format** — all `*.py` files (excluding `gnn-supply-chain-risk/`)
 4. **skills-purity** — no code files (`.py`, `.sql`) inside `skills/` directories
+
+## Existing Solutions
+
+Reference when creating new solutions to avoid schema name conflicts and to follow established patterns.
+
+| Solution | Industry | Database | Schemas | Key Features |
+|----------|----------|----------|---------|--------------|
+| ltv-prediction | Retail / CPG | SF_SOLUTIONS | LTV_RAW, LTV_ANALYTICS, LTV_ML | ML Forecast, Cortex AI, Segmentation, Streamlit |
+| supply-chain-intelligence | Manufacturing | SF_SOLUTIONS | SUPPLY_CHAIN_ENTITIES | Intelligence Agent, Cortex Analyst, Cortex Search, Streamlit |
+| clinical-quality-agent | Healthcare | SF_SOLUTIONS | CLINICAL_QUALITY_SAFETY | Intelligence Agent, Cortex Analyst, Cortex Search |
+| manufacturing-predictive-maintenance | Manufacturing | SNOWCORE_INDUSTRIES | BRONZE, SILVER, GOLD | ML Anomaly Detection (exception: uses different DB) |
+| gnn-supply-chain-risk | Manufacturing | SF_SOLUTIONS | GNN_SUPPLY_CHAIN_RISK | GNN, NetworkX, Risk Analysis, Streamlit |
+
+Notes:
+- All solutions use `SF_SOLUTIONS` database except `manufacturing-predictive-maintenance` (uses `SNOWCORE_INDUSTRIES`).
+- Schema names must be unique across solutions to avoid conflicts.
+- Warehouse is shared: `SF_SOLUTIONS_WH` (LARGE).
