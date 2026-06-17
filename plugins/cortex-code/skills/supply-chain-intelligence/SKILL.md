@@ -98,7 +98,11 @@ Parse the action from `$ARGUMENTS`:
    Use `timeout_seconds: 300`.
 
    **Batch 4 — Semantic Model (Section 5):**
-   Execute the full semantic model staging (large INSERT/COPY for YAML). Use `timeout_seconds: 600`.
+   Upload the semantic model YAML to the stage:
+   ```sql
+   PUT file://<repo_path>/solutions/supply-chain-intelligence/semantic/supply_chain_network.yaml @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+   ALTER STAGE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE REFRESH;
+   ```
 
    **Batch 5 — Cortex Search + Agent (Sections 6-7):**
    ```sql

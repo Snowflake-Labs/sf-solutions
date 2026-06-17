@@ -75,7 +75,12 @@ Parse the action from `$ARGUMENTS`:
    ```
    Use timeout 300 seconds.
 
-   **Batch 4 — Semantic Model:** Large INSERT/COPY for YAML staging (timeout_seconds: 600)
+   **Batch 4 — Semantic Model:**
+   Upload the semantic model YAML to the stage:
+   ```bash
+   snow sql -q "PUT file://<repo_path>/solutions/supply-chain-intelligence/semantic/supply_chain_network.yaml @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+   snow sql -q "ALTER STAGE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE REFRESH;"
+   ```
    **Batch 5 — Cortex Search + Agent:** CREATE CORTEX SEARCH SERVICE + CREATE AGENT (timeout_seconds: 300)
    **Batch 6 — Streamlit deploy:**
    Upload the Streamlit files to the stage and create the app:
