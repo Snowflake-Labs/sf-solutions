@@ -114,20 +114,22 @@ Parse the action from `$ARGUMENTS`:
    ```sql
    SELECT
        'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
+           || '/#/agents/database/SF_SOLUTIONS/schema/SUPPLY_CHAIN_ENTITIES/agent/SUPPLY_CHAIN_ASSISTANT/details' AS AGENT_URL,
+       'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
            || '/#/streamlit-apps/SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP' AS STREAMLIT_URL;
    ```
    Display to the user:
    ```
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Access your Supply Chain Assistant:
-     Snowsight: AI & ML > Agents > SUPPLY_CHAIN_ASSISTANT
+   Supply Chain Assistant:
+     <AGENT_URL>
 
    Streamlit App (optional):
      <STREAMLIT_URL>
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ```
 
-   This step is NON-OPTIONAL. The user must always see the access information after install.
+   This step is NON-OPTIONAL. The user must always see clickable URLs after install.
 
 8. Show final summary:
    ```
