@@ -1,19 +1,13 @@
 import json
-import os
 import uuid
 from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
-import requests
 import streamlit as st
 from snowflake.snowpark.context import get_active_session
 
 session = get_active_session()
-
-SNOWFLAKE_HOST = os.getenv("SNOWFLAKE_HOST")
-API_ENDPOINT = "/api/v2/cortex/agent:run"
-API_TIMEOUT = 50000
 
 CORTEX_SEARCH_SERVICES = "SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_INFO"
 SEMANTIC_MODELS = "@SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.semantic_stage/supply_chain_network.yaml"
@@ -256,63 +250,29 @@ def run_snowflake_query(query):
         return None, None
 
 
-def get_token() -> str:
-    """Read the Snowflake session token from the container filesystem."""
-    with open("/snowflake/session/token") as f:
-        return f.read()
-
-
 def snowflake_api_call(query: str, limit: int = 10):
-    """Call the Cortex Agent API with a user query and return the response."""
-    payload = {
-        "messages": [{"role": "user", "content": [{"type": "text", "text": query}]}],
-        "stream": False,
-        "models": {"orchestration": "claude-sonnet-4-5"},
-        "tools": [
-            {"tool_spec": {"type": "cortex_analyst_text_to_sql", "name": "analyst1"}},
-            {"tool_spec": {"type": "cortex_search", "name": "search1"}},
-        ],
-        "tool_resources": {
-            "analyst1": {
-                "semantic_model_file": SEMANTIC_MODELS,
-                "execution_environment": {"type": "warehouse", "warehouse": "SF_SOLUTIONS_WH"},
-            },
-            "search1": {"search_service": CORTEX_SEARCH_SERVICES, "max_results": limit},
-        },
-        "instructions": {
-            "response": (
-                "You will always maintain a friendly tone and provide a concise response."
-                " Don't say things like 'According to the information provided'"
-            )
-        },
-    }
-
+    """Call the Cortex Agent via Snowpark SQL and return the parsed response."""
+    escaped_query = query.replace("'", "\\'").replace("\\", "\\\\")
+    sql = f"""
+    SELECT SNOWFLAKE.CORTEX.AGENT(
+        'SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_ASSISTANT',
+        '{escaped_query}'
+    ) AS RESPONSE
+    """
     try:
-        url = f"https://{SNOWFLAKE_HOST}{API_ENDPOINT}"
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {get_token()}",
-            "X-Snowflake-Authorization-Token-Type": "OAUTH",
-        }
-        resp = requests.post(url, headers=headers, json=payload, timeout=API_TIMEOUT / 1000)
-
-        if resp.status_code != 200:
-            return {"_error": f"HTTP {resp.status_code}: {resp.text[:500]}"}
-
-        try:
-            response_content = resp.json()
-        except json.JSONDecodeError:
-            return {"_error": f"JSON decode failed. Raw: {resp.text[:500]}"}
-
-        return response_content
-
+        result = session.sql(sql).collect()
+        if result and len(result) > 0:
+            raw = result[0]["RESPONSE"]
+            if isinstance(raw, str):
+                return json.loads(raw)
+            return raw
+        return {"_error": "Empty result from AGENT call."}
     except Exception as e:
-        return {"_error": f"Request exception: {str(e)}"}
+        return {"_error": f"SQL exception: {str(e)}"}
 
 
 def process_sse_response(response):
-    """Process non-streaming agent response."""
+    """Process agent response - handles both string and structured JSON responses."""
     text = ""
     sql = ""
     interpretation = ""
@@ -321,16 +281,47 @@ def process_sse_response(response):
     if not response:
         return text, sql, interpretation, citation
 
+    # If response is a plain string (CORTEX.AGENT returns text directly)
+    if isinstance(response, str):
+        return response, "", "", ""
+
+    # If it has an _error key, it's our error wrapper
+    if "_error" in response:
+        return "", "", "", ""
+
     try:
+        # Try structured format: {"content": [...]}
         content = response.get("content", [])
+        if not content:
+            # Try messages format: {"messages": [{"content": ...}]}
+            messages = response.get("messages", [])
+            if messages:
+                last_msg = messages[-1]
+                msg_content = last_msg.get("content", "")
+                if isinstance(msg_content, str):
+                    return msg_content, "", "", ""
+                content = msg_content if isinstance(msg_content, list) else []
+
+            # Try choices format: {"choices": [{"message": {"content": ...}}]}
+            choices = response.get("choices", [])
+            if choices:
+                msg = choices[0].get("message", {})
+                msg_content = msg.get("content", "")
+                if isinstance(msg_content, str):
+                    return msg_content, "", "", ""
+                content = msg_content if isinstance(msg_content, list) else []
+
         for content_item in content:
+            if not isinstance(content_item, dict):
+                text += str(content_item)
+                continue
             content_type = content_item.get("type")
             if content_type == "text":
                 text += content_item.get("text", "")
                 annotations = content_item.get("annotations", [])
                 for ann in annotations:
                     if ann.get("type") == "cortex_search_citation":
-                        citation += f"\n• {ann.get('text', '')}"
+                        citation += f"\n- {ann.get('text', '')}"
             elif content_type == "tool_result":
                 tool_result = content_item.get("tool_result", {})
                 for result in tool_result.get("content", []):
@@ -339,8 +330,9 @@ def process_sse_response(response):
                         interpretation += json_data.get("text", "")
                         sql = json_data.get("sql", "") or sql
 
-    except Exception as e:
-        st.error(f"Error processing response: {str(e)}")
+    except Exception:
+        # If all parsing fails, dump the response as text
+        text = json.dumps(response)[:2000]
 
     return text, sql, interpretation, citation
 
