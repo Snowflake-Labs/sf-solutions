@@ -637,35 +637,33 @@ class AssistantPage(Page):
             st.session_state.messages.append({"role": "user", "content": query})
 
             # Get response from API
-            with st.spinner("Processing your request..."):
-                response = snowflake_api_call(query, 1)
-                text, sql, interpretation, citation = process_sse_response(response)
+            response = snowflake_api_call(query, 1)
+            text, sql, interpretation, citation = process_sse_response(response)
 
-                if citation:
-                    st.session_state.messages.append({"role": "assistant", "content": citation})
+            if citation:
+                st.session_state.messages.append({"role": "assistant", "content": citation})
 
-                if text:
-                    st.session_state.messages.append({"role": "assistant", "content": text})
+            if text:
+                st.session_state.messages.append({"role": "assistant", "content": text})
 
-                if interpretation:
-                    st.session_state.messages.append({"role": "assistant", "content": interpretation})
+            if interpretation:
+                st.session_state.messages.append({"role": "assistant", "content": interpretation})
 
-                # If no response content extracted, show debug info
-                if not text and not sql and not interpretation and not citation:
-                    if response:
-                        st.warning("API returned a response but no content was extracted.")
-                        st.json(response)
-                    else:
-                        st.error("No response from API.")
+            # If no response content extracted, show debug info
+            if not text and not sql and not interpretation and not citation:
+                if response:
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": f"DEBUG: {json.dumps(response)[:2000]}"}
+                    )
+                else:
+                    st.session_state.messages.append({"role": "assistant", "content": "ERROR: No response from API."})
 
-                # Display SQL if present
-                if sql:
-                    st.session_state.messages.append({"role": "assistant", "content": f"```sql\n{sql}\n```"})
-                    scn_results = run_snowflake_query(sql)
-                    if scn_results:
-                        st.session_state.messages.append(
-                            {"role": "assistant", "content": "Query executed successfully."}
-                        )
+            # Display SQL if present
+            if sql:
+                st.session_state.messages.append({"role": "assistant", "content": f"```sql\n{sql}\n```"})
+                scn_results = run_snowflake_query(sql)
+                if scn_results:
+                    st.session_state.messages.append({"role": "assistant", "content": "Query executed successfully."})
 
             st.experimental_rerun()
 
