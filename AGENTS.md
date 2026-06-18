@@ -24,13 +24,17 @@ fig = go.Figure(data=[go.Scatter(
 )])
 ```
 
-Additional SiS constraints:
-- `color_discrete_map` in `px` functions is buggy
-- `hide_index=True` in `st.dataframe` is unsupported
-- NUMBER/DECIMAL types must be cast to `::FLOAT` in SQL before passing to Plotly (Snowpark returns Python Decimal which Plotly cannot plot)
-- `st.connection("snowflake")` does not exist — use `from snowflake.snowpark.context import get_active_session`
-- `st.rerun()` does not exist — use `st.experimental_rerun()`
-- `st.chat_input()` and `st.chat_message()` do not exist — use `st.text_input()` + `st.button()` with markdown for conversation display
+Additional SiS constraints — unavailable methods:
+
+| Unavailable Method | Replacement |
+|---|---|
+| `st.connection("snowflake")` | `from snowflake.snowpark.context import get_active_session` |
+| `st.rerun()` | `st.experimental_rerun()` |
+| `st.chat_input()` | `st.text_input()` + `st.button()` |
+| `st.chat_message()` | `st.markdown()` with role prefix (e.g. `**You:**`, `**Assistant:**`) |
+| `st.dataframe(hide_index=True)` | `st.dataframe()` without `hide_index` parameter |
+| `plotly.express` `color_discrete_map` | Avoid or use basic color args |
+| `plotly.express` with Decimal columns | Cast to `::FLOAT` in SQL before passing to Plotly |
 
 ### PUT Command Behavior
 
