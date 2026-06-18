@@ -573,9 +573,7 @@ def optimize_transfers():
     # transfer_actions_df = transfer_actions_df.rename(
     #     columns={col: col.upper() for col in transfer_actions_df.columns}
     # )
-    transfer_actions_df.write.mode("overwrite").save_as_table(
-        "SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.transfer_actions"
-    )
+    transfer_actions_df.write.mode("overwrite").save_as_table("SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.transfer_actions")
 
     return f"Successfully created {len(transfer_actions)} transfer actions."
 
