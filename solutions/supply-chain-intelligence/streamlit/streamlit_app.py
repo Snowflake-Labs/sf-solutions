@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 import requests
 import streamlit as st
+from snowflake.snowpark.context import get_active_session
 
-session = st.connection("snowflake").session()
+session = get_active_session()
 
 SNOWFLAKE_HOST = os.getenv("SNOWFLAKE_HOST")
 API_ENDPOINT = "/api/v2/cortex/agent:run"
