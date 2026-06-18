@@ -251,24 +251,48 @@ def run_snowflake_query(query):
 
 
 def snowflake_api_call(query: str, limit: int = 10):
-    """Call the Cortex Agent via Snowpark SQL and return the parsed response."""
-    escaped_query = query.replace("'", "\\'").replace("\\", "\\\\")
-    sql = f"""
-    SELECT SNOWFLAKE.CORTEX.AGENT(
-        'SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_ASSISTANT',
-        '{escaped_query}'
-    ) AS RESPONSE
+    """Query Cortex Search and generate response via Cortex Complete.
+
+    SiS warehouse runtime does not support Cortex Agent API directly.
+    Instead we use Cortex Search for retrieval and Cortex Complete for generation.
     """
+    from snowflake.core import Root
+    from snowflake.cortex import Complete
+
     try:
-        result = session.sql(sql).collect()
-        if result and len(result) > 0:
-            raw = result[0]["RESPONSE"]
-            if isinstance(raw, str):
-                return json.loads(raw)
-            return raw
-        return {"_error": "Empty result from AGENT call."}
+        root = Root(session)
+        search_service = (
+            root.databases["SF_SOLUTIONS"].schemas["SUPPLY_CHAIN_ENTITIES"].cortex_search_services["SUPPLY_CHAIN_INFO"]
+        )
+
+        # Search for relevant context
+        search_results = search_service.search(
+            query,
+            columns=["chunk"],
+            limit=limit,
+        )
+
+        # Build context from search results
+        context = ""
+        for r in search_results.results:
+            context += r.get("chunk", "") + "\n\n"
+
+        # Generate response using Cortex Complete
+        prompt = f"""You are a helpful supply chain assistant. Use the context below to answer the user's question.
+Be concise and friendly. If the context doesn't contain relevant information, say so.
+
+Context:
+{context}
+
+User question: {query}
+
+Answer:"""
+
+        response_text = Complete(model="llama3.1-70b", prompt=prompt)
+        return {"content": [{"type": "text", "text": response_text}]}
+
     except Exception as e:
-        return {"_error": f"SQL exception: {str(e)}"}
+        return {"_error": f"Exception: {str(e)}"}
 
 
 def process_sse_response(response):
