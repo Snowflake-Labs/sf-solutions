@@ -615,20 +615,22 @@ class AssistantPage(Page):
 
     def print_page(self):
         """Render the assistant chat page."""
-        # Initialize session state
         st.title("Intelligent Supply Chain Network Assistant")
 
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
+        # Display conversation history
         for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"].replace("•", "\n\n-"))
+            if message["role"] == "user":
+                st.markdown(f"**You:** {message['content']}")
+            else:
+                st.markdown(f"**Assistant:** {message['content'].replace('•', chr(10) + chr(10) + '-')}")
+            st.markdown("---")
 
-        if query := st.chat_input("What would you like to learn?"):
-            # Add user message to chat
-            with st.chat_message("user"):
-                st.markdown(query)
+        # Text input for user query
+        query = st.text_input("What would you like to learn?", key="chat_query")
+        if st.button("Send") and query:
             st.session_state.messages.append({"role": "user", "content": query})
 
             # Get response from API
@@ -641,17 +643,11 @@ class AssistantPage(Page):
                     with st.expander("Citations", expanded=True):
                         st.markdown(citation.replace("•", "\n\n-"))
 
-                # Add assistant response to chat
                 if text:
                     st.session_state.messages.append({"role": "assistant", "content": text})
-                    with st.chat_message("assistant"):
-                        st.markdown(text.replace("•", "\n\n-"))
 
-                # Add assistant response to chat
                 if interpretation:
                     st.session_state.messages.append({"role": "assistant", "content": interpretation})
-                    with st.chat_message("assistant"):
-                        st.markdown(interpretation.replace("•", "\n\n-"))
 
                 # Display SQL if present
                 if sql:
@@ -661,6 +657,8 @@ class AssistantPage(Page):
                     if scn_results:
                         st.write("### Supply Chain Query Results")
                         st.dataframe(scn_results)
+
+            st.experimental_rerun()
 
     def print_sidebar(self):
         """Render the assistant page sidebar."""
