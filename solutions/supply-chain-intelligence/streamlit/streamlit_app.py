@@ -251,45 +251,56 @@ def run_snowflake_query(query):
 
 
 def snowflake_api_call(query: str, limit: int = 10):
-    """Query Cortex Search and generate response via Cortex Complete.
+    """Query Cortex Search via SQL and generate response via Cortex Complete.
 
-    SiS warehouse runtime does not support Cortex Agent API directly.
-    Instead we use Cortex Search for retrieval and Cortex Complete for generation.
+    SiS warehouse runtime does not support Cortex Agent API or snowflake.core.
+    Use session.sql() with CORTEX_SEARCH and SNOWFLAKE.CORTEX.COMPLETE.
     """
-    from snowflake.core import Root
-    from snowflake.cortex import Complete
-
     try:
-        root = Root(session)
-        search_service = (
-            root.databases["SF_SOLUTIONS"].schemas["SUPPLY_CHAIN_ENTITIES"].cortex_search_services["SUPPLY_CHAIN_INFO"]
-        )
+        escaped_query = query.replace("'", "''")
 
-        # Search for relevant context
-        search_results = search_service.search(
-            query,
-            columns=["chunk"],
-            limit=limit,
-        )
+        # Use Cortex Search via SQL SEARCH_PREVIEW function
+        search_sql = f"""
+        SELECT PARSE_JSON(
+            SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+                'SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_INFO',
+                '{escaped_query}',
+                '{{"columns": ["chunk"], "limit": {limit}}}'
+            )
+        )['results'] AS results
+        """
+        search_result = session.sql(search_sql).collect()
 
-        # Build context from search results
         context = ""
-        for r in search_results.results:
-            context += r.get("chunk", "") + "\n\n"
+        if search_result and search_result[0]["RESULTS"]:
+            results_parsed = json.loads(search_result[0]["RESULTS"])
+            for r in results_parsed:
+                context += r.get("chunk", "") + "\n\n"
 
-        # Generate response using Cortex Complete
-        prompt = f"""You are a helpful supply chain assistant. Use the context below to answer the user's question.
-Be concise and friendly. If the context doesn't contain relevant information, say so.
+        # Generate response using Cortex Complete via SQL
+        escaped_context = context.replace("'", "''")[:4000]
+        prompt_text = (
+            "You are a helpful supply chain assistant. "
+            "Use the context below to answer the user question. "
+            "Be concise and friendly. "
+            "If the context does not contain relevant information, say so."
+            f"\n\nContext:\n{escaped_context}"
+            f"\n\nUser question: {escaped_query}"
+            "\n\nAnswer:"
+        )
+        prompt_escaped = prompt_text.replace("'", "''")
+        complete_sql = f"""
+        SELECT SNOWFLAKE.CORTEX.COMPLETE(
+            'llama3.1-70b',
+            '{prompt_escaped}'
+        ) AS RESPONSE
+        """
+        complete_result = session.sql(complete_sql).collect()
 
-Context:
-{context}
+        if complete_result and complete_result[0]["RESPONSE"]:
+            return {"content": [{"type": "text", "text": complete_result[0]["RESPONSE"]}]}
 
-User question: {query}
-
-Answer:"""
-
-        response_text = Complete(model="llama3.1-70b", prompt=prompt)
-        return {"content": [{"type": "text", "text": response_text}]}
+        return {"_error": "Empty response from Cortex Complete."}
 
     except Exception as e:
         return {"_error": f"Exception: {str(e)}"}
