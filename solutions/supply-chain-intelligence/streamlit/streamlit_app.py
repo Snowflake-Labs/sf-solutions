@@ -643,8 +643,6 @@ class AssistantPage(Page):
 
                 if citation:
                     st.session_state.messages.append({"role": "assistant", "content": citation})
-                    with st.expander("Citations", expanded=True):
-                        st.markdown(citation.replace("•", "\n\n-"))
 
                 if text:
                     st.session_state.messages.append({"role": "assistant", "content": text})
@@ -652,14 +650,22 @@ class AssistantPage(Page):
                 if interpretation:
                     st.session_state.messages.append({"role": "assistant", "content": interpretation})
 
+                # If no response content extracted, show debug info
+                if not text and not sql and not interpretation and not citation:
+                    if response:
+                        st.warning("API returned a response but no content was extracted.")
+                        st.json(response)
+                    else:
+                        st.error("No response from API.")
+
                 # Display SQL if present
                 if sql:
-                    st.markdown("### Generated SQL")
-                    st.code(sql, language="sql")
+                    st.session_state.messages.append({"role": "assistant", "content": f"```sql\n{sql}\n```"})
                     scn_results = run_snowflake_query(sql)
                     if scn_results:
-                        st.write("### Supply Chain Query Results")
-                        st.dataframe(scn_results)
+                        st.session_state.messages.append(
+                            {"role": "assistant", "content": "Query executed successfully."}
+                        )
 
             st.experimental_rerun()
 
