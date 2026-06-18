@@ -563,7 +563,12 @@ def optimize_transfers():
         return "No optimal transfers found."
 
     # Create Snowpark DataFrame and write to Snowflake
-    transfer_actions_df = session.create_dataframe(pd.DataFrame(transfer_actions))
+    pdf = pd.DataFrame(transfer_actions)
+    # Ensure ID columns are strings to avoid Arrow int/str mixed-type errors
+    for col in ["source_plant_id", "destination_plant_id", "material_id"]:
+        if col in pdf.columns:
+            pdf[col] = pdf[col].astype(str)
+    transfer_actions_df = session.create_dataframe(pdf)
     # Uppercase column rename (not needed currently)
     # transfer_actions_df = transfer_actions_df.rename(
     #     columns={col: col.upper() for col in transfer_actions_df.columns}
