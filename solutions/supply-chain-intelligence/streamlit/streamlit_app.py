@@ -361,9 +361,9 @@ low_excess_query = """
             l.safety_stock_level * 2 AS low_replenishment_point,
             (low_replenishment_point - l.quantity_on_hand) AS units_needed
         FROM
-            supply_chain_network_optimization_db.entities.mfg_inventory AS l
-        JOIN supply_chain_network_optimization_db.entities.mfg_plant AS mp ON l.mfg_plant_id = mp.mfg_plant_id
-        JOIN supply_chain_network_optimization_db.entities.raw_material AS rm ON l.material_id = rm.material_id
+            SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.mfg_inventory AS l
+        JOIN SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.mfg_plant AS mp ON l.mfg_plant_id = mp.mfg_plant_id
+        JOIN SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.raw_material AS rm ON l.material_id = rm.material_id
         WHERE l.quantity_on_hand < l.safety_stock_level
         AND l.days_forward_coverage <= l.material_lead_time + l.lead_time_variability
     ), excess_inventory AS (
@@ -376,8 +376,8 @@ low_excess_query = """
             e.safety_stock_level * 2 AS excess_replenishment_point,
             (e.quantity_on_hand - excess_replenishment_point) AS available_to_transfer
         FROM
-            supply_chain_network_optimization_db.entities.mfg_inventory AS e
-        JOIN supply_chain_network_optimization_db.entities.mfg_plant AS mp ON e.mfg_plant_id = mp.mfg_plant_id
+            SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.mfg_inventory AS e
+        JOIN SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.mfg_plant AS mp ON e.mfg_plant_id = mp.mfg_plant_id
         WHERE e.quantity_on_hand > 3 * e.safety_stock_level
         AND e.days_forward_coverage > 2 * e.material_lead_time
     )
@@ -395,7 +395,7 @@ low_excess_query = """
     FROM
         low_inventory AS l
     LEFT JOIN excess_inventory AS e ON l.material_id = e.material_id
-    LEFT JOIN supply_chain_network_optimization_db.entities.transport_cost_surcharge AS tcs
+    LEFT JOIN SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.transport_cost_surcharge AS tcs
         ON e.excess_plant_id = tcs.source_facility_id AND l.low_plant_id = tcs.destination_facility_id
     WHERE e.available_to_transfer > 0  AND l.units_needed > 0 -- Ensure positive transfer amounts
     ORDER BY
@@ -569,7 +569,7 @@ def optimize_transfers():
     #     columns={col: col.upper() for col in transfer_actions_df.columns}
     # )
     transfer_actions_df.write.mode("overwrite").save_as_table(
-        "supply_chain_network_optimization_db.entities.transfer_actions"
+        "SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.transfer_actions"
     )
 
     return f"Successfully created {len(transfer_actions)} transfer actions."
