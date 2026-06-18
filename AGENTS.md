@@ -35,8 +35,13 @@ Additional SiS constraints — unavailable methods:
 | `st.dataframe(hide_index=True)` | `st.dataframe()` without `hide_index` parameter |
 | `plotly.express` `color_discrete_map` | Avoid or use basic color args |
 | `plotly.express` with Decimal columns | Cast to `::FLOAT` in SQL before passing to Plotly |
-| `/snowflake/session/token` (SPCS only) | Use `session.sql("SELECT SNOWFLAKE.CORTEX.AGENT(...)")` in SiS |
-| `requests` to Cortex REST API | Use `session.sql()` with `SNOWFLAKE.CORTEX.AGENT()` SQL function |
+| `/snowflake/session/token` (SPCS only) | Not available in SiS warehouse runtime |
+| `requests` to Cortex Agent REST API | Not available in SiS warehouse runtime |
+| `SNOWFLAKE.CORTEX.AGENT()` SQL function | Does not exist — use Cortex Search + Complete directly |
+| Cortex Agent API (any method) in SiS | **Not supported** — use Cortex Search + `snowflake.cortex.Complete` for RAG |
+
+**Important**: Cortex Agent API is explicitly not supported in SiS warehouse runtime (per Snowflake docs).
+To build a chatbot in SiS, use `snowflake.core.Root` → Cortex Search Service `.search()` + `snowflake.cortex.Complete()` directly.
 
 ### PUT Command Behavior
 
