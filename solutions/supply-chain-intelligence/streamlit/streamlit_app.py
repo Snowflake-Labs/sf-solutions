@@ -298,20 +298,17 @@ def snowflake_api_call(query: str, limit: int = 10):
         resp = requests.post(url, headers=headers, json=payload, timeout=API_TIMEOUT / 1000)
 
         if resp.status_code != 200:
-            st.error(f"Error: {resp.status_code} - {resp.text}")
-            return None
+            return {"_error": f"HTTP {resp.status_code}: {resp.text[:500]}"}
 
         try:
             response_content = resp.json()
         except json.JSONDecodeError:
-            st.error("❌ Failed to parse API response. The server may have returned an invalid JSON format.")
-            return None
+            return {"_error": f"JSON decode failed. Raw: {resp.text[:500]}"}
 
         return response_content
 
     except Exception as e:
-        st.error(f"Error making request: {str(e)}")
-        return None
+        return {"_error": f"Request exception: {str(e)}"}
 
 
 def process_sse_response(response):
@@ -638,6 +635,12 @@ class AssistantPage(Page):
 
             # Get response from API
             response = snowflake_api_call(query, 1)
+
+            # Check for API-level errors
+            if isinstance(response, dict) and "_error" in response:
+                st.session_state.messages.append({"role": "assistant", "content": f"API ERROR: {response['_error']}"})
+                st.experimental_rerun()
+
             text, sql, interpretation, citation = process_sse_response(response)
 
             if citation:
