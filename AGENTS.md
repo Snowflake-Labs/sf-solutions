@@ -30,6 +30,7 @@ Additional SiS constraints:
 - NUMBER/DECIMAL types must be cast to `::FLOAT` in SQL before passing to Plotly (Snowpark returns Python Decimal which Plotly cannot plot)
 - `st.connection("snowflake")` does not exist — use `from snowflake.snowpark.context import get_active_session`
 - `st.rerun()` does not exist — use `st.experimental_rerun()`
+- `st.chat_input()` and `st.chat_message()` do not exist — use `st.text_input()` + `st.button()` with markdown for conversation display
 
 ### PUT Command Behavior
 
