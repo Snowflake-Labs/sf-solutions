@@ -231,17 +231,17 @@ def set_default_sidebar():
         st.markdown("")
         if st.button(label="Supply Chain Assistant 💬"):
             set_page("Assistant")
-            st.rerun()
+            st.experimental_rerun()
         if st.button(label="Optimization Execution 🚀"):
             set_page("Optimization")
-            st.rerun()
+            st.experimental_rerun()
         st.markdown("")
         st.markdown("")
         st.markdown("")
         st.markdown("")
         if st.button(label="Return Home"):
             set_page("Welcome")
-            st.rerun()
+            st.experimental_rerun()
 
 
 def run_snowflake_query(query):
