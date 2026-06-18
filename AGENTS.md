@@ -35,6 +35,8 @@ Additional SiS constraints — unavailable methods:
 | `st.dataframe(hide_index=True)` | `st.dataframe()` without `hide_index` parameter |
 | `plotly.express` `color_discrete_map` | Avoid or use basic color args |
 | `plotly.express` with Decimal columns | Cast to `::FLOAT` in SQL before passing to Plotly |
+| `/snowflake/session/token` (SPCS only) | Use `session.sql("SELECT SNOWFLAKE.CORTEX.AGENT(...)")` in SiS |
+| `requests` to Cortex REST API | Use `session.sql()` with `SNOWFLAKE.CORTEX.AGENT()` SQL function |
 
 ### PUT Command Behavior
 
