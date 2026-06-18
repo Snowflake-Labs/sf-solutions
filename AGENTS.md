@@ -28,6 +28,8 @@ Additional SiS constraints:
 - `color_discrete_map` in `px` functions is buggy
 - `hide_index=True` in `st.dataframe` is unsupported
 - NUMBER/DECIMAL types must be cast to `::FLOAT` in SQL before passing to Plotly (Snowpark returns Python Decimal which Plotly cannot plot)
+- `st.connection("snowflake")` does not exist — use `from snowflake.snowpark.context import get_active_session`
+- `st.rerun()` does not exist — use `st.experimental_rerun()`
 
 ### PUT Command Behavior
 
