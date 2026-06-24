@@ -208,6 +208,31 @@ All PRs must pass:
 3. **ruff check + format** — all `*.py` files (excluding `gnn-supply-chain-risk/`)
 4. **skills-purity** — no code files (`.py`, `.sql`) inside `skills/` directories
 
+### Local Pre-commit Hooks
+
+This repo uses [pre-commit](https://pre-commit.com/) to run lint checks before every commit. After cloning, install the hooks:
+
+```bash
+pre-commit install
+pre-commit install --hook-type commit-msg
+```
+
+This enables:
+- **check-json** — validates `.json` files
+- **markdownlint** — lints `.md` files
+- **no-code-in-skills** — ensures `skills/` contains only `.md`, `.json`, `.yaml`, `.yml`
+- **conventional-pre-commit** — enforces [Conventional Commits](https://www.conventionalcommits.org/) message format
+
+Commit messages must use one of: `feat`, `fix`, `chore`, `docs`, `refactor`, `ci`, `test`.
+
+Examples:
+```
+feat: add supply-chain-intelligence solution
+fix: correct SEARCH_PREVIEW argument format
+docs: update AGENTS.md with PR template
+chore: format files with ruff
+```
+
 ## PR Test Template
 
 Include the following checklist in PR descriptions. All items must pass before merging.
