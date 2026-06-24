@@ -2,6 +2,10 @@
 
 Project-level instructions for AI coding assistants working on this repository.
 
+## Important Rules
+
+- **Never commit or push without explicit user instruction.** Only run `git commit` or `git push` when the user explicitly says "commit", "push", or "commit push".
+
 ## Project Overview
 
 This is the `sf-solutions` repository containing Snowflake industry solution accelerators. Each solution lives in `solutions/<name>/` with a standard structure (manifest.json, scripts/, streamlit/).
