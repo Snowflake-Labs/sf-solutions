@@ -1,6 +1,5 @@
-import streamlit as st
-import pandas as pd
 import plotly.graph_objects as go
+import streamlit as st
 from snowflake.snowpark.context import get_active_session
 
 st.set_page_config(page_title="LTV Prediction Dashboard", layout="wide")
@@ -8,11 +7,13 @@ st.set_page_config(page_title="LTV Prediction Dashboard", layout="wide")
 
 @st.cache_resource
 def get_session():
+    """Get the active Snowpark session."""
     return get_active_session()
 
 
 @st.cache_data(ttl=300)
 def load_segments(_session):
+    """Load aggregated segment metrics."""
     return _session.sql("""
         SELECT LTV_SEGMENT,
                COUNT(*)::FLOAT AS CUSTOMER_COUNT,
@@ -31,6 +32,7 @@ def load_segments(_session):
 
 @st.cache_data(ttl=300)
 def load_predictions(_session):
+    """Load LTV predictions for scatter plot."""
     return _session.sql("""
         SELECT PREDICTED_LTV::FLOAT AS PREDICTED_LTV,
                ACTUAL_LTV::FLOAT AS ACTUAL_LTV,
@@ -44,6 +46,7 @@ def load_predictions(_session):
 
 @st.cache_data(ttl=300)
 def load_insights(_session):
+    """Load AI-generated segment insights."""
     return _session.sql("""
         SELECT LTV_SEGMENT,
                CUSTOMER_COUNT::FLOAT AS CUSTOMER_COUNT,
@@ -57,6 +60,7 @@ def load_insights(_session):
 
 @st.cache_data(ttl=300)
 def load_timeseries_all(_session):
+    """Load actual and forecast time series for top customers per segment."""
     actual = _session.sql("""
         WITH top_customers AS (
             SELECT CUSTOMER_ID::VARCHAR AS CUSTOMER_ID, LTV_SEGMENT,
@@ -91,6 +95,7 @@ def load_timeseries_all(_session):
 
 
 def main():
+    """Render the LTV Prediction dashboard."""
     session = get_session()
 
     st.title("Customer Lifetime Value Prediction")
@@ -106,9 +111,7 @@ def main():
     # KPI row
     total_customers = int(segments["CUSTOMER_COUNT"].sum())
     avg_ltv = float(segments["AVG_PREDICTED_LTV"].mean())
-    platinum_count = int(
-        segments.loc[segments["LTV_SEGMENT"] == "Platinum", "CUSTOMER_COUNT"].sum()
-    )
+    platinum_count = int(segments.loc[segments["LTV_SEGMENT"] == "Platinum", "CUSTOMER_COUNT"].sum())
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Customers", f"{total_customers:,}")
@@ -123,20 +126,20 @@ def main():
 
     with left:
         st.subheader("Segment Distribution")
-        fig = go.Figure(data=[go.Bar(
-            x=segments["LTV_SEGMENT"].tolist(),
-            y=segments["CUSTOMER_COUNT"].tolist()
-        )])
+        fig = go.Figure(data=[go.Bar(x=segments["LTV_SEGMENT"].tolist(), y=segments["CUSTOMER_COUNT"].tolist())])
         fig.update_layout(showlegend=False, height=350, xaxis_title="Segment", yaxis_title="Customer Count")
         st.plotly_chart(fig, use_container_width=True)
 
     with right:
         st.subheader("Avg Predicted LTV by Segment")
-        fig = go.Figure(data=[go.Bar(
-            x=segments["LTV_SEGMENT"].tolist(),
-            y=segments["AVG_PREDICTED_LTV"].tolist()
-        )])
-        fig.update_layout(showlegend=False, height=350, xaxis_title="Segment", yaxis_title="Avg Predicted LTV", yaxis_tickprefix="$")
+        fig = go.Figure(data=[go.Bar(x=segments["LTV_SEGMENT"].tolist(), y=segments["AVG_PREDICTED_LTV"].tolist())])
+        fig.update_layout(
+            showlegend=False,
+            height=350,
+            xaxis_title="Segment",
+            yaxis_title="Avg Predicted LTV",
+            yaxis_tickprefix="$",
+        )
         st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
@@ -144,12 +147,16 @@ def main():
     # Predicted vs Actual scatter (using go.Scatter with explicit lists)
     st.subheader("Predicted vs Actual LTV")
     if not predictions.empty:
-        fig = go.Figure(data=[go.Scatter(
-            x=predictions["ACTUAL_LTV"].tolist(),
-            y=predictions["PREDICTED_LTV"].tolist(),
-            mode="markers",
-            marker=dict(opacity=0.5, size=5)
-        )])
+        fig = go.Figure(
+            data=[
+                go.Scatter(
+                    x=predictions["ACTUAL_LTV"].tolist(),
+                    y=predictions["PREDICTED_LTV"].tolist(),
+                    mode="markers",
+                    marker=dict(opacity=0.5, size=5),
+                )
+            ]
+        )
         fig.update_layout(height=400, xaxis_title="Actual LTV ($)", yaxis_title="Predicted LTV ($)")
         st.plotly_chart(fig, use_container_width=True)
 
@@ -173,16 +180,18 @@ def main():
             show_legend = seg not in legend_added
 
             # Actual (solid line)
-            fig.add_trace(go.Scatter(
-                x=cust_actual["MONTH"].tolist(),
-                y=cust_actual["MONTHLY_SPEND"].tolist(),
-                mode="lines",
-                line=dict(color=color, width=1.5),
-                showlegend=show_legend,
-                name=f"{seg}",
-                legendgroup=seg,
-                opacity=0.6
-            ))
+            fig.add_trace(
+                go.Scatter(
+                    x=cust_actual["MONTH"].tolist(),
+                    y=cust_actual["MONTHLY_SPEND"].tolist(),
+                    mode="lines",
+                    line=dict(color=color, width=1.5),
+                    showlegend=show_legend,
+                    name=f"{seg}",
+                    legendgroup=seg,
+                    opacity=0.6,
+                )
+            )
 
             # Forecast (dashed line)
             if not cust_forecast.empty:
@@ -195,25 +204,22 @@ def main():
                     fx = cust_forecast["MONTH"].tolist()
                     fy = cust_forecast["MONTHLY_SPEND"].tolist()
 
-                fig.add_trace(go.Scatter(
-                    x=fx,
-                    y=fy,
-                    mode="lines",
-                    line=dict(color=color, width=1.5, dash="dash"),
-                    showlegend=False,
-                    legendgroup=seg,
-                    opacity=0.6
-                ))
+                fig.add_trace(
+                    go.Scatter(
+                        x=fx,
+                        y=fy,
+                        mode="lines",
+                        line=dict(color=color, width=1.5, dash="dash"),
+                        showlegend=False,
+                        legendgroup=seg,
+                        opacity=0.6,
+                    )
+                )
 
             if show_legend:
                 legend_added.add(seg)
 
-        fig.update_layout(
-            height=500,
-            xaxis_title="Month",
-            yaxis_title="Monthly Spend ($)",
-            yaxis_tickprefix="$"
-        )
+        fig.update_layout(height=500, xaxis_title="Month", yaxis_title="Monthly Spend ($)", yaxis_tickprefix="$")
         st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
@@ -221,17 +227,19 @@ def main():
     # Segment metrics table
     st.subheader("Segment Metrics")
     st.dataframe(
-        segments.rename(columns={
-            "LTV_SEGMENT": "Segment",
-            "CUSTOMER_COUNT": "Customers",
-            "AVG_PREDICTED_LTV": "Avg Predicted LTV",
-            "AVG_ACTUAL_LTV": "Avg Actual LTV",
-            "AVG_SPEND": "Avg Spend",
-            "AVG_TXNS": "Avg Txns",
-            "AVG_FREQUENCY": "Monthly Freq",
-            "AVG_RECENCY": "Recency (days)",
-            "AVG_ONLINE_RATIO": "Online %",
-        }),
+        segments.rename(
+            columns={
+                "LTV_SEGMENT": "Segment",
+                "CUSTOMER_COUNT": "Customers",
+                "AVG_PREDICTED_LTV": "Avg Predicted LTV",
+                "AVG_ACTUAL_LTV": "Avg Actual LTV",
+                "AVG_SPEND": "Avg Spend",
+                "AVG_TXNS": "Avg Txns",
+                "AVG_FREQUENCY": "Monthly Freq",
+                "AVG_RECENCY": "Recency (days)",
+                "AVG_ONLINE_RATIO": "Online %",
+            }
+        ),
         use_container_width=True,
     )
 

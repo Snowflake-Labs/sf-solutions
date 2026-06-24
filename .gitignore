@@ -66,3 +66,5 @@ retail-demand-forecasting/
 
 .snowflake
 .cortex
+
+.ruff_cache

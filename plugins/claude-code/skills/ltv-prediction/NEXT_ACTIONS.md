@@ -88,7 +88,7 @@ After installation, guide the user through these progressive steps from explorat
    ```sql
    -- Create a task to retrain weekly
    CREATE OR REPLACE TASK SF_SOLUTIONS.LTV_ML.RETRAIN_LTV_MODEL
-       WAREHOUSE = COMPUTE_WH
+       WAREHOUSE = SF_SOLUTIONS_WH
        SCHEDULE = 'USING CRON 0 2 * * 1 America/Los_Angeles'
    AS
        -- Re-run feature engineering + model training
@@ -104,7 +104,7 @@ After installation, guide the user through these progressive steps from explorat
     ```sql
     -- Alert when model accuracy drops
     CREATE OR REPLACE ALERT SF_SOLUTIONS.LTV_ML.MODEL_DRIFT_ALERT
-        WAREHOUSE = COMPUTE_WH
+        WAREHOUSE = SF_SOLUTIONS_WH
         SCHEDULE = 'USING CRON 0 8 * * * America/Los_Angeles'
         IF (EXISTS (
             SELECT 1 FROM SF_SOLUTIONS.LTV_ML.LTV_PREDICTIONS
