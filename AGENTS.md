@@ -86,7 +86,7 @@ SELECT PARSE_JSON(
 - Configured with Google style docstrings (`convention = "google"`).
 - Line length: 120 characters.
 - `D107` (missing `__init__` docstring) is ignored.
-- `gnn-supply-chain-risk/` is excluded until migrated.
+- `solutions/gnn-supply-chain-risk/` is excluded until migrated.
 - CI runs both `ruff check` and `ruff format --check`.
 
 ### GitHub Actions — gh pr create in zsh
@@ -205,7 +205,7 @@ SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/'
 All PRs must pass:
 1. **markdownlint** — all `*.md` files
 2. **sqruff** — all `*.sql` files (`--format github-annotation-native`)
-3. **ruff check + format** — all `*.py` files (excluding `gnn-supply-chain-risk/`)
+3. **ruff check + format** — all `*.py` files (excluding `solutions/gnn-supply-chain-risk/`)
 4. **skills-purity** — no code files (`.py`, `.sql`) inside `skills/` directories
 
 ### Local Pre-commit Hooks

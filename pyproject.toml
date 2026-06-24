@@ -14,7 +14,7 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-exclude = ["gnn-supply-chain-risk"]
+exclude = ["solutions/gnn-supply-chain-risk"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "D", "UP", "N"]
