@@ -260,14 +260,15 @@ def snowflake_api_call(query: str, limit: int = 10):
         escaped_query = query.replace("'", "''")
 
         # Use Cortex Search via SQL SEARCH_PREVIEW function
+        # Arg 1: service name, Arg 2: JSON object with query params
+        escaped_query_json = escaped_query.replace("\\", "\\\\").replace('"', '\\"')
         search_sql = f"""
         SELECT PARSE_JSON(
             SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
                 'SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_INFO',
-                '{escaped_query}',
-                '{{"columns": ["chunk"], "limit": {limit}}}'
+                '{{"query": "{escaped_query_json}", "columns": ["PAGE_CONTENT"], "limit": {limit}}}'
             )
-        )['results'] AS results
+        )['results']::VARCHAR AS results
         """
         search_result = session.sql(search_sql).collect()
 
@@ -275,7 +276,7 @@ def snowflake_api_call(query: str, limit: int = 10):
         if search_result and search_result[0]["RESULTS"]:
             results_parsed = json.loads(search_result[0]["RESULTS"])
             for r in results_parsed:
-                context += r.get("chunk", "") + "\n\n"
+                context += r.get("PAGE_CONTENT", "") + "\n\n"
 
         # Generate response using Cortex Complete via SQL
         escaped_context = context.replace("'", "''")[:4000]

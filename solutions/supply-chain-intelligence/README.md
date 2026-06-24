@@ -1,5 +1,8 @@
 # Supply Chain Intelligence Platform
 
+> **Original Creator:** Reid Lewis
+> **Quickstart:** [Snowflake Agentic AI in Supply Chain](https://www.snowflake.com/en/developers/guides/snowflake-agentic-ai-in-supply-chain/)
+
 AI-powered supply chain assistant using Snowflake Intelligence, Cortex Analyst, and Cortex Search. Enables operations managers to query inventory, orders, shipments, and supply chain documentation through natural language.
 
 ## Architecture

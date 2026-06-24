@@ -39,9 +39,26 @@ Additional SiS constraints — unavailable methods:
 | `requests` to Cortex Agent REST API | Not available in SiS warehouse runtime |
 | `SNOWFLAKE.CORTEX.AGENT()` SQL function | Does not exist — use Cortex Search + Complete directly |
 | Cortex Agent API (any method) in SiS | **Not supported** — use Cortex Search + `snowflake.cortex.Complete` for RAG |
+| `snowflake.core` (Python module) | Not available — use `session.sql()` with SQL functions directly |
 
 **Important**: Cortex Agent API is explicitly not supported in SiS warehouse runtime (per Snowflake docs).
-To build a chatbot in SiS, use `snowflake.core.Root` → Cortex Search Service `.search()` + `snowflake.cortex.Complete()` directly.
+To build a chatbot in SiS, use `SNOWFLAKE.CORTEX.SEARCH_PREVIEW()` via `session.sql()` + `SNOWFLAKE.CORTEX.COMPLETE()`.
+
+**`snowflake.core` module**: Not available in SiS warehouse runtime. Do not import `Root` from `snowflake.core`. Use `session.sql()` with SQL functions instead.
+
+**`SNOWFLAKE.CORTEX.SEARCH_PREVIEW` signature** (2 args):
+```sql
+SELECT PARSE_JSON(
+    SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+        '<fully_qualified_service_name>',
+        '{"query": "<search_text>", "columns": ["col1"], "limit": 5}'
+    )
+)['results'] AS results;
+```
+- Arg 1: service name (string literal)
+- Arg 2: JSON object (string literal) containing `query`, `columns`, `limit`, `filter` etc.
+- Do NOT pass query as a plain text string — it must be a JSON object.
+- Do NOT pass 3 arguments — all options go inside the JSON object in arg 2.
 
 ### PUT Command Behavior
 
@@ -190,6 +207,64 @@ All PRs must pass:
 2. **sqruff** — all `*.sql` files (`--format github-annotation-native`)
 3. **ruff check + format** — all `*.py` files (excluding `gnn-supply-chain-risk/`)
 4. **skills-purity** — no code files (`.py`, `.sql`) inside `skills/` directories
+
+## PR Test Template
+
+Include the following checklist in PR descriptions. All items must pass before merging.
+
+```markdown
+## Test Plan
+
+### CI (automated)
+- [ ] `ruff check` passes
+- [ ] `ruff format --check` passes
+- [ ] `sqruff lint` passes (all `.sql` files)
+- [ ] `markdownlint` passes (all `.md` files)
+- [ ] `skills-purity` passes (no `.py`/`.sql` in `skills/` dirs)
+
+### Setup / Teardown (manual)
+- [ ] `scripts/setup.sql` completes successfully as ACCOUNTADMIN
+- [ ] `scripts/teardown.sql` is idempotent (runs twice without error)
+- [ ] Full round-trip works: teardown → setup → teardown
+
+### Streamlit App (verify in SiS warehouse runtime)
+- [ ] App launches without import errors in SiS warehouse runtime
+- [ ] All pages/tabs navigate correctly
+- [ ] Data displays correctly (tables, charts)
+- [ ] Plotly charts render actual data values (not index numbers)
+- [ ] User interactions (buttons, inputs) work
+- [ ] Cortex features (Search/Complete/Analyst) return responses
+
+### Cortex Agent / Intelligence (if applicable)
+- [ ] Agent responds from Snowsight UI
+- [ ] Cortex Analyst (semantic model) generates correct SQL
+- [ ] Cortex Search Service is indexed (`SHOW CORTEX SEARCH SERVICES` shows ACTIVE)
+
+### Data Integrity
+- [ ] Demo data inserts correctly (verify row counts)
+- [ ] Referential joins are not broken (JOIN results are non-empty)
+- [ ] All DB/Schema/Table references use `SF_SOLUTIONS.<SCHEMA>.<TABLE>` format
+```
+
+### PR Description Template
+
+```markdown
+## Summary
+<!-- 1-3 sentences describing the change -->
+
+## Changes
+- ...
+
+## Test Plan
+- [ ] Verify `uv run sqruff lint solutions/<solution-name>/scripts/` passes
+- [ ] Run `$snowflake-solutions:<solution-name>` in Cortex Code to confirm install works
+- [ ] Run `$snowflake-solutions:<solution-name> teardown` in Cortex Code to confirm teardown works
+- [ ] Run `/snowflake-solutions:<solution-name>` to confirm install in Claude Code
+- [ ] Run `/snowflake-solutions:<solution-name> teardown` to confirm teardown works in Claude Code
+
+## Screenshots
+<!-- SiS runtime screenshots if UI changes are included -->
+```
 
 ## Existing Solutions
 
