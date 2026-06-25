@@ -1,0 +1,108 @@
+name: Solution structure check
+
+on:
+  pull_request:
+    paths:
+      - "solutions/**"
+      - "plugins/**"
+
+jobs:
+  check-solution-structure:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check new solutions have required files
+        run: |
+          # Get newly added files under solutions/
+          files=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD -- solutions/)
+
+          if [ -z "$files" ]; then
+            echo "No new files in solutions/"
+          else
+            # Extract unique new solution directories
+            new_dirs=$(echo "$files" | cut -d/ -f1-2 | sort -u)
+
+            echo "New/modified solution directories:"
+            echo "$new_dirs"
+
+            required_files="scripts/setup.sql scripts/teardown.sql manifest.json README.md"
+
+            errors=0
+            for dir in $new_dirs; do
+              for req in $required_files; do
+                if [ ! -f "$dir/$req" ]; then
+                  echo "ERROR: $dir is missing $req"
+                  errors=$((errors + 1))
+                else
+                  echo "OK: $dir/$req exists"
+                fi
+              done
+            done
+
+            if [ $errors -gt 0 ]; then
+              echo ""
+              echo "FAILED: $errors required file(s) missing"
+              echo ""
+              echo "Every solution must have:"
+              echo "  - scripts/setup.sql"
+              echo "  - scripts/teardown.sql"
+              echo "  - manifest.json"
+              echo "  - README.md"
+              exit 1
+            fi
+
+            echo ""
+            echo "All new solutions have required files"
+          fi
+
+      - name: Check new plugin skills have required files
+        run: |
+          # Get newly added files under plugins/
+          files=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD -- plugins/)
+
+          if [ -z "$files" ]; then
+            echo "No new files in plugins/"
+            exit 0
+          fi
+
+          # Extract unique new skill directories (plugins/<platform>/skills/<name>)
+          new_dirs=$(echo "$files" | grep -E '^plugins/[^/]+/skills/[^/]+/' | cut -d/ -f1-4 | sort -u)
+
+          if [ -z "$new_dirs" ]; then
+            echo "No new skill directories"
+            exit 0
+          fi
+
+          echo "New/modified plugin skill directories:"
+          echo "$new_dirs"
+
+          required_files="SKILL.md NEXT_ACTIONS.md"
+
+          errors=0
+          for dir in $new_dirs; do
+            for req in $required_files; do
+              if [ ! -f "$dir/$req" ]; then
+                echo "ERROR: $dir is missing $req"
+                errors=$((errors + 1))
+              else
+                echo "OK: $dir/$req exists"
+              fi
+            done
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo ""
+            echo "FAILED: $errors required file(s) missing"
+            echo ""
+            echo "Every plugin skill must have:"
+            echo "  - SKILL.md"
+            echo "  - NEXT_ACTIONS.md"
+            exit 1
+          fi
+
+          echo ""
+          echo "All new plugin skills have required files"

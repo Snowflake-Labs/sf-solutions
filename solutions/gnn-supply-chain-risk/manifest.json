@@ -10,7 +10,7 @@
   "role": "ACCOUNTADMIN",
   "requires_warehouse": true,
   "requires_spcs": true,
-  "install_scripts": ["scripts/setup.sql"],
+  "install_scripts": ["scripts/setup.sql", "scripts/data.sql"],
   "teardown_scripts": ["scripts/teardown.sql"],
   "features": [
     "Graph Neural Networks (PyTorch Geometric)",

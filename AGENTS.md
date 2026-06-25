@@ -2,6 +2,10 @@
 
 Project-level instructions for AI coding assistants working on this repository.
 
+## Important Rules
+
+- **Never commit or push without explicit user instruction.** Only run `git commit` or `git push` when the user explicitly says "commit", "push", or "commit push".
+
 ## Project Overview
 
 This is the `sf-solutions` repository containing Snowflake industry solution accelerators. Each solution lives in `solutions/<name>/` with a standard structure (manifest.json, scripts/, streamlit/).
@@ -63,8 +67,9 @@ SELECT PARSE_JSON(
 ### PUT Command Behavior
 
 - PUT is a client-side command — it cannot be executed inside SQL worksheets in Snowsight or inside `.sql` files.
-- In Cortex Code, use `snowflake_sql_execute` with PUT, but the stage path must be relative. Use `USE SCHEMA` first, then `@STAGE_NAME/` (not `@DB.SCHEMA.STAGE/` which gives "Schema does not exist").
-- In Claude Code CLI, use `snow sql -q "PUT file://... @DB.SCHEMA.STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"`.
+- In Cortex Code, use `snowflake_sql_execute` with PUT directly (it supports fully qualified stage paths).
+- **Do NOT use `snow sql`** — it requires password/key-pair auth in `connections.toml`, which PAT-only environments lack.
+- In SKILL.md files, always use the MCP SQL execution tool (not `snow sql` CLI).
 - Always use `AUTO_COMPRESS=FALSE` for `.py` and `.yml` files.
 
 ### Snowflake SQL Reserved Words
@@ -86,7 +91,6 @@ SELECT PARSE_JSON(
 - Configured with Google style docstrings (`convention = "google"`).
 - Line length: 120 characters.
 - `D107` (missing `__init__` docstring) is ignored.
-- `gnn-supply-chain-risk/` is excluded until migrated.
 - CI runs both `ruff check` and `ruff format --check`.
 
 ### GitHub Actions — gh pr create in zsh
@@ -205,7 +209,7 @@ SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/'
 All PRs must pass:
 1. **markdownlint** — all `*.md` files
 2. **sqruff** — all `*.sql` files (`--format github-annotation-native`)
-3. **ruff check + format** — all `*.py` files (excluding `gnn-supply-chain-risk/`)
+3. **ruff check + format** — all `*.py` files
 4. **skills-purity** — no code files (`.py`, `.sql`) inside `skills/` directories
 
 ### Local Pre-commit Hooks
