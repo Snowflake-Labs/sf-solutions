@@ -1,7 +1,6 @@
-"""
-Visualization Components for Streamlit
+"""Visualization Components for Streamlit.
 
-Note: D3.js-based components were removed because external JavaScript CDN 
+Note: D3.js-based components were removed because external JavaScript CDN
 imports are blocked by Snowflake's Content Security Policy (CSP).
 
 All visualizations in this app now use Plotly, which is natively supported
