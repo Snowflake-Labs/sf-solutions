@@ -67,8 +67,9 @@ SELECT PARSE_JSON(
 ### PUT Command Behavior
 
 - PUT is a client-side command — it cannot be executed inside SQL worksheets in Snowsight or inside `.sql` files.
-- In Cortex Code, use `snowflake_sql_execute` with PUT, but the stage path must be relative. Use `USE SCHEMA` first, then `@STAGE_NAME/` (not `@DB.SCHEMA.STAGE/` which gives "Schema does not exist").
-- In Claude Code CLI, use `snow sql -q "PUT file://... @DB.SCHEMA.STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"`.
+- In Cortex Code, use `snowflake_sql_execute` with PUT directly (it supports fully qualified stage paths).
+- **Do NOT use `snow sql`** — it requires password/key-pair auth in `connections.toml`, which PAT-only environments lack.
+- In SKILL.md files, always use the MCP SQL execution tool (not `snow sql` CLI).
 - Always use `AUTO_COMPRESS=FALSE` for `.py` and `.yml` files.
 
 ### Snowflake SQL Reserved Words

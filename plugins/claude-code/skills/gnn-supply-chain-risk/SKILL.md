@@ -67,31 +67,36 @@ Parse the action from `$ARGUMENTS`:
 
 4. Wait for user confirmation.
 
-5. Execute setup in BATCHES using `snow sql`:
+5. Read and execute `solutions/gnn-supply-chain-risk/scripts/setup.sql` in BATCHES.
+   Execute each batch via the MCP SQL tool (NOT `snow sql` — it lacks auth in PAT-only environments).
 
    **Batch 1 — Infrastructure (Sections 1-2):**
-   ```bash
-   snow sql -q "USE ROLE ACCOUNTADMIN; CREATE DATABASE IF NOT EXISTS SF_SOLUTIONS; CREATE SCHEMA IF NOT EXISTS SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK; CREATE WAREHOUSE IF NOT EXISTS SF_SOLUTIONS_WH WAREHOUSE_SIZE='LARGE' AUTO_SUSPEND=60 AUTO_RESUME=TRUE; USE WAREHOUSE SF_SOLUTIONS_WH; USE DATABASE SF_SOLUTIONS; USE SCHEMA GNN_SUPPLY_CHAIN_RISK;"
+   ```sql
+   USE ROLE ACCOUNTADMIN;
+   CREATE DATABASE IF NOT EXISTS SF_SOLUTIONS;
+   CREATE SCHEMA IF NOT EXISTS SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK;
+   CREATE WAREHOUSE IF NOT EXISTS SF_SOLUTIONS_WH WAREHOUSE_SIZE='LARGE' AUTO_SUSPEND=60 AUTO_RESUME=TRUE;
+   USE WAREHOUSE SF_SOLUTIONS_WH;
+   USE DATABASE SF_SOLUTIONS;
+   USE SCHEMA GNN_SUPPLY_CHAIN_RISK;
    ```
    Then create stages (MODELS_STAGE, DATA_STAGE, SEMANTIC_MODELS).
 
    **Batch 2 — Table DDL (Section 3):**
-   Execute all CREATE TABLE statements.
+   Execute all CREATE TABLE statements from setup.sql.
 
-   **Batch 3 — Demo Data (Sections 4-9):**
-   Execute setup.sql directly for data sections (or `snow sql -f` with the full file):
-   ```bash
-   snow sql -f <repo_path>/solutions/gnn-supply-chain-risk/scripts/setup.sql
-   ```
-   Use timeout 600 seconds.
+   **Batch 3 — Demo Data:**
+   Read and execute `solutions/gnn-supply-chain-risk/scripts/data.sql` statement by statement.
+   Use timeout 300 seconds per batch.
 
    **Batch 4 — Analytics Views + UDF (Sections 10-11):**
-   Execute CREATE VIEW and CREATE FUNCTION statements.
+   Execute CREATE VIEW and CREATE FUNCTION statements from setup.sql.
 
    **Batch 5 — Semantic Model (Section 12):**
-   The YAML is inline in setup.sql — already executed. Refresh the stage:
-   ```bash
-   snow sql -q "ALTER STAGE SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SEMANTIC_MODELS REFRESH;"
+   Upload the YAML file to the stage:
+   ```sql
+   PUT file://<repo_path>/solutions/gnn-supply-chain-risk/semantic/supply_chain_risk.yaml @SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SEMANTIC_MODELS/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+   ALTER STAGE SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.SEMANTIC_MODELS REFRESH;
    ```
 
    **Batch 6 — SPCS + EAI (Sections 13-14, OPTIONAL):**
@@ -103,8 +108,8 @@ Parse the action from `$ARGUMENTS`:
    Execute CREATE AGENT, CREATE PROCEDURE, and verification query.
 
 6. **Run the risk scoring stored procedure:**
-   ```bash
-   snow sql -q "CALL SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.RUN_RISK_SCORING();"
+   ```sql
+   CALL SF_SOLUTIONS.GNN_SUPPLY_CHAIN_RISK.RUN_RISK_SCORING();
    ```
 
 7. **[MANDATORY — DO NOT SKIP]** Retrieve and display access URLs:

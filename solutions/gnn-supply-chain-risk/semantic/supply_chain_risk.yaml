@@ -1,0 +1,318 @@
+name: supply_chain_risk_semantic_view
+description: |
+  GNN Supply Chain Risk Analytics - Enables natural language queries for
+  supply chain risk assessment, vendor analysis, and bottleneck identification.
+
+tables:
+  - name: vendors
+    base_table:
+      database: SF_SOLUTIONS
+      schema: GNN_SUPPLY_CHAIN_RISK
+      table: VENDORS
+    primary_key:
+      columns: [vendor_id]
+
+    dimensions:
+      - name: vendor_id
+        expr: vendor_id
+        data_type: TEXT
+        description: Unique identifier for the vendor
+
+      - name: vendor_name
+        expr: name
+        synonyms: ["supplier name", "company name", "vendor"]
+        data_type: TEXT
+        description: Full name of the vendor company
+
+      - name: country
+        expr: country_code
+        synonyms: ["country code", "region", "location"]
+        data_type: TEXT
+        sample_values: ["USA", "CHN", "DEU", "JPN", "KOR", "MEX", "AUS", "CHL", "COD"]
+        description: ISO 3-letter country code where vendor is located
+
+      - name: city
+        expr: city
+        data_type: TEXT
+        description: City where vendor is headquartered
+
+      - name: tier
+        expr: tier
+        synonyms: ["supplier tier", "vendor tier"]
+        data_type: NUMBER
+        sample_values: ["1", "2"]
+        description: Supplier tier (1=direct, 2=inferred via GNN)
+
+    facts:
+      - name: financial_health
+        expr: financial_health_score
+        synonyms: ["financial score", "health score"]
+        data_type: NUMBER
+        description: Financial health score from 0 (poor) to 1 (excellent)
+
+    metrics:
+      - name: total_vendors
+        expr: COUNT(DISTINCT vendors.vendor_id)
+        synonyms: ["vendor count", "number of vendors", "supplier count"]
+        description: Total number of vendors
+
+      - name: avg_financial_health
+        expr: AVG(vendors.financial_health)
+        synonyms: ["average health", "mean financial score"]
+        description: Average financial health score across vendors
+
+  - name: regions
+    base_table:
+      database: SF_SOLUTIONS
+      schema: GNN_SUPPLY_CHAIN_RISK
+      table: REGIONS
+    primary_key:
+      columns: [region_code]
+
+    dimensions:
+      - name: region_code
+        expr: region_code
+        data_type: TEXT
+        sample_values: ["USA", "CHN", "DEU", "JPN", "KOR", "MEX", "AUS", "CHL", "COD"]
+        description: ISO 3-letter country/region code
+
+      - name: region_name
+        expr: region_name
+        synonyms: ["country name", "region", "country"]
+        data_type: TEXT
+        sample_values: ["United States", "China", "Germany", "Japan", "South Korea"]
+        description: Full name of the region/country
+
+    facts:
+      - name: geopolitical_risk
+        expr: geopolitical_risk
+        synonyms: ["political risk", "geo risk"]
+        data_type: NUMBER
+        description: Geopolitical risk factor from 0 (stable) to 1 (high risk)
+
+      - name: natural_disaster_risk
+        expr: natural_disaster_risk
+        synonyms: ["disaster risk", "natural risk"]
+        data_type: NUMBER
+        description: Natural disaster risk from 0 (low) to 1 (high)
+
+      - name: infrastructure_score
+        expr: infrastructure_score
+        synonyms: ["infrastructure quality", "logistics score"]
+        data_type: NUMBER
+        description: Infrastructure quality from 0 (poor) to 1 (excellent)
+
+      - name: base_risk
+        expr: base_risk_score
+        synonyms: ["baseline risk", "regional risk"]
+        data_type: NUMBER
+        description: Combined baseline regional risk score
+
+    metrics:
+      - name: avg_regional_risk
+        expr: AVG(regions.base_risk)
+        description: Average risk score across regions
+
+  - name: risk_scores
+    base_table:
+      database: SF_SOLUTIONS
+      schema: GNN_SUPPLY_CHAIN_RISK
+      table: RISK_SCORES
+    primary_key:
+      columns: [score_id]
+
+    dimensions:
+      - name: score_id
+        expr: score_id
+        data_type: NUMBER
+        description: Unique identifier for risk score record
+
+      - name: node_id
+        expr: node_id
+        data_type: TEXT
+        description: ID of the node (vendor, material, or external supplier)
+
+      - name: node_type
+        expr: node_type
+        synonyms: ["entity type", "type"]
+        data_type: TEXT
+        sample_values: ["SUPPLIER", "PART", "EXTERNAL_SUPPLIER"]
+        description: Type of entity
+
+      - name: risk_category
+        expr: risk_category
+        synonyms: ["risk level", "risk tier", "severity"]
+        data_type: TEXT
+        sample_values: ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+        description: Categorical risk level
+
+    time_dimensions:
+      - name: calculated_at
+        expr: calculated_at
+        data_type: TIMESTAMP
+        description: When the risk score was computed
+
+    facts:
+      - name: risk_score
+        expr: risk_score
+        synonyms: ["risk", "score"]
+        data_type: NUMBER
+        description: GNN-computed risk score from 0 to 1
+
+      - name: confidence
+        expr: confidence
+        synonyms: ["certainty"]
+        data_type: NUMBER
+        description: Model confidence in the risk prediction
+
+    metrics:
+      - name: avg_risk_score
+        expr: AVG(risk_scores.risk_score)
+        synonyms: ["average risk", "mean risk"]
+        description: Average risk score across all nodes
+
+      - name: critical_count
+        expr: COUNT(CASE WHEN risk_scores.risk_category = 'CRITICAL' THEN 1 END)
+        synonyms: ["critical risks"]
+        description: Count of nodes with CRITICAL risk
+
+      - name: high_risk_count
+        expr: COUNT(CASE WHEN risk_scores.risk_category IN ('CRITICAL', 'HIGH') THEN 1 END)
+        synonyms: ["high risk count"]
+        description: Count of high risk nodes
+
+  - name: bottlenecks
+    base_table:
+      database: SF_SOLUTIONS
+      schema: GNN_SUPPLY_CHAIN_RISK
+      table: BOTTLENECKS
+    primary_key:
+      columns: [bottleneck_id]
+
+    dimensions:
+      - name: bottleneck_id
+        expr: bottleneck_id
+        data_type: NUMBER
+        description: Unique identifier for bottleneck
+
+      - name: node_id
+        expr: node_id
+        synonyms: ["bottleneck node", "spof id"]
+        data_type: TEXT
+        description: ID of the bottleneck node
+
+      - name: node_type
+        expr: node_type
+        data_type: TEXT
+        sample_values: ["SUPPLIER", "PART", "EXTERNAL_SUPPLIER"]
+        description: Type of bottleneck entity
+
+      - name: mitigation_status
+        expr: mitigation_status
+        synonyms: ["status"]
+        data_type: TEXT
+        sample_values: ["UNMITIGATED", "IN_PROGRESS", "MITIGATED"]
+        description: Current mitigation status
+
+    time_dimensions:
+      - name: identified_at
+        expr: identified_at
+        data_type: TIMESTAMP
+        description: When the bottleneck was identified
+
+    facts:
+      - name: dependent_count
+        expr: dependent_count
+        synonyms: ["dependents", "affected vendors"]
+        data_type: NUMBER
+        description: Number of downstream nodes dependent on this bottleneck
+
+      - name: impact_score
+        expr: impact_score
+        synonyms: ["impact", "severity"]
+        data_type: NUMBER
+        description: Calculated impact score
+
+    metrics:
+      - name: total_bottlenecks
+        expr: COUNT(DISTINCT bottlenecks.bottleneck_id)
+        synonyms: ["bottleneck count"]
+        description: Total number of identified bottlenecks
+
+      - name: avg_dependent_count
+        expr: AVG(bottlenecks.dependent_count)
+        description: Average dependents per bottleneck
+
+      - name: unmitigated_count
+        expr: COUNT(CASE WHEN bottlenecks.mitigation_status = 'UNMITIGATED' THEN 1 END)
+        synonyms: ["open bottlenecks"]
+        description: Count of unmitigated bottlenecks
+
+relationships:
+  - name: vendors_to_regions
+    left_table: vendors
+    right_table: regions
+    relationship_columns:
+      - left_column: country
+        right_column: region_code
+
+  - name: risk_to_vendors
+    left_table: risk_scores
+    right_table: vendors
+    relationship_columns:
+      - left_column: node_id
+        right_column: vendor_id
+
+verified_queries:
+  - name: portfolio_risk_overview
+    question: "What is our overall portfolio risk?"
+    use_as_onboarding_question: true
+    sql: |
+      SELECT
+        COUNT(*) AS total_nodes,
+        AVG(risk_score) AS avg_risk,
+        COUNT(CASE WHEN risk_category = 'CRITICAL' THEN 1 END) AS critical_count,
+        COUNT(CASE WHEN risk_category = 'HIGH' THEN 1 END) AS high_count
+      FROM __risk_scores
+
+  - name: risk_by_region
+    question: "Which regions have the highest supply chain risk?"
+    use_as_onboarding_question: true
+    sql: |
+      SELECT
+        r.region_name,
+        r.base_risk AS regional_risk,
+        COUNT(v.vendor_id) AS vendor_count
+      FROM __regions r
+      LEFT JOIN __vendors v ON v.country = r.region_code
+      GROUP BY r.region_name, r.base_risk
+      ORDER BY r.base_risk DESC
+
+  - name: top_bottlenecks
+    question: "What are our biggest bottlenecks?"
+    use_as_onboarding_question: true
+    sql: |
+      SELECT
+        node_id,
+        node_type,
+        dependent_count,
+        impact_score,
+        mitigation_status
+      FROM __bottlenecks
+      ORDER BY impact_score DESC
+      LIMIT 10
+
+  - name: critical_suppliers
+    question: "Which suppliers have critical risk scores?"
+    sql: |
+      SELECT
+        rs.node_id AS vendor_id,
+        v.vendor_name,
+        v.country,
+        rs.risk_score,
+        rs.risk_category
+      FROM __risk_scores rs
+      JOIN __vendors v ON rs.node_id = v.vendor_id
+      WHERE rs.risk_category = 'CRITICAL'
+      ORDER BY rs.risk_score DESC
+

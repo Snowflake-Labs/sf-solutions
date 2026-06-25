@@ -69,30 +69,24 @@ Parse the action from `$ARGUMENTS`:
    **Batch 1 — Setup:** USE ROLE, CREATE DATABASE/SCHEMA/WAREHOUSE(LARGE)/Stages/File Format (all DDL together)
    **Batch 2 — Table DDL:** All 11 CREATE TABLE statements
    **Batch 3 — Demo Data + Date Normalization (Sections 3-4):**
-   Execute `solutions/supply-chain-intelligence/scripts/data.sql` directly:
-   ```bash
-   snow sql -f <repo_path>/solutions/supply-chain-intelligence/scripts/data.sql
-   ```
-   Use timeout 300 seconds.
+   Read and execute `solutions/supply-chain-intelligence/scripts/data.sql` statement by statement.
+   Use timeout 300 seconds per batch.
 
    **Batch 4 — Semantic Model:**
    Upload the semantic model YAML to the stage:
-   ```bash
-   snow sql -q "PUT file://<repo_path>/solutions/supply-chain-intelligence/semantic/supply_chain_network.yaml @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-   snow sql -q "ALTER STAGE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE REFRESH;"
+   ```sql
+   PUT file://<repo_path>/solutions/supply-chain-intelligence/semantic/supply_chain_network.yaml @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+   ALTER STAGE SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SEMANTIC_STAGE REFRESH;
    ```
    **Batch 5 — Cortex Search + Agent:** CREATE CORTEX SEARCH SERVICE + CREATE AGENT (timeout_seconds: 300)
    **Batch 6 — Streamlit deploy:**
    Upload the Streamlit files to the stage and create the app:
-   ```bash
-   snow sql -q "CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);"
-   snow sql -q "PUT file://<repo_path>/solutions/supply-chain-intelligence/streamlit/streamlit_app.py @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-   snow sql -q "PUT file://<repo_path>/solutions/supply-chain-intelligence/streamlit/environment.yml @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-   ```
-   Then execute the CREATE STREAMLIT:
-   ```bash
-   snow sql -q "CREATE OR REPLACE STREAMLIT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP FROM '@SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE' MAIN_FILE = 'streamlit_app.py' QUERY_WAREHOUSE = SF_SOLUTIONS_WH;"
-   snow sql -q "ALTER STREAMLIT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP ADD LIVE VERSION FROM LAST;"
+   ```sql
+   CREATE STAGE IF NOT EXISTS SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);
+   PUT file://<repo_path>/solutions/supply-chain-intelligence/streamlit/streamlit_app.py @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+   PUT file://<repo_path>/solutions/supply-chain-intelligence/streamlit/environment.yml @SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+   CREATE OR REPLACE STREAMLIT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP FROM '@SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.STREAMLIT_STAGE' MAIN_FILE = 'streamlit_app.py' QUERY_WAREHOUSE = SF_SOLUTIONS_WH;
+   ALTER STREAMLIT SF_SOLUTIONS.SUPPLY_CHAIN_ENTITIES.SUPPLY_CHAIN_APP ADD LIVE VERSION FROM LAST;
    ```
    **Batch 7 — Verification:** Final SELECT to confirm row counts
 
