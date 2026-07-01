@@ -2,9 +2,6 @@ name: Solution structure check
 
 on:
   pull_request:
-    paths:
-      - "solutions/**"
-      - "plugins/**"
 
 jobs:
   check-solution-structure:
