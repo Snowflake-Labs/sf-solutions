@@ -21,8 +21,8 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 Install any solution using the Cortex Code plugin:
 
 ```bash
-# Permanent install (copies plugin to cache — survives restarts)
-cortex plugin install https://github.com/Snowflake-Labs/sf-solutions.git
+# TBA: Public install (available after repo goes public)
+# cortex plugin install "Snowflake-Labs/sf-solutions/plugins/cortex-code"
 
 # Or load locally during development (reads directly from disk, always up-to-date)
 cortex --plugin-dir ./plugins/cortex-code
@@ -45,8 +45,9 @@ $snowflake-solutions:ltv-prediction teardown
 ## Quick Install (via Claude Code)
 
 ```bash
-# Add the marketplace
-claude plugin marketplace add https://github.com/Snowflake-Labs/sf-solutions.git --path plugins/claude-code
+## Add the marketplace
+# TBA: Public install (available after repo goes public)
+
 
 # Or load locally during development
 claude --plugin-dir ./plugins/claude-code
