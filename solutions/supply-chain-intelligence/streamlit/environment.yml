@@ -1,7 +1,0 @@
-name: supply_chain_assistant
-channels:
-  - snowflake
-dependencies:
-  - scipy
-  - numpy
-  - pandas
