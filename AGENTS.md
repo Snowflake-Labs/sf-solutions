@@ -98,6 +98,22 @@ SELECT PARSE_JSON(
 - Heredoc and multiline strings in `gh pr create --body` can get stuck in zsh.
 - Workaround: use `$(cat <<'EOF' ... EOF)` syntax for the body.
 
+### Cortex Agent — CoWork Visibility
+
+- After creating an Agent with `CREATE AGENT`, you must GRANT USAGE for it to appear in CoWork (Snowflake Intelligence).
+- The Agent owner role can issue the GRANT without ACCOUNTADMIN:
+  ```sql
+  GRANT USAGE ON AGENT <db>.<schema>.<agent_name> TO ROLE PUBLIC;
+  ```
+- Without this GRANT, the Agent exists but is invisible in CoWork for other roles/users.
+- Trial accounts may auto-grant visibility; Enterprise accounts do not.
+
+### GitHub Actions — Required Status Checks with Path Filters
+
+- Workflows with `paths:` filters do NOT trigger when no matching files change.
+- If such a workflow is listed in a ruleset as a required status check, the PR gets stuck on "Waiting for status to be reported" forever.
+- **Fix:** Remove `paths:` from the workflow trigger and add an early-exit check inside the job (e.g., "No SQL files found — skipping").
+
 ## Coding Conventions
 
 ### SQL Style
