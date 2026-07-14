@@ -6,9 +6,26 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ## Solution Catalog
 
-| # | Solution | Industry | Directory | Key Snowflake Features | Status |
-|---|----------|----------|-----------|----------------------|--------|
-| 1 | **Customer Lifetime Value Prediction** | Retail / CPG | `ltv-prediction/` | Snowflake ML Regression, Cortex AI Functions | ✅ Done |
+### [sf-hcls-solutions](https://github.com/Snowflake-Labs/sf-hcls-solutions) — Healthcare & Life Sciences
+
+| # | Solution | Description | Key Snowflake Features |
+|---|----------|-------------|----------------------|
+| 1 | [Clinical Quality Agent](https://github.com/Snowflake-Labs/sf-hcls-solutions/tree/main/solutions/clinical-quality-agent) | AI-powered Cortex Agent for Chief Quality Officers to analyze patient outcomes, infections, mortality rates, and safety indicators using natural language | Cortex Agent, Cortex Analyst, Cortex Search, Notifications |
+| 2 | [Medical Device Streaming](https://github.com/Snowflake-Labs/sf-hcls-solutions/tree/main/solutions/medical-device-streaming) | Real-time medical device data streaming platform for ECG, EDA, and PPG biosignal data with live analytics | Snowpipe Streaming, ASOF Joins, Dynamic Tables |
+
+### [sf-mleu-solutions](https://github.com/Snowflake-Labs/sf-mleu-solutions) — Manufacturing, Logistics, Energy & Utilities
+
+| # | Solution | Description | Key Snowflake Features |
+|---|----------|-------------|----------------------|
+| 1 | [GNN Supply Chain Risk](https://github.com/Snowflake-Labs/sf-mleu-solutions/tree/main/solutions/gnn-supply-chain-risk) | AI-driven N-tier supply chain resilience using Graph Neural Networks. Identifies hidden Tier-2+ supplier dependencies and concentration risks | PyTorch Geometric, GPU Compute (SPCS), Cortex Agent, Semantic Model |
+| 2 | [Predictive Maintenance](https://github.com/Snowflake-Labs/sf-mleu-solutions/tree/main/solutions/predictive-maintenance) | Predictive maintenance solution for industrial equipment using Snowflake ML | Snowflake ML, Cortex AI Functions |
+| 3 | [Supply Chain Intelligence](https://github.com/Snowflake-Labs/sf-mleu-solutions/tree/main/solutions/supply-chain-intelligence) | Agentic AI platform for supply chain management with multi-agent orchestration | Cortex Agent, Cortex Analyst, Cortex Search, Streamlit |
+
+### [sf-rcg-solutions](https://github.com/Snowflake-Labs/sf-rcg-solutions) — Retail, CPG & General
+
+| # | Solution | Description | Key Snowflake Features |
+|---|----------|-------------|----------------------|
+| 1 | [Customer Lifetime Value Prediction](https://github.com/Snowflake-Labs/sf-rcg-solutions/tree/main/solutions/ltv-prediction) | Predict customer lifetime value using Snowflake ML regression models | Snowflake ML Regression, Cortex AI Functions |
 
 ---
 
