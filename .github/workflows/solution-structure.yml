@@ -67,8 +67,7 @@ jobs:
           fi
 
           # Extract unique new skill directories (plugins/<platform>/skills/<name>)
-          # Exclude plugins/claude-code/skills/list (no NEXT_ACTIONS.md by design)
-          new_dirs=$(echo "$files" | grep -E '^plugins/[^/]+/skills/[^/]+/' | grep -v 'plugins/claude-code/skills/list/' | cut -d/ -f1-4 | sort -u)
+          new_dirs=$(echo "$files" | grep -E '^plugins/[^/]+/skills/[^/]+/' | cut -d/ -f1-4 | sort -u)
 
           if [ -z "$new_dirs" ]; then
             echo "No new skill directories"

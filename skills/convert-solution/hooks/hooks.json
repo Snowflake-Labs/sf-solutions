@@ -1,0 +1,15 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash skills/convert-solution/hooks/check-no-credentials.sh"
+                    }
+                ]
+            }
+        ]
+    }
+}
