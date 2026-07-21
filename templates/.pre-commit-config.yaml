@@ -1,0 +1,38 @@
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.6.0
+      hooks:
+          - id: check-json
+            files: \.(json)$
+
+    - repo: local
+      hooks:
+          - id: markdownlint
+            name: markdownlint
+            language: system
+            entry: markdownlint
+            args: [--config, .markdownlint.yaml, --ignore-path, .markdownlintignore]
+            types: [markdown]
+
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.11.12
+      hooks:
+          - id: ruff
+            args: [--fix]
+          - id: ruff-format
+
+    - repo: local
+      hooks:
+          - id: sqruff
+            name: sqruff (SQL linter)
+            language: system
+            entry: uvx sqruff lint
+            types: [sql]
+            pass_filenames: false
+
+    - repo: https://github.com/compilerla/conventional-pre-commit
+      rev: v3.4.0
+      hooks:
+          - id: conventional-pre-commit
+            stages: [commit-msg]
+            args: [feat, fix, chore, docs, refactor, ci, test]

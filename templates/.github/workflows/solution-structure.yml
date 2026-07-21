@@ -1,0 +1,57 @@
+name: Solution structure check
+
+on:
+  pull_request:
+
+jobs:
+  check-solution-structure:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check new solutions have required files
+        run: |
+          # Get newly added files under solutions/
+          files=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD -- solutions/)
+
+          if [ -z "$files" ]; then
+            echo "No new files in solutions/"
+          else
+            # Extract unique new solution directories
+            new_dirs=$(echo "$files" | cut -d/ -f1-2 | sort -u)
+
+            echo "New/modified solution directories:"
+            echo "$new_dirs"
+
+            required_files="scripts/setup.sql scripts/teardown.sql manifest.json README.md"
+
+            errors=0
+            for dir in $new_dirs; do
+              for req in $required_files; do
+                if [ ! -f "$dir/$req" ]; then
+                  echo "ERROR: $dir is missing $req"
+                  errors=$((errors + 1))
+                else
+                  echo "OK: $dir/$req exists"
+                fi
+              done
+            done
+
+            if [ $errors -gt 0 ]; then
+              echo ""
+              echo "FAILED: $errors required file(s) missing"
+              echo ""
+              echo "Every solution must have:"
+              echo "  - scripts/setup.sql"
+              echo "  - scripts/teardown.sql"
+              echo "  - manifest.json"
+              echo "  - README.md"
+              exit 1
+            fi
+
+            echo ""
+            echo "All new solutions have required files"
+          fi
