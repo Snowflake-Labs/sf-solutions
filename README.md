@@ -31,23 +31,16 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ## Quick Install (via Cortex Code)
 
-Each industry repo provides its own Cortex Code plugin. Install from the relevant repository:
+<!-- TBA: Install method under development -->
 
 ```bash
-# Healthcare & Life Sciences
-cortex plugin install git Snowflake-Labs/sf-hcls-solutions --sub-path plugins/cortex-code
-
-# Manufacturing, Logistics, Energy & Utilities
-cortex plugin install git Snowflake-Labs/sf-mleu-solutions --sub-path plugins/cortex-code
-
-# Retail, CPG & General
-cortex plugin install git Snowflake-Labs/sf-rcg-solutions --sub-path plugins/cortex-code
+# TBA
 ```
 
 Then run a solution by name:
 
 ```
-$snowflake-solutions:<solution-name>
+$sf-solutions:<solution-name>
 ```
 
 ## Getting Started
