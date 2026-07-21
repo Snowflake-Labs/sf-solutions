@@ -338,11 +338,11 @@ If the source has Python/Streamlit app code:
    - Snowflake internal URLs (`.int.snowflakecomputing.com`, `sfcdev`, etc.)
    - Remove any matches found
 
-## Step 8: Create Plugin Skills
+## Step 8: Create Install Skill
 
-Create SKILL.md and NEXT_ACTIONS.md in both:
-- `plugins/cortex-code/skills/<name>/`
-- `plugins/claude-code/skills/<name>/`
+Create SKILL.md and NEXT_ACTIONS.md in the solution directory:
+- `solutions/<name>/SKILL.md`
+- `solutions/<name>/NEXT_ACTIONS.md`
 
 **SKILL.md** follows the pattern from `clinical-quality-agent`:
 - Parse `$ARGUMENTS` for install vs teardown
@@ -445,7 +445,7 @@ Large setup.sql files cause slow installation if executed statement-by-statement
 - Phase 3: Connect Real Data
 - Phase 4: Production Deployment
 
-Use `$sf-hcls-solutions:<name>` prefix for cortex-code, `/sf-hcls-solutions:<name>` for claude-code.
+Use `$sf-hcls-solutions:<name>` prefix for cortex-code.
 
 ## Step 9: Update Repository Files
 
@@ -458,8 +458,7 @@ Run these checks:
 ```bash
 uv run sqruff lint solutions/<name>/scripts/
 uv run ruff check solutions/<name>/app/  # if app exists
-markdownlint --config .markdownlint.yaml plugins/cortex-code/skills/<name>/*.md
-markdownlint --config .markdownlint.yaml plugins/claude-code/skills/<name>/*.md
+markdownlint --config .markdownlint.yaml solutions/<name>/SKILL.md solutions/<name>/NEXT_ACTIONS.md
 ```
 
 Grep for leaked secrets:
@@ -515,12 +514,11 @@ For solutions with YAML semantic models (Cortex Analyst):
 
 | Rule | Detail |
 |------|--------|
-| Skill invocation prefix | Cortex Code uses `$sf-hcls-solutions:<name>`, Claude Code uses `/sf-hcls-solutions:<name>` |
+| Skill invocation prefix | Cortex Code uses `$sf-hcls-solutions:<name>` |
 | SKILL.md for cortex-code | Use `$` prefix in all examples and usage help |
-| SKILL.md for claude-code | Use `/` prefix in all examples and usage help |
-| `$ARGUMENTS` variable | Same in both platforms — do NOT change when adapting between platforms |
+| `$ARGUMENTS` variable | Same across platforms — do NOT change |
 | Conventional commits | All commit messages must use: `feat`, `fix`, `chore`, `docs`, `refactor`, `ci`, `test` |
-| NEXT_ACTIONS.md | Same content for both platforms (no platform-specific commands) |
+| NEXT_ACTIONS.md | Same content (no platform-specific commands) |
 | Mandatory final steps | SKILL.md install must always: (1) show deployed resource URL (Snowsight link), (2) show summary with next actions. Every solution MUST output at least one clickable URL — use Snowsight database/schema URL as fallback if no Streamlit/Agent exists. |
 
 ### Data Generation

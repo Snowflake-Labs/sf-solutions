@@ -154,18 +154,16 @@ When demo data exceeds ~200 lines, extract it into a separate `data.sql` file. T
 
 Plugin skills mirror this at:
 - `plugins/cortex-code/skills/<name>/SKILL.md` + `NEXT_ACTIONS.md`
-- `plugins/claude-code/skills/<name>/SKILL.md` + `NEXT_ACTIONS.md`
 
 ### Skill Invocation Prefixes
 
-The two supported AI CLI platforms use different trigger characters:
+Cortex Code uses the `$` prefix for skill invocation:
 
 | Platform | Prefix | Example |
 |----------|--------|---------|
-| Cortex Code | `$` | `$snowflake-solutions:ltv-prediction` |
-| Claude Code CLI | `/` | `/snowflake-solutions:ltv-prediction` |
+| Cortex Code | `$` | `$sf-mleu-solutions:irops-intelligence-center` |
 
-When writing SKILL.md files, always use the correct prefix for the target platform in usage help and examples.
+When writing SKILL.md files, use the `$` prefix in usage help and examples.
 
 ### Snowsight URL Patterns
 
