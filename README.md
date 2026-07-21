@@ -31,61 +31,24 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ## Quick Install (via Cortex Code)
 
-Install any solution using the Cortex Code plugin:
+Each industry repo provides its own Cortex Code plugin. Install from the relevant repository:
 
 ```bash
-# TBA: Public install (available after repo goes public)
-# cortex plugin install "Snowflake-Labs/sf-solutions/plugins/cortex-code"
+# Healthcare & Life Sciences
+cortex plugin install git Snowflake-Labs/sf-hcls-solutions --sub-path plugins/cortex-code
 
-# Or load locally during development (reads directly from disk, always up-to-date)
-cortex --plugin-dir ./plugins/cortex-code
+# Manufacturing, Logistics, Energy & Utilities
+cortex plugin install git Snowflake-Labs/sf-mleu-solutions --sub-path plugins/cortex-code
+
+# Retail, CPG & General
+cortex plugin install git Snowflake-Labs/sf-rcg-solutions --sub-path plugins/cortex-code
 ```
 
-> **Note:** `cortex plugin install` copies the plugin into a local cache. If you add new skills later, you must `cortex plugin uninstall snowflake-solutions && cortex plugin install ...` to refresh. During development, use `--plugin-dir` instead — it always reads the latest files from disk without caching.
-
-Then in a Cortex Code session, run a solution by name:
+Then run a solution by name:
 
 ```
 $snowflake-solutions:<solution-name>
 ```
-
-Example:
-```
-$snowflake-solutions:ltv-prediction
-$snowflake-solutions:ltv-prediction teardown
-```
-
-## Quick Install (via Claude Code)
-
-```bash
-## Add the marketplace
-# TBA: Public install (available after repo goes public)
-
-
-# Or load locally during development
-claude --plugin-dir ./plugins/claude-code
-```
-
-Then in a Cortex Code session, run a solution by name:
-```
-# Install a solution in Claude Code
-/snowflake-solutions:ltv-prediction
-```
-
-Requires the [snowflake-cortex-code](https://claude.com/plugins/snowflake-cortex-code) plugin (auto-installed as dependency).
-
----
-
-## Alternative: solutions-installer skill
-
-If you use the [cortex-code-skills](https://github.com/Snowflake-Labs/cortex-code-skills) repository:
-
-```bash
-cortex skill add https://github.com/Snowflake-Labs/cortex-code-skills.git
-cortex -p "$solutions-install ltv-prediction"
-```
-
----
 
 ## Getting Started
 
@@ -94,9 +57,11 @@ Each solution is self-contained in its own directory with:
 ```
 <solution-name>/
 ├── README.md          # Overview, architecture, prerequisites
-├── data/              # Sample data generation scripts
-├── models/            # ML model training / SQL logic
-└── prompts/           # Demo prompts for Cortex Code / Cloud Agents (EN + JP)
+├── manifest.json      # Solution metadata
+├── scripts/
+│   ├── setup.sql      # Install script
+│   └── teardown.sql   # Cleanup script
+└── semantic/          # Semantic models (optional)
 ```
 
 ## Prerequisites
