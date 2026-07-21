@@ -4,6 +4,13 @@
 
 End-to-end solution accelerators for the {{INDUSTRY_NAME}} industry vertical, built on Snowflake and Cortex Code, showcasing Cortex AI, Snowflake ML, and the modern data platform.
 
+This repository is part of the [Snowflake Industry Solutions](https://github.com/Snowflake-Labs/sf-solutions) catalogue — a central hub for discovering, installing, and managing all industry solution accelerators across verticals.
+
+## Requirements
+
+- Snowflake Trial account
+- Enterprise edition+
+
 ---
 
 ## Solution Catalog
@@ -39,12 +46,6 @@ solutions/<solution-name>/
 ├── scripts/           # SQL setup and teardown scripts
 └── streamlit/         # Streamlit app (if applicable)
 ```
-
-## Prerequisites
-
-- Snowflake account (Enterprise edition recommended)
-- Appropriate role with CREATE DATABASE / SCHEMA privileges
-- Warehouse (default: `COMPUTE_WH`)
 
 ---
 
