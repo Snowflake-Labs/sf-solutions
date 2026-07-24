@@ -3,5 +3,5 @@
   "version": "0.1.0",
   "description": "Install pre-built Snowflake industry solutions into your account",
   "authors": ["Sho Tanaka"],
-  "skills": ["skills/solutions-install"]
+  "skills": ["skills/sf-solutions"]
 }
