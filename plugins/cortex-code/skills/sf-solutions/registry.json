@@ -1,0 +1,29 @@
+[
+  {
+    "industry": "Manufacturing",
+    "description": "Manufacturing, Logistics, Energy & Utilities",
+    "repo": "https://github.com/Snowflake-Labs/sf-mleu-solutions",
+    "solutions": [
+      {"name": "predictive-maintenance", "description": "Equipment failure prediction with CoWork, Cortex Analyst, SPCS"},
+      {"name": "supply-chain-intelligence", "description": "Supply chain visibility with Cortex Search, Semantic Model"},
+      {"name": "gnn-supply-chain-risk", "description": "Supply chain risk scoring with Graph Neural Network, PyTorch"}
+    ]
+  },
+  {
+    "industry": "Retail and consumer goods",
+    "description": "Retail & Consumer Goods",
+    "repo": "https://github.com/Snowflake-Labs/sf-rcg-solutions",
+    "solutions": [
+      {"name": "ltv-prediction", "description": "Customer LTV, ML pipeline"}
+    ]
+  },
+  {
+    "industry": "Healthcare",
+    "description": "Healthcare & Life Sciences",
+    "repo": "https://github.com/Snowflake-Labs/sf-hcls-solutions",
+    "solutions": [
+      {"name": "clinical-quality-agent", "description": "Cortex Agent, Analyst, PubMed Search"},
+      {"name": "medical-device-streaming", "description": "Biosignal streaming, ASOF Join, Streamlit"}
+    ]
+  }
+]
