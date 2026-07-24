@@ -10,6 +10,8 @@ This repository is part of the [Snowflake Industry Solutions](https://github.com
 
 - Snowflake Trial account
 - Enterprise edition+
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) (Python package manager)
 
 ---
 
