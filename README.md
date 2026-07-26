@@ -21,6 +21,13 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 | 2 | [Predictive Maintenance](https://github.com/Snowflake-Labs/sf-mleu-solutions/tree/main/solutions/predictive-maintenance) | Predictive maintenance solution for industrial equipment using Snowflake ML | Snowflake ML, Cortex AI Functions |
 | 3 | [Supply Chain Intelligence](https://github.com/Snowflake-Labs/sf-mleu-solutions/tree/main/solutions/supply-chain-intelligence) | Agentic AI platform for supply chain management with multi-agent orchestration | Cortex Agent, Cortex Analyst, Cortex Search, Streamlit |
 
+### [sf-marketing-solutions](https://github.com/Snowflake-Labs/sf-marketing-solutions) — Advertising, AdTech & MarTech
+
+| # | Solution | Description | Key Snowflake Features |
+|---|----------|-------------|----------------------|
+| 1 | [OpenRTB Analyst Agent](https://github.com/Snowflake-Labs/sf-marketing-solutions/tree/main/solutions/openrtb-analyst-agent) | Programmatic advertising analytics with OpenRTB bid request data and natural language queries | Cortex Agent, Semantic View, Dynamic Tables |
+| 2 | [SSP Impression Analytics](https://github.com/Snowflake-Labs/sf-marketing-solutions/tree/main/solutions/ssp-impression-analytics) | SSP impression analytics with Cortex Agent and Semantic View | Cortex Agent, Semantic View |
+
 ### [sf-rcg-solutions](https://github.com/Snowflake-Labs/sf-rcg-solutions) — Retail, CPG & General
 
 | # | Solution | Description | Key Snowflake Features |
