@@ -438,3 +438,4 @@ Next: review the generated files, then commit to the target repo.
 | Source WAREHOUSE is XSMALL or custom size | Replace with SF_SOLUTIONS_WH (LARGE) |
 | GRANT statements reference source role | Update to reference new scoped role in SF_SOLUTIONS context |
 | `semantic_view.yaml` references source DB tables | Update base_table references to SF_SOLUTIONS FQN |
+| Agent not visible in CoWork agent picker | After `GRANT USAGE ON AGENT ... TO ROLE PUBLIC`, the agent must also be added to the Snowflake Intelligence object: `CREATE SNOWFLAKE INTELLIGENCE IF NOT EXISTS SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT; ALTER SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT ADD AGENT <db>.<schema>.<agent>; GRANT USAGE ON SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT TO ROLE PUBLIC;` |

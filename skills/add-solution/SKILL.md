@@ -248,6 +248,20 @@ If the source has a Cortex Agent:
    SELECT 'https://app.snowflake.com/' || LOWER(CURRENT_ORGANIZATION_NAME()) || '/' || LOWER(CURRENT_ACCOUNT_NAME())
        || '/#/agents/database/SF_SOLUTIONS/schema/<SCHEMA>/agent/<AGENT_NAME>/details' AS AGENT_URL;
    ```
+4. **Snowflake CoWork visibility:** After creating an agent, it may NOT automatically appear in the CoWork agent picker. Two steps are required:
+   - `GRANT USAGE ON AGENT <db>.<schema>.<agent_name> TO ROLE PUBLIC;` — makes the agent accessible
+   - If a Snowflake Intelligence object exists on the account, the agent must be explicitly added:
+     ```sql
+     -- Create the object if it doesn't exist (once per account)
+     CREATE SNOWFLAKE INTELLIGENCE IF NOT EXISTS SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT;
+     -- Add the agent to CoWork
+     ALTER SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT
+         ADD AGENT SF_SOLUTIONS.<SCHEMA>.<AGENT_NAME>;
+     -- Grant visibility to all users
+     GRANT USAGE ON SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT TO ROLE PUBLIC;
+     ```
+   - Without the `ALTER ... ADD AGENT`, the agent exists in Snowsight's Agents page but is invisible in CoWork's agent picker
+   - The Agents page in Snowsight shows a "+ Add to Snowflake CoWork" link as a visual indicator that this step is needed
 
 #### Cortex Search Service
 
