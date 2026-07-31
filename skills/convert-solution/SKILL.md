@@ -45,9 +45,15 @@ Before analyzing the source, ask the user which industry repo to create the solu
 ```
 Which industry repository should this solution be created in?
 
-  1. sf-hcls-solutions    — Healthcare & Life Sciences
-  2. sf-mleu-solutions    — Manufacturing, Logistics, Energy & Utilities
-  3. sf-rcg-solutions     — Retail, CPG & General
+  1. sf-hcls-solutions              — Healthcare & Life Sciences
+  2. sf-fsi-solutions               — Financial Services & Insurance
+  3. sf-mleu-solutions              — Manufacturing, Logistics, Energy & Utilities
+  4. sf-telco-solutions             — Telecommunications
+  5. sf-media-entertainment-solutions — Media & Entertainment
+  6. sf-marketing-solutions         — Marketing & Advertising
+  7. sf-tnh-solutions               — Travel & Hospitality
+  8. sf-pubsec-solutions            — Public Sector & Government
+  9. sf-rcg-solutions               — Retail, CPG & General
 
 Enter number or path (e.g., ../sf-mleu-solutions/solutions):
 ```
