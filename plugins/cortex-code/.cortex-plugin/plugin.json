@@ -1,6 +1,6 @@
 {
   "name": "sf-solutions",
-  "version": "0.3.0",
+  "version": "0.2.0",
   "description": "Install pre-built Snowflake industry solutions into your account",
   "authors": ["Sho Tanaka"],
   "skills": ["skills/sf-solutions"]
