@@ -4,7 +4,7 @@ description: "Discover, install, and teardown Snowflake industry solution accele
 user-invocable: true
 metadata:
   author: Snowflake
-  version: 2.0.0
+  version: 1.0.1
 ---
 
 # Snowflake Industry Solutions
@@ -95,7 +95,6 @@ search_paths = [
     Path.cwd() / repo_dir_name,
     Path.cwd().parent / repo_dir_name,
     Path.home() / repo_dir_name,
-    Path.home() / "projects" / repo_dir_name,
     cache_dir / repo_dir_name,
 ]
 
@@ -110,7 +109,6 @@ for d in search_paths:
         if result.returncode == 0 and REPO_URL in result.stdout.strip():
             repo_root = d
             break
-        # If not a git repo or remote doesn't match, skip this path
 
 if repo_root is None:
     clone_target = cache_dir / repo_dir_name
@@ -127,16 +125,7 @@ If the clone fails (private repo, no git, no network), show a clear error:
 
 **STOP** — do not proceed without the repository.
 
-Once `$REPO_ROOT` is resolved, **confirm the path with the user** before executing any install or teardown steps:
-
-```
-Repository found at: <repo_root>
-Remote: <verified remote URL>
-
-Use this repository? (yes/no)
-```
-
-Store the resolved path as `$REPO_ROOT` for subsequent steps.
+Once `$REPO_ROOT` is resolved, log the path inline (e.g., "Using repo at: /path/to/repo") and proceed.
 
 ## Step 5: Install a Solution
 
@@ -159,6 +148,13 @@ $REPO_ROOT/solutions/$SOLUTION_NAME/NEXT_ACTIONS.md
 
 3. If the file exists, present its contents to the user and answer any follow-up questions based on it
 4. If the file does not exist, suggest the user check the solution's README or manifest for guidance
+
+## Performance Rules
+
+- **Do NOT read SQL files line by line into context.** Use the subagent strategy below.
+- **Do NOT ask for repo confirmation** — just log the path and proceed.
+- **Do NOT read setup.sql/data.sql into the main conversation.** Only read manifest.json and NEXT_ACTIONS.md directly.
+- **Use a Task subagent for SQL execution** — see `references/install.md` for the full SQL execution strategy.
 
 ## Notes
 
