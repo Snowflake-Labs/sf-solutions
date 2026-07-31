@@ -1,10 +1,10 @@
 ---
-name: convert-solution
+name: publish-solution
 description: >
-  Convert an industry-plugin-construct plugin directory into the sf-*-solutions format.
-  Reads source plugin, adapts to SF_SOLUTIONS conventions, and generates all required files.
-  Usage: $sf-solutions:convert-solution <source-plugin-path> [--target <solutions-dir>]
-  Triggers: convert solution, import plugin, plugin to solution, industry plugin to solution.
+  Convert an internal industry-plugin-construct plugin into a public sf-*-solutions format.
+  Validates output for sensitive data, checks required files, and adapts to SF_SOLUTIONS conventions.
+  Usage: $sfs:publish-solution <source-plugin-path> <target-repo-dir>
+  Triggers: publish solution, convert solution, export solution, import plugin, plugin to solution, industry plugin to solution.
 tools:
   - Read
   - Glob
@@ -22,12 +22,19 @@ format with all required files.
 
 ## Input
 
-`$ARGUMENTS` must contain a path to the source plugin directory.
+`$ARGUMENTS` takes two positional arguments:
 
-Optionally, `--target <path>` specifies the target solutions directory.
-Default target: `../sf-mleu-solutions/solutions`
+1. **source path** — path to the source plugin directory (required)
+2. **target repo directory** — path to the target industry repo (required)
 
-If no source path provided, ask the user.
+Examples:
+```
+$sfs:publish-solution ~/sfc-gh-projects/industry-plugin-construct/plugins/irops-intelligence-center ~/project/sf-mleu-solutions
+$sfs:publish-solution /path/to/my-plugin ../sf-hcls-solutions
+```
+
+If source path is not provided, ask the user.
+If target repo directory is not provided, skip Phase 0 menu and ask the user for the path directly.
 
 ## Security Rules (MANDATORY)
 
@@ -65,10 +72,11 @@ Set `target_dir` based on the user's selection. Do NOT proceed without confirmat
 ### 1.1 Parse arguments
 
 ```
-source_path = first positional argument
-target_dir  = selected industry repo path + "/solutions"  (e.g., "../sf-mleu-solutions/solutions")
+source_path   = first positional argument
+target_repo   = second positional argument (directory of the target repo, e.g., "../sf-mleu-solutions")
+target_dir    = target_repo + "/solutions"
 solution_name = basename of source_path (e.g., "my-solution-name")
-output_dir = target_dir / solution_name
+output_dir    = target_dir / solution_name
 ```
 
 ### 1.2 Read plugin metadata

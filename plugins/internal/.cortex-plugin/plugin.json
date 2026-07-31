@@ -1,0 +1,8 @@
+{
+  "name": "sfs",
+  "version": "0.1.0",
+  "description": "Internal tools for Snowflake solution authors: publish internal plugins to public industry repos with security and conformance validation",
+  "authors": ["Sho Tanaka"],
+  "skills": ["skills/publish-solution"],
+  "hooks": "skills/publish-solution/hooks/hooks.json"
+}
