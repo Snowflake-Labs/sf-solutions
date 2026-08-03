@@ -294,7 +294,10 @@ Write a public-facing README:
 
 ## Prerequisites
 
-- Snowflake account (Enterprise edition recommended)
+- Snowflake account (Trial or Enterprise edition)
+  - SPCS (Snowpark Container Services): Available on Trial
+  - Cortex Search: Available on AI-enabled Trial
+  - GPU Compute: Available on Trial with quota (commented out in setup.sql by default)
 - ACCOUNTADMIN role
 - Warehouse: SF_SOLUTIONS_WH (created by setup.sql)
 
@@ -351,6 +354,35 @@ description: >
 2. Set up row access policies and masking policies
 3. Schedule Dynamic Table refresh intervals
 4. Configure alerting and monitoring
+
+## Phase 5: GPU Compute (Optional)
+
+GPU Compute Pools are available on Trial accounts but require additional setup.
+
+> **Note:** GPU sections in `setup.sql` are commented out by default to ensure
+> compatibility with all accounts. Uncomment them when you have GPU Compute Pool access.
+
+1. **Check if GPU Compute Pool is available in your account:**
+   ```sql
+   SHOW COMPUTE POOLS;
+   ```
+
+2. **Uncomment GPU sections in `setup.sql`**
+   - Look for sections marked `-- OPTIONAL: GPU Compute (requires Compute Pool access)`
+   - Uncomment the `CREATE COMPUTE POOL` and related statements
+
+3. **Request GPU quota if needed**
+   - Trial accounts have limited GPU quota; contact your Snowflake account team
+   - GPU instances available: `GPU_NV_S`, `GPU_NV_M`, `GPU_NV_L`
+
+4. **Re-run the GPU sections:**
+   ```sql
+   -- Example: create GPU compute pool
+   CREATE COMPUTE POOL IF NOT EXISTS <POOL_NAME>
+       MIN_NODES = 1
+       MAX_NODES = 1
+       INSTANCE_FAMILY = GPU_NV_S;
+   ```
 ```
 
 ### 3.8 Copy shared references
@@ -443,6 +475,41 @@ Conformance:   PASSED
 
 Next: review the generated files, then commit to the target repo.
 ```
+
+## Trial Account Compatibility
+
+Snowflake Trial accounts support most features needed for solutions. Apply these rules
+when converting source SQL:
+
+| Feature | Trial Support | Action |
+|---------|--------------|--------|
+| SPCS (Snowpark Container Services) | Available | Keep as-is |
+| Cortex Search | Available (AI-enabled Trial) | Keep as-is |
+| GPU Compute Pool | Available with quota | Wrap in `-- OPTIONAL: GPU` block and comment out by default |
+| Cortex Agent | Available | Keep as-is |
+| Dynamic Tables | Available | Keep as-is |
+
+### GPU Compute handling (MANDATORY)
+
+If the source SQL contains `CREATE COMPUTE POOL` or GPU instance families
+(`GPU_NV_S`, `GPU_NV_M`, `GPU_NV_L`), wrap those sections in an optional block:
+
+```sql
+-- ============================================================
+-- OPTIONAL: GPU Compute Pool (requires Compute Pool quota)
+-- Uncomment this section if you have GPU access in your account.
+-- On Trial: GPU is available but requires quota approval.
+-- Contact your Snowflake account team to enable GPU Compute.
+-- ============================================================
+-- CREATE COMPUTE POOL IF NOT EXISTS <POOL_NAME>
+--     MIN_NODES = 1
+--     MAX_NODES = 1
+--     INSTANCE_FAMILY = GPU_NV_S
+--     AUTO_SUSPEND_SECS = 300;
+```
+
+Set `"requires_spcs": true` in `manifest.json` and add to the `notes` field:
+`"GPU Compute Pool (GPU_NV_S) is commented out by default. Uncomment Section X of setup.sql when GPU quota is available."`
 
 ## Error Recovery
 
