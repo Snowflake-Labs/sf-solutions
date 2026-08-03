@@ -165,10 +165,9 @@ Files to create:
   scripts/setup.sql      (merged from: <list of source sql files>)
   scripts/teardown.sql   (generated)
   semantic/<name>.yaml   (if semantic_view.yaml exists)
-  plugins/cortex-code/skills/<skill>/SKILL.md  (x N)
-  plugins/cortex-code/agents/<agent>.md        (x N)
-  plugins/cortex-code/references/<ref>.md      (x N)
-  plugins/cortex-code/hooks/                   (copied)
+  references/<ref>.md                  (x N, if shared across skills)
+  skills/<skill>/SKILL.md              (x N)
+  agents/<agent>.md                    (x N)
 
 Proceed? (yes/no)
 ```
@@ -182,10 +181,9 @@ Wait for confirmation before writing any files.
 ```bash
 mkdir -p <output_dir>/scripts
 mkdir -p <output_dir>/semantic
-mkdir -p <output_dir>/plugins/cortex-code/skills
-mkdir -p <output_dir>/plugins/cortex-code/agents
-mkdir -p <output_dir>/plugins/cortex-code/references
-mkdir -p <output_dir>/plugins/cortex-code/hooks
+mkdir -p <output_dir>/references
+mkdir -p <output_dir>/skills
+mkdir -p <output_dir>/agents
 ```
 
 ### 3.2 Generate scripts/setup.sql
@@ -355,19 +353,34 @@ description: >
 4. Configure alerting and monitoring
 ```
 
-### 3.8 Copy plugin skills
+### 3.8 Copy shared references
+
+If the source has a `references/` directory at the plugin root:
+
+- Copy all `references/*.md` → `<output_dir>/references/`
+- These are cross-cutting domain knowledge docs referenced by multiple skills
+  (e.g., metric definitions, SQL patterns, data contracts, governance policies)
+- Skills reference them via relative path `../../references/<name>.md`
+- Do NOT duplicate references into individual skill directories
+
+### 3.9 Copy solution skills
 
 For each `skills/<skill-name>/SKILL.md` in the source:
 
-- Copy to `<output_dir>/plugins/cortex-code/skills/<skill-name>/SKILL.md`
-- Update any invocation examples that reference the old plugin name to use the new
-  `$sf-mleu-solutions:<solution-name>` prefix
+- Copy `skills/<skill-name>/SKILL.md` to `<output_dir>/skills/<skill-name>/SKILL.md`
+- If a skill has its own `references/` subdirectory (skill-specific, not shared),
+  copy it to `<output_dir>/skills/<skill-name>/references/`
+- Update any invocation examples that reference the old plugin name
+- Skills are workspace-scoped: they activate when the user opens the solution repo
 
-### 3.9 Copy agents, references, hooks
+### 3.10 Copy agents
 
-- Copy `agents/*.md` → `<output_dir>/plugins/cortex-code/agents/`
-- Copy `references/*.md` → `<output_dir>/plugins/cortex-code/references/`
-- Copy `hooks/` → `<output_dir>/plugins/cortex-code/hooks/`
+- Copy `agents/*.md` → `<output_dir>/agents/`
+- Agents are workspace-scoped: they activate when the user opens the solution repo
+
+Note: hooks/ are NOT copied to individual solutions. Solution-level hooks are not
+supported in the workspace model. If source hooks are needed, they should be
+incorporated into the skill's instructions instead.
 
 ## Phase 4: Validation
 
@@ -390,7 +403,7 @@ uv run sqruff lint <output_dir>/scripts/
 
 ```bash
 markdownlint --config .markdownlint.yaml \
-    <output_dir>/plugins/cortex-code/skills/**/*.md
+    <output_dir>/skills/**/*.md
 ```
 
 ### 4.4 Security scan
@@ -420,10 +433,9 @@ Files:    <count> files created
   semantic/<name>.yaml       ✓  (if applicable)
   README.md                  ✓
   NEXT_ACTIONS.md            ✓
-  plugins/cortex-code/
-    skills/  (<N> skills)    ✓
-    agents/  (<N> agents)    ✓
-    references/ (<N> docs)   ✓
+  references/ (<N> docs)     ✓  (if applicable)
+  skills/  (<N> skills)      ✓
+  agents/  (<N> agents)      ✓
 
 SQL lint:      PASSED
 Markdown lint: PASSED
