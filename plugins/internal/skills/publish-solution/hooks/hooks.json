@@ -6,7 +6,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "bash skills/convert-solution/hooks/check-no-credentials.sh"
+                        "command": "bash plugins/internal/skills/publish-solution/hooks/check-no-credentials.sh"
                     }
                 ]
             }
