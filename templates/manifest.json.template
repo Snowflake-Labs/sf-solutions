@@ -1,0 +1,20 @@
+{
+  "name": "<kebab-case-name>",
+  "display_name": "<Human Readable Name>",
+  "type": "script",
+  "version": "1.0.0",
+  "industry": "<Industry Name>",
+  "description": "<1-2 sentence description>",
+  "database": "SF_SOLUTIONS",
+  "schemas": ["<SCHEMA_1>"],
+  "role": "ACCOUNTADMIN",
+  "requires_warehouse": true,
+  "requires_marketplace": [],
+  "install_scripts": ["scripts/setup.sql"],
+  "teardown_scripts": ["scripts/teardown.sql"],
+  "features": [],
+  "notes": "",
+
+  "_comment_type": "type: 'script' for SQL-only solutions, 'plugin' for CoCo plugin solutions",
+  "_comment_plugin_path": "plugin_path: required when type is 'plugin' (e.g., 'plugins/cortex-code')"
+}
