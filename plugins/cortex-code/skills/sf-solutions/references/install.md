@@ -21,7 +21,14 @@ Read the file with the Read tool:
 $REPO_ROOT/solutions/$SOLUTION_NAME/manifest.json
 ```
 
-## 3. Query current account info
+## 3. Determine solution type
+
+Check the `type` field in `manifest.json`:
+
+- If `type` is `"plugin"` → **STOP here**. Read and follow `references/install-plugin.md` from this skill's directory instead. Pass `$REPO_ROOT`, `$SOLUTION_NAME`, `$INDUSTRY`, and the parsed manifest to that workflow.
+- If `type` is `"script"` or the `type` field is missing → continue with the steps below (SQL-based installation).
+
+## 4. Query current account info
 
 ```sql
 SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
@@ -30,7 +37,7 @@ SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
        CURRENT_ROLE() AS ROLE;
 ```
 
-## 4. Present the installation plan and confirm
+## 5. Present the installation plan and confirm
 
 Show the user a summary combining manifest data and account info using `ask_user_question`:
 
@@ -55,7 +62,7 @@ Proceed with installation?
 
 **Do NOT proceed without explicit "yes" from the user.**
 
-## 5. Execute installation via Task subagent
+## 6. Execute installation via Task subagent
 
 **CRITICAL: Do NOT read .sql files into the main conversation context.**
 
@@ -107,7 +114,7 @@ task(
 )
 ```
 
-## 6. Verify installation
+## 7. Verify installation
 
 After the subagent completes, run verification:
 
@@ -119,7 +126,7 @@ WHERE TABLE_SCHEMA IN (<schemas from manifest>)
 ORDER BY TABLE_SCHEMA, TABLE_NAME;
 ```
 
-## 7. Load next actions guide
+## 8. Load next actions guide
 
 Read the file with the Read tool (if it exists):
 
@@ -129,7 +136,7 @@ $REPO_ROOT/solutions/$SOLUTION_NAME/NEXT_ACTIONS.md
 
 If the file exists, present the recommended next steps to the user.
 
-## 8. Post-install summary
+## 9. Post-install summary
 
 Present:
 - Solution name and version
