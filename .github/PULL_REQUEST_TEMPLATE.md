@@ -4,7 +4,9 @@
 
 ## Type of Change
 
-- [ ] New solution
+- [ ] New solution (**must select one below**)
+  - [ ] Script Type — SQL-only solution (setup.sql / data.sql)
+  - [ ] Plugin Type — CoCo plugin solution (skills, hooks, agents)
 - [ ] Bug fix
 - [ ] Enhancement to existing solution
 - [ ] Infrastructure / CI update
