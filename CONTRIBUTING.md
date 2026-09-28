@@ -7,8 +7,8 @@ Thank you for contributing to Snowflake Industry Solutions!
 ```
 sf-solutions/
 ├── skills/
-│   ├── add-solution/         # Skill to scaffold new solutions
-│   └── convert-solution/     # Skill to convert industry-plugin-construct plugins
+│   ├── add-solution/         # (deprecated — use convert-solution)
+│   └── convert-solution/     # (deprecated — use plugins/internal convert-solution)
 ├── templates/                # Shared config templates for industry repos
 │   ├── .github/workflows/
 │   ├── .pre-commit-config.yaml
@@ -22,8 +22,14 @@ sf-solutions/
 Solutions live in their respective industry repos:
 
 - [sf-hcls-solutions](https://github.com/Snowflake-Labs/sf-hcls-solutions) — Healthcare & Life Sciences
+- [sf-fsi-solutions](https://github.com/Snowflake-Labs/sf-fsi-solutions) — Financial Services
 - [sf-mleu-solutions](https://github.com/Snowflake-Labs/sf-mleu-solutions) — Manufacturing, Logistics, Energy & Utilities
 - [sf-rcg-solutions](https://github.com/Snowflake-Labs/sf-rcg-solutions) — Retail, CPG & General
+- [sf-marketing-solutions](https://github.com/Snowflake-Labs/sf-marketing-solutions) — Advertising, AdTech & MarTech
+- [sf-telco-solutions](https://github.com/Snowflake-Labs/sf-telco-solutions) — Telecommunications
+- [sf-media-entertainment-solutions](https://github.com/Snowflake-Labs/sf-media-entertainment-solutions) — Media & Entertainment
+- [sf-tnh-solutions](https://github.com/Snowflake-Labs/sf-tnh-solutions) — Travel & Hospitality
+- [sf-pubsec-solutions](https://github.com/Snowflake-Labs/sf-pubsec-solutions) — Public Sector & Government
 
 ## Solution Structure (in industry repos)
 
@@ -48,17 +54,13 @@ solutions/<solution-name>/
 
 ## Adding a New Solution
 
-Use the `convert-solution` skill to convert an industry-plugin-construct plugin:
+Use the unified `convert-solution` skill to convert any source into sf-solutions format:
 
 ```
-$sf-solutions:convert-solution /path/to/source-plugin
+$sfs:convert-solution /path/to/source
 ```
 
-Or use `add-solution` to scaffold from an existing repo:
-
-```
-$sf-solutions:add-solution /path/to/source-repo
-```
+The skill will ask whether the source is a script type or plugin type and guide you through the conversion.
 
 ## File Descriptions
 
