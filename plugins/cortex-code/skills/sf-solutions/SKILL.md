@@ -129,7 +129,7 @@ Once `$REPO_ROOT` is resolved, log the path inline (e.g., "Using repo at: /path/
 
 ## Step 5: Install a Solution
 
-Read and follow `references/install.md` from this skill's directory. It contains the full install workflow (validate → manifest → account info → plan → confirm → execute → verify).
+Read and follow `references/install.md` from this skill's directory. It contains the full install workflow (validate → manifest → type detection → plan → confirm → execute → verify). Solutions with `"type": "plugin"` in their manifest are automatically routed to `references/install-plugin.md` for CoCo plugin installation.
 
 ## Step 6: Teardown a Solution
 
