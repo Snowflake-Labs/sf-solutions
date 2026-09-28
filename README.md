@@ -37,6 +37,7 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 | # | Solution | Description | Key Snowflake Features |
 |---|----------|-------------|----------------------|
 | 1 | [Customer Lifetime Value Prediction](https://github.com/Snowflake-Labs/sf-rcg-solutions/tree/main/solutions/ltv-prediction) | Predict customer lifetime value using Snowflake ML regression models | Snowflake ML Regression, Cortex AI Functions |
+| 2 | [Franchise Operations Intelligence](https://github.com/Snowflake-Labs/sf-rcg-solutions/tree/main/solutions/franchise-operations-intelligence) | Franchise multi-unit operations analytics with guided workflows and Cortex Agent | Semantic View, Dynamic Tables, Data Metric Functions, Cortex Agent |
 
 ---
 
@@ -52,20 +53,6 @@ Then run a solution by name:
 
 ```
 $sf-solutions:<solution-name>
-```
-
-## Getting Started
-
-Each solution is self-contained in its own directory with:
-
-```
-<solution-name>/
-├── README.md          # Overview, architecture, prerequisites
-├── manifest.json      # Solution metadata
-├── scripts/
-│   ├── setup.sql      # Install script
-│   └── teardown.sql   # Cleanup script
-└── semantic/          # Semantic models (optional)
 ```
 
 ## Prerequisites
