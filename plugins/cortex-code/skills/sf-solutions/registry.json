@@ -14,7 +14,8 @@
     "description": "Retail & Consumer Goods",
     "repo": "https://github.com/Snowflake-Labs/sf-rcg-solutions",
     "solutions": [
-      {"name": "ltv-prediction", "description": "Customer LTV, ML pipeline"}
+      {"name": "ltv-prediction", "description": "Customer LTV, ML pipeline"},
+      {"name": "franchise-operations-intelligence", "description": "Franchise multi-unit operations with Semantic View, Dynamic Tables, Cortex Agent"}
     ]
   },
   {
