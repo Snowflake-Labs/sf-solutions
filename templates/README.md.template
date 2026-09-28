@@ -10,7 +10,6 @@ This repository is part of the [Snowflake Industry Solutions](https://github.com
 
 ## Requirements
 
-- Enterprise edition+
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
 
@@ -39,15 +38,33 @@ $sf-solutions:<solution-name> teardown     # Remove a solution
 
 ## Getting Started
 
-Each solution is self-contained in its own directory with:
+Each solution is self-contained in its own directory. There are two types:
+
+### Script Type
 
 ```
 solutions/<solution-name>/
+├── manifest.json      # Solution metadata (type: "script")
 ├── README.md          # Overview, architecture, prerequisites
-├── manifest.json      # Solution metadata for the installer
 ├── NEXT_ACTIONS.md    # Post-install verification steps and example queries
 ├── scripts/           # SQL setup and teardown scripts
 └── streamlit/         # Streamlit app (if applicable)
+```
+
+### Plugin Type
+
+Solutions that install a Cortex Code plugin with skills, agents, and optionally Snowflake objects.
+
+```
+solutions/<solution-name>/
+├── manifest.json          # Solution metadata (type: "plugin")
+├── README.md              # Overview, usage
+├── plugins/cortex-code/   # CoCo plugin directory
+│   ├── .cortex-plugin/
+│   │   └── plugin.json
+│   └── skills/
+│       └── ...
+└── scripts/               # Optional SQL scripts
 ```
 
 ---

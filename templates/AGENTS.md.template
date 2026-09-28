@@ -8,7 +8,7 @@ Project-level instructions for AI coding assistants working on this repository.
 
 ## Project Overview
 
-This is the `{{REPO_NAME}}` repository containing Snowflake {{INDUSTRY_CODE}} ({{INDUSTRY_NAME}}) industry solution accelerators. Each solution lives in `solutions/<name>/` with a standard structure (manifest.json, scripts/, streamlit/).
+This is the `{{REPO_NAME}}` repository containing Snowflake {{INDUSTRY_CODE}} ({{INDUSTRY_NAME}}) industry solution accelerators. Each solution lives in `solutions/<name>/` and is either a **script type** (SQL + optional Python/Streamlit) or a **plugin type** (CoCo plugin with skills, agents, hooks).
 
 ## Known Issues and Workarounds
 
@@ -168,9 +168,11 @@ ALTER STREAMLIT SF_SOLUTIONS.<SCHEMA>.<APP_NAME> ADD LIVE VERSION FROM LAST;
 
 ## Solution Structure
 
+### Script Type
+
 ```
 solutions/<name>/
-├── manifest.json          # Metadata: name, version, industry, schemas, features
+├── manifest.json          # Metadata: name, version, type: "script", industry, schemas, features
 ├── README.md              # Architecture overview, quick start, example usage
 ├── NEXT_ACTIONS.md        # Post-install verification steps shown after setup
 ├── scripts/
@@ -180,6 +182,20 @@ solutions/<name>/
 └── streamlit/             # Optional
     ├── streamlit_app.py
     └── environment.yml
+```
+
+### Plugin Type
+
+```
+solutions/<name>/
+├── manifest.json          # Metadata: name, version, type: "plugin", plugin_path
+├── README.md              # Overview, usage, skill invocation examples
+├── plugins/cortex-code/   # CoCo plugin directory
+│   ├── .cortex-plugin/
+│   │   └── plugin.json
+│   └── skills/
+│       └── ...
+└── scripts/               # Optional SQL scripts
 ```
 
 When demo data exceeds ~200 lines, extract it into a separate `data.sql` file. This prevents CoCo CLI context overflow and allows direct execution via `snow sql -f scripts/data.sql`.
@@ -270,61 +286,6 @@ feat: add new-solution-name solution
 fix: correct SEARCH_PREVIEW argument format
 docs: update AGENTS.md with PR template
 chore: format files with ruff
-```
-
-## PR Test Template
-
-Include the following checklist in PR descriptions. All items must pass before merging.
-
-```markdown
-## Test Plan
-
-### CI (automated)
-- [ ] `ruff check` passes
-- [ ] `ruff format --check` passes
-- [ ] `sqruff lint` passes (all `.sql` files)
-- [ ] `markdownlint` passes (all `.md` files)
-
-### Setup / Teardown (manual)
-- [ ] `scripts/setup.sql` completes successfully as ACCOUNTADMIN
-- [ ] `scripts/teardown.sql` is idempotent (runs twice without error)
-- [ ] Full round-trip works: teardown → setup → teardown
-
-### Streamlit App (verify in SiS warehouse runtime)
-- [ ] App launches without import errors in SiS warehouse runtime
-- [ ] All pages/tabs navigate correctly
-- [ ] Data displays correctly (tables, charts)
-- [ ] Plotly charts render actual data values (not index numbers)
-- [ ] User interactions (buttons, inputs) work
-- [ ] Cortex features (Search/Complete/Analyst) return responses
-
-### Cortex Agent / Intelligence (if applicable)
-- [ ] Agent responds from Snowsight UI
-- [ ] Cortex Analyst (semantic model) generates correct SQL
-- [ ] Cortex Search Service is indexed (`SHOW CORTEX SEARCH SERVICES` shows ACTIVE)
-
-### Data Integrity
-- [ ] Demo data inserts correctly (verify row counts)
-- [ ] Referential joins are not broken (JOIN results are non-empty)
-- [ ] All DB/Schema/Table references use `SF_SOLUTIONS.<SCHEMA>.<TABLE>` format
-```
-
-### PR Description Template
-
-```markdown
-## Summary
-<!-- 1-3 sentences describing the change -->
-
-## Changes
-- ...
-
-## Test Plan
-- [ ] Verify `uv run sqruff lint solutions/<solution-name>/scripts/` passes
-- [ ] Run `$sf-solutions:<solution-name>` in Cortex Code to confirm install works
-- [ ] Run `$sf-solutions:<solution-name> teardown` to confirm teardown works
-
-## Screenshots
-<!-- SiS runtime screenshots if UI changes are included -->
 ```
 
 ## Existing Solutions

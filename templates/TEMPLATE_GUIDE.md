@@ -20,9 +20,13 @@ Replace these placeholders when creating a new repository:
 | File | Purpose |
 |------|---------|
 | `LICENSE` | Apache 2.0 license |
+| `LEGAL.md` | Unofficial product disclaimer |
+| `.gitignore` | Git ignore patterns |
+| `.sqruff` | sqruff SQL linter config (Snowflake dialect) |
 | `.markdownlint.yaml` | Markdown linter config |
 | `.markdownlintignore` | Markdown lint ignore patterns |
 | `.pre-commit-config.yaml` | Pre-commit hooks (json, markdown, ruff, sqruff, conventional commits) |
+| `.github/CODEOWNERS` | Code owners for PR review |
 | `.github/workflows/lint.yml` | CI: markdownlint + ruff |
 | `.github/workflows/sql-lint.yml` | CI: sqruff SQL linter |
 | `.github/workflows/solution-structure.yml` | CI: verify solution required files |
