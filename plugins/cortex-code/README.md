@@ -14,11 +14,11 @@ A Cortex Code plugin for discovering, installing, and managing Snowflake industr
 ## Usage
 
 ```
-$sf-solutions:install                              # List all available solutions
-$sf-solutions:install <industry>                   # Filter by industry (e.g., healthcare, retail)
-$sf-solutions:install <solution-name>              # Install a solution
-$sf-solutions:install <solution-name> teardown     # Remove a solution
-$sf-solutions:install <solution-name> next         # Post-install guidance
+$sf-solutions:list                          # List all available solutions
+$sf-solutions:list <industry>               # Filter by industry (e.g., healthcare, retail)
+$sf-solutions:install <solution-name>       # Install a solution
+$sf-solutions:teardown <solution-name>      # Remove a solution
+$sf-solutions:next <solution-name>          # Post-install guidance
 ```
 
 ## Security
