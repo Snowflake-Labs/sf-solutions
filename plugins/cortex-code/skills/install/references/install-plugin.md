@@ -65,6 +65,8 @@ task(
 
 ## 4. Present installation plan and confirm
 
+**CRITICAL: You MUST show the full installation plan below to the user BEFORE asking for confirmation. NEVER skip this step. NEVER proceed to installation without displaying every component that will be installed.**
+
 Query current account info:
 
 ```sql
@@ -74,39 +76,50 @@ SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
        CURRENT_ROLE() AS ROLE;
 ```
 
-Show the user a summary using `ask_user_question`:
+Display the following plan to the user using `ask_user_question`. Every field must be filled in — do not use placeholders or omit sections:
 
 ```
-[UNOFFICIAL PLUGIN]
-This application is not part of the Snowflake Service.
-You use this application at your own risk.
+============================================================
+  UNOFFICIAL PLUGIN — NOT A SUPPORTED SNOWFLAKE PRODUCT
+============================================================
+
+This application is not part of the Snowflake Service and is
+governed by the terms in LICENSE, unless expressly agreed to
+in writing. You use this application at your own risk, and
+Snowflake has no obligation to support your use of this
+application.
 
 Solution:     <name> v<version>
 Type:         Plugin
 Industry:     <industry>
-Plugin Name:  <plugin name from plugin.json>
-Plugin Path:  <plugin_path>
 
-Components to install:
-  Skills:      <list of skill names>
-  Hooks:       <list of hook events, or "None">
-  MCP Servers: <list of server names, or "None">
-  Agents:      <list of agent names, or "None">
+Plugin to install:
+  Name:        <plugin name from plugin.json>
+  Version:     <plugin version>
+  Authors:     <plugin authors>
+  Path:        <plugin_path>
+
+Components that will be installed on your machine:
+  Skills:      <list every skill name>
+  Hooks:       <list every hook event and command, or "None">
+  MCP Servers: <list every server name and command, or "None">
+  Agents:      <list every agent name, or "None">
 
 Target Account:
   Organization: <ORG>
   Account:      <ACCOUNT>
   Region:       <REGION>
 
-Snowflake objects (if install_scripts present):
+Snowflake objects to create (if any):
   Database: <database>
   Schemas:  <schemas>
-  Scripts:  <install_scripts list>
+  Scripts:  <install_scripts list, or "None">
 
-Proceed with installation?
+Do you want to install this plugin? (yes/no)
 ```
 
 **Do NOT proceed without explicit "yes" from the user.**
+**If the user says "no" or anything other than "yes", STOP immediately.**
 
 ## 5. Install the plugin via Task subagent
 

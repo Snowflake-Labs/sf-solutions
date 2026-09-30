@@ -1,10 +1,10 @@
 ---
-name: sf-solutions
-description: "Discover, install, and teardown Snowflake industry solution accelerators. Usage: $sf-solutions (list all), $sf-solutions retail (filter by industry), $sf-solutions:predictive-maintenance (install), $sf-solutions:predictive-maintenance teardown, $sf-solutions:predictive-maintenance next (post-install guidance). Triggers: solutions, industry, MLEU, manufacturing, predictive maintenance, supply chain, energy, utilities, logistics, IoT, OEE, GNN, retail, demand forecasting, LTV, customer lifetime value, healthcare, clinical, patient safety, next steps, what to do next."
+name: install
+description: "Discover, install, and teardown Snowflake industry solution accelerators. Usage: $sf-solutions:install (list all), $sf-solutions:install retail (filter by industry), $sf-solutions:install predictive-maintenance (install), $sf-solutions:install predictive-maintenance teardown, $sf-solutions:install predictive-maintenance next (post-install guidance). Triggers: solutions, industry, MLEU, manufacturing, predictive maintenance, supply chain, energy, utilities, logistics, IoT, OEE, GNN, retail, demand forecasting, LTV, customer lifetime value, healthcare, clinical, patient safety, next steps, what to do next."
 user-invocable: true
 metadata:
   author: Snowflake
-  version: 1.0.1
+  version: 1.1.0
 ---
 
 # Snowflake Industry Solutions
@@ -55,17 +55,17 @@ Available Solutions:
 └───┴──────────────────────┴───────────────┴─────────────────────────────┘
 
 Commands:
-• Install:               $sf-solutions:<solution-name>
-• Remove:                $sf-solutions:<solution-name> teardown
-• Post-install guidance: $sf-solutions:<solution-name> next
-• Filter by industry:    $sf-solutions <industry-name>
+• Install:               $sf-solutions:install <solution-name>
+• Remove:                $sf-solutions:install <solution-name> teardown
+• Post-install guidance: $sf-solutions:install <solution-name> next
+• Filter by industry:    $sf-solutions:install <industry-name>
 ```
 
 **STOP** after listing. Do not install anything unless explicitly requested.
 
 ## Step 3: Resolve Repository for a Solution
 
-When a solution name is provided (e.g., `$sf-solutions:predictive-maintenance`):
+When a solution name is provided (e.g., `$sf-solutions:install predictive-maintenance`):
 
 1. Search registry.json for the solution name across all industries
 2. Identify the matching industry entry and its `repo` URL

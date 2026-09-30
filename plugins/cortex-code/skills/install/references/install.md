@@ -47,10 +47,20 @@ SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
 
 ## 6. Present the installation plan and confirm
 
-Show the user a summary combining manifest data and account info using `ask_user_question`:
+**CRITICAL: You MUST show the full installation plan below to the user BEFORE asking for confirmation. NEVER skip this step. NEVER proceed to installation without displaying what will be installed.**
+
+Show the user a summary combining manifest data and account info using `ask_user_question`. Every field must be filled in:
 
 ```
-[UNOFFICIAL — NOT A SUPPORTED SNOWFLAKE PRODUCT]
+============================================================
+  UNOFFICIAL — NOT A SUPPORTED SNOWFLAKE PRODUCT
+============================================================
+
+This application is not part of the Snowflake Service and is
+governed by the terms in LICENSE, unless expressly agreed to
+in writing. You use this application at your own risk, and
+Snowflake has no obligation to support your use of this
+application.
 
 Solution: <name> v<version>
 Industry: <industry>
@@ -65,9 +75,13 @@ Target Account:
   Region:       <REGION>
   Current Role: <ROLE>
 
-Scripts: <install_scripts list>
+Scripts to execute: <install_scripts list>
 
-Proceed with installation?
+Do you want to proceed with installation? (yes/no)
+```
+
+**Do NOT proceed without explicit "yes" from the user.**
+**If the user says "no" or anything other than "yes", STOP immediately.**
 ```
 
 **Do NOT proceed without explicit "yes" from the user.**
