@@ -47,10 +47,20 @@ SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
 
 ## 6. Present the installation plan and confirm
 
-Show the user a summary combining manifest data and account info using `ask_user_question`:
+**CRITICAL: You MUST show the full installation plan below to the user BEFORE asking for confirmation. NEVER skip this step. NEVER proceed to installation without displaying what will be installed.**
+
+Show the user a summary combining manifest data and account info using `ask_user_question`. Every field must be filled in:
 
 ```
-[UNOFFICIAL — NOT A SUPPORTED SNOWFLAKE PRODUCT]
+============================================================
+  UNOFFICIAL — NOT A SUPPORTED SNOWFLAKE PRODUCT
+============================================================
+
+This application is not part of the Snowflake Service and is
+governed by the terms in LICENSE, unless expressly agreed to
+in writing. You use this application at your own risk, and
+Snowflake has no obligation to support your use of this
+application.
 
 Solution: <name> v<version>
 Industry: <industry>
@@ -65,12 +75,19 @@ Target Account:
   Region:       <REGION>
   Current Role: <ROLE>
 
-Scripts: <install_scripts list>
+Source:
+  Repository: <REPO_URL>
+  Branch:     <REPO_BRANCH>
+  Commit:     <REPO_COMMIT>
+  <If REPO_DIRTY is true: WARNING — solutions/<SOLUTION_NAME>/ has uncommitted local changes>
 
-Proceed with installation?
+Scripts to execute: <install_scripts list>
+
+Do you want to proceed with installation? (yes/no)
 ```
 
 **Do NOT proceed without explicit "yes" from the user.**
+**If the user says "no" or anything other than "yes", STOP immediately.**
 
 ## 7. Execute installation via Task subagent
 
@@ -152,4 +169,4 @@ Present:
 - Solution name and version
 - Objects created (table count, total rows)
 - Agent URL (if features include "Snowflake Intelligence" or "Cortex Agent")
-- Teardown command: `$sf-solutions:<SOLUTION_NAME> teardown`
+- Teardown command: `$sf-solutions:teardown <SOLUTION_NAME>`

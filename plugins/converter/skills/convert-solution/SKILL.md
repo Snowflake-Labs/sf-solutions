@@ -3,7 +3,7 @@ name: convert-solution
 description: >
   Convert a source project into the sf-*-solutions format. Handles both script type (SQL/Python repos)
   and plugin type (CoCo plugin with skills/agents). Validates security, conformance, and compliance.
-  Usage: $sfs:convert-solution <source-path>
+  Usage: $sfs:convert-solution <source-path> <target-repo-path>
   Triggers: convert solution, publish solution, add solution, export solution, import plugin.
 tools:
   - Read
@@ -22,18 +22,21 @@ security checks, and compliance validation.
 
 ## Input
 
-`$ARGUMENTS` takes one positional argument:
+`$ARGUMENTS` takes two positional arguments:
 
 1. **source path** — path to the source directory (required)
+2. **target repo path** — path to the local clone of the target industry repo, e.g. `~/project/sf-rcg-solutions`. If omitted, Phase 1 asks for it.
+
+The solution is generated at `<target repo path>/solutions/<solution-name>/`.
 
 Examples:
 
 ```
-$sfs:convert-solution ~/project/my-solution
-$sfs:convert-solution /path/to/my-plugin
+$sfs:convert-solution ~/project/my-solution ~/project/sf-rcg-solutions
+$sfs:convert-solution /path/to/my-plugin /path/to/sf-hcls-solutions
 ```
 
-If source path is not provided, ask the user.
+If the source path is not provided, ask the user. If the target repo path is not provided, use the Phase 1 menu.
 
 ## Security Rules (MANDATORY — enforced by hooks)
 
@@ -57,6 +60,18 @@ Store as `$SOLUTION_TYPE` ("script" or "plugin").
 
 ## Phase 1: Select Target Industry Repo
 
+### If the target repo path was given as the second argument
+
+Validate it before doing anything else:
+
+1. The directory exists and contains a `solutions/` directory
+2. The directory name matches one of the repos in the table below
+3. `git -C <path> remote get-url origin` points to `Snowflake-Labs/<that repo name>`
+
+If any check fails, show the reason and fall back to the menu below. If all pass, store it as `$TARGET_REPO_PATH`, take the industry from the table, and skip the menu.
+
+### Otherwise
+
 Ask the user which industry repo to create the solution in using `ask_user_question`:
 
 | # | Repo | Industry |
@@ -71,7 +86,9 @@ Ask the user which industry repo to create the solution in using `ask_user_quest
 | 8 | sf-pubsec-solutions | Public Sector & Government |
 | 9 | sf-rcg-solutions | Retail, CPG & General |
 
-Store `$TARGET_REPO_PATH`. If the user provides the repo path directly as a second argument, skip this menu.
+Store `$TARGET_REPO_PATH` (ask for the local clone path of the chosen repo if it cannot be found).
+
+Set `$TARGET_DIR` = `$TARGET_REPO_PATH/solutions/<solution-name>`. All later phases write to and check `$TARGET_DIR` (`<target_dir>`). If `$TARGET_DIR` already exists, ask the user before overwriting anything.
 
 ## Phase 2: Source Analysis
 
@@ -80,11 +97,18 @@ Store `$TARGET_REPO_PATH`. If the user provides the repo path directly as a seco
 1. Verify source path exists
 2. Scan for source database names (anything that looks like a `CREATE DATABASE` or `USE DATABASE` that is NOT `SF_SOLUTIONS`)
 3. Scan for source warehouse names (anything that looks like `USE WAREHOUSE` or `WAREHOUSE =` that is NOT `SF_SOLUTIONS_WH`)
-4. Write `.convert-meta.json` with:
+4. Ask the user for solution metadata using `ask_user_question`:
+   - **Author** (text, required) — who wrote this solution (e.g., "Jane Smith")
+   - **Edition** (options: "Enterprise", "Standard", "Any") — which Snowflake edition is required
+   - **Trial Account Compatible** (options: "Yes", "No") — whether the solution works on trial accounts
+5. Write `.convert-meta.json` with:
    - `solution_type`: "script" or "plugin"
    - `source_databases`: list of detected source DB names
    - `source_warehouses`: list of detected source WH names
    - `source_path`: absolute path
+   - `author`: the author name
+   - `edition`: the edition requirement
+   - `trial_compatible`: yes or no
 
 ### Script type — additional analysis
 
@@ -101,7 +125,10 @@ Present the conversion plan to the user using `ask_user_question`:
 ```
 Solution Type: <script|plugin>
 Source:        <source_path>
-Target:        <target_repo>/<solution-name>/
+Target:        <TARGET_REPO_PATH>/solutions/<solution-name>/
+Author:        <author>
+Edition:       <Enterprise / Standard / Any>
+Trial Account: <Yes / No>
 
 Database Renames:
   <source_db> → SF_SOLUTIONS
@@ -128,12 +155,22 @@ Proceed with conversion?
 
 1. **manifest.json** — MUST include `"type": "<script|plugin>"`. For plugin type, also include `"plugin_path": "plugins/cortex-code"`. Database must be `SF_SOLUTIONS`.
 
-2. **README.md** — MUST include the disclaimer at the top:
-   ```
+2. **README.md** — MUST follow this template:
+   ```markdown
+   # <Solution Name>
+
    Disclaimer: This application is not part of the Snowflake Service and is governed by the terms
    in LICENSE, unless expressly agreed to in writing. You use this application at your own risk,
    and Snowflake has no obligation to support your use of this application. [Learn more](../../LEGAL.md)
+
+   | Field | Value |
+   |-------|-------|
+   | Edition | <Enterprise / Standard / Any> |
+   | Trial Account | <Yes / No> |
+   | Author | <author name> |
    ```
+
+   Fill in the values from `.convert-meta.json`. The disclaimer and metadata table are MANDATORY — if the disclaimer is missing, the solution directory will be rejected and removed by the conformance check.
 
 ### Type-specific generation
 
@@ -208,14 +245,14 @@ Verify README.md contains the LEGAL.md disclaimer link:
 grep -q "LEGAL.md" <target_dir>/README.md
 ```
 
-If not found: **FAIL — disclaimer is mandatory.**
+If not found: **FAIL — disclaimer is mandatory. The solution directory will be removed if the disclaimer is not present.**
 
 ### Check 6: Conformance Check
 
 Run the conformance script:
 
 ```bash
-bash plugins/internal/skills/convert-solution/hooks/check-solution-conformance.sh <target_dir> <target_dir>/.convert-meta.json
+bash plugins/converter/skills/convert-solution/hooks/check-solution-conformance.sh <target_dir> <target_dir>/.convert-meta.json
 ```
 
 ## Phase 6: Report

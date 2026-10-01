@@ -13,23 +13,17 @@ The manifest must include a `plugin_path` field indicating the relative path fro
 
 Do NOT skip or abbreviate this disclaimer.
 
-## 2. Scan and display plugin contents
+## 2. Scan plugin contents
 
-Read the plugin directory at:
+Read the plugin directory at `$REPO_ROOT/solutions/$SOLUTION_NAME/<plugin_path>/` and collect:
 
-```
-$REPO_ROOT/solutions/$SOLUTION_NAME/<plugin_path>/
-```
+- **plugin.json** — read `.cortex-plugin/plugin.json` for name, version, authors
+- **Skills** — list each `skills/<name>/SKILL.md` (name + first-line description)
+- **Hooks** — if `hooks/hooks.json` exists, list every hook event and command; otherwise "None"
+- **MCP Servers** — if `.mcp.json` exists, list each server name and command; otherwise "None"
+- **Agents** — list each `agents/<name>.md`; otherwise "None"
 
-Inventory and display ALL of the following to the user:
-
-- **Skills** — list each `skills/<name>/SKILL.md` with name and first-line description
-- **Hooks** — if `hooks/hooks.json` exists, list every hook event and its command
-- **MCP Servers** — if `.mcp.json` exists, list each server name and command
-- **Agents** — list each `agents/<name>.md` with name
-- **Manifest** — show plugin name, version, and authors from `.cortex-plugin/plugin.json`
-
-Present this as a clear summary table so the user knows exactly what will be installed.
+Do NOT display these results yet — they will be shown in the installation plan (Section 4).
 
 ## 3. Grandchild plugin check
 
@@ -63,9 +57,7 @@ task(
 
 **If the check returns FAIL, show the findings to the user and STOP. Do NOT proceed with installation.**
 
-## 4. Present installation plan and confirm
-
-Query current account info:
+## 4. Query current account info
 
 ```sql
 SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
@@ -74,41 +66,64 @@ SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
        CURRENT_ROLE() AS ROLE;
 ```
 
-Show the user a summary using `ask_user_question`:
+## 5. Present installation plan and confirm
+
+**CRITICAL: You MUST display the installation plan below using `ask_user_question` BEFORE proceeding. NEVER skip this step. NEVER ask "do you want to install?" without first showing this exact template filled in. If you skip this, the installation is invalid.**
+
+Fill in EVERY field from the scanned data (Section 2), account info (Section 4), and the source values from `resolve-repo.md` (`$REPO_URL`, `$REPO_BRANCH`, `$REPO_COMMIT`, `$REPO_DIRTY`). Use `ask_user_question` with the plan as the question text:
 
 ```
-[UNOFFICIAL PLUGIN]
-This application is not part of the Snowflake Service.
-You use this application at your own risk.
+============================================================
+  UNOFFICIAL PLUGIN — NOT A SUPPORTED SNOWFLAKE PRODUCT
+============================================================
+
+This application is not part of the Snowflake Service and is
+governed by the terms in LICENSE, unless expressly agreed to
+in writing. You use this application at your own risk, and
+Snowflake has no obligation to support your use of this
+application.
 
 Solution:     <name> v<version>
 Type:         Plugin
 Industry:     <industry>
-Plugin Name:  <plugin name from plugin.json>
-Plugin Path:  <plugin_path>
 
-Components to install:
-  Skills:      <list of skill names>
-  Hooks:       <list of hook events, or "None">
-  MCP Servers: <list of server names, or "None">
-  Agents:      <list of agent names, or "None">
+Plugin to install:
+  Name:        <plugin name from plugin.json>
+  Version:     <plugin version>
+  Authors:     <plugin authors>
+  Source:      <plugin_path>
+  Install to:  ~/.snowflake/cortex/plugins/<plugin-name>/
+
+Components:
+  Skills:      <list every skill name, one per line>
+  Hooks:       <list every hook event and command, or "None">
+  MCP Servers: <list every server name and command, or "None">
+  Agents:      <list every agent name, or "None">
 
 Target Account:
   Organization: <ORG>
   Account:      <ACCOUNT>
   Region:       <REGION>
+  Current Role: <ROLE>
 
-Snowflake objects (if install_scripts present):
-  Database: <database>
-  Schemas:  <schemas>
-  Scripts:  <install_scripts list>
+Source:
+  Repository: <REPO_URL>
+  Branch:     <REPO_BRANCH>
+  Commit:     <REPO_COMMIT>
+  <If REPO_DIRTY is true: WARNING — solutions/<SOLUTION_NAME>/ has uncommitted local changes>
 
-Proceed with installation?
+Snowflake objects to create (if any):
+  Database: <database from manifest, or "None">
+  Schemas:  <schemas from manifest, or "None">
+  Scripts:  <install_scripts list, or "None">
+
+Do you want to install this plugin? (yes/no)
 ```
 
 **Do NOT proceed without explicit "yes" from the user.**
+**If the user says "no" or anything other than "yes", STOP immediately.**
 
-## 5. Install the plugin via Task subagent
+## 6. Install the plugin via Task subagent
 
 **CRITICAL: Do NOT perform file writes in the main conversation context.**
 
@@ -170,7 +185,7 @@ task(
 )
 ```
 
-## 6. Verify installation
+## 7. Verify installation
 
 After the subagent completes:
 
@@ -190,7 +205,7 @@ WHERE TABLE_SCHEMA IN (<schemas from manifest>)
 ORDER BY TABLE_SCHEMA, TABLE_NAME;
 ```
 
-## 7. Load next actions guide
+## 8. Load next actions guide
 
 Read the file with the Read tool (if it exists):
 
@@ -200,7 +215,7 @@ $REPO_ROOT/solutions/$SOLUTION_NAME/NEXT_ACTIONS.md
 
 If the file exists, present the recommended next steps to the user.
 
-## 8. Post-install summary
+## 9. Post-install summary
 
 Present:
 - Solution name and version
@@ -209,4 +224,4 @@ Present:
 - Objects created in Snowflake (if SQL scripts were run)
 - Agent URL (if features include "Snowflake Intelligence" or "Cortex Agent")
 - Usage: `$<plugin-name>` or `$<plugin-name>:<skill-name>`
-- Teardown command: `$sf-solutions:<SOLUTION_NAME> teardown`
+- Teardown command: `$sf-solutions:teardown <SOLUTION_NAME>`

@@ -6,9 +6,9 @@ Thank you for contributing to Snowflake Industry Solutions!
 
 ```
 sf-solutions/
-├── skills/
-│   ├── add-solution/         # (deprecated — use convert-solution)
-│   └── convert-solution/     # (deprecated — use plugins/internal convert-solution)
+├── plugins/
+│   ├── cortex-code/          # sf-solutions plugin: list, install, teardown, next
+│   └── converter/            # sfs plugin: convert-solution (for solution authors)
 ├── templates/                # Shared config templates for industry repos
 │   ├── .github/workflows/
 │   ├── .pre-commit-config.yaml
@@ -57,7 +57,7 @@ solutions/<solution-name>/
 Use the unified `convert-solution` skill to convert any source into sf-solutions format:
 
 ```
-$sfs:convert-solution /path/to/source
+$sfs:convert-solution /path/to/source /path/to/sf-<industry>-solutions
 ```
 
 The skill will ask whether the source is a script type or plugin type and guide you through the conversion.
