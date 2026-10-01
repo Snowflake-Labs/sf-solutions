@@ -80,11 +80,18 @@ Store `$TARGET_REPO_PATH`. If the user provides the repo path directly as a seco
 1. Verify source path exists
 2. Scan for source database names (anything that looks like a `CREATE DATABASE` or `USE DATABASE` that is NOT `SF_SOLUTIONS`)
 3. Scan for source warehouse names (anything that looks like `USE WAREHOUSE` or `WAREHOUSE =` that is NOT `SF_SOLUTIONS_WH`)
-4. Write `.convert-meta.json` with:
+4. Ask the user for solution metadata using `ask_user_question`:
+   - **Author** (text, required) — who wrote this solution (e.g., "Jane Smith")
+   - **Edition** (options: "Enterprise", "Standard", "Any") — which Snowflake edition is required
+   - **Trial Account Compatible** (options: "Yes", "No") — whether the solution works on trial accounts
+5. Write `.convert-meta.json` with:
    - `solution_type`: "script" or "plugin"
    - `source_databases`: list of detected source DB names
    - `source_warehouses`: list of detected source WH names
    - `source_path`: absolute path
+   - `author`: the author name
+   - `edition`: the edition requirement
+   - `trial_compatible`: yes or no
 
 ### Script type — additional analysis
 
@@ -102,6 +109,9 @@ Present the conversion plan to the user using `ask_user_question`:
 Solution Type: <script|plugin>
 Source:        <source_path>
 Target:        <target_repo>/<solution-name>/
+Author:        <author>
+Edition:       <Enterprise / Standard / Any>
+Trial Account: <Yes / No>
 
 Database Renames:
   <source_db> → SF_SOLUTIONS
@@ -128,12 +138,22 @@ Proceed with conversion?
 
 1. **manifest.json** — MUST include `"type": "<script|plugin>"`. For plugin type, also include `"plugin_path": "plugins/cortex-code"`. Database must be `SF_SOLUTIONS`.
 
-2. **README.md** — MUST include the disclaimer at the top:
-   ```
+2. **README.md** — MUST follow this template:
+   ```markdown
+   # <Solution Name>
+
    Disclaimer: This application is not part of the Snowflake Service and is governed by the terms
    in LICENSE, unless expressly agreed to in writing. You use this application at your own risk,
    and Snowflake has no obligation to support your use of this application. [Learn more](../../LEGAL.md)
+
+   | Field | Value |
+   |-------|-------|
+   | Edition | <Enterprise / Standard / Any> |
+   | Trial Account | <Yes / No> |
+   | Author | <author name> |
    ```
+
+   Fill in the values from `.convert-meta.json`. The disclaimer and metadata table are MANDATORY — if the disclaimer is missing, the solution directory will be rejected and removed by the conformance check.
 
 ### Type-specific generation
 
@@ -208,7 +228,7 @@ Verify README.md contains the LEGAL.md disclaimer link:
 grep -q "LEGAL.md" <target_dir>/README.md
 ```
 
-If not found: **FAIL — disclaimer is mandatory.**
+If not found: **FAIL — disclaimer is mandatory. The solution directory will be removed if the disclaimer is not present.**
 
 ### Check 6: Conformance Check
 
