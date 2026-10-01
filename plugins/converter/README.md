@@ -25,7 +25,7 @@ Converts a source project into the standard `sf-*-solutions` format. Supports bo
 
 **What it does:**
 
-1. Asks for the solution type (script or plugin) and the target industry repo
+1. Asks for the solution type (script or plugin) and validates the target industry repo (or asks for one)
 2. Analyzes the source and asks for Author, Edition, and Trial Account compatibility
 3. Shows the conversion plan and waits for confirmation
 4. Adapts all SQL to use the `SF_SOLUTIONS` database and `SF_SOLUTIONS_WH` warehouse
@@ -35,13 +35,16 @@ Converts a source project into the standard `sf-*-solutions` format. Supports bo
 **Usage:**
 
 ```
-$sfs:convert-solution <source-path>
+$sfs:convert-solution <source-path> <target-repo-path>
 ```
+
+- `<source-path>` — source project to convert
+- `<target-repo-path>` — local clone of the target industry repo. The solution is written to `<target-repo-path>/solutions/<solution-name>/`. If omitted, the skill asks which repo to use.
 
 **Example:**
 
 ```
-$sfs:convert-solution ~/project/my-solution
+$sfs:convert-solution ~/project/my-solution ~/project/sf-rcg-solutions
 ```
 
 **Target repos:**

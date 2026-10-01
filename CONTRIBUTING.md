@@ -57,7 +57,7 @@ solutions/<solution-name>/
 Use the unified `convert-solution` skill to convert any source into sf-solutions format:
 
 ```
-$sfs:convert-solution /path/to/source
+$sfs:convert-solution /path/to/source /path/to/sf-<industry>-solutions
 ```
 
 The skill will ask whether the source is a script type or plugin type and guide you through the conversion.
