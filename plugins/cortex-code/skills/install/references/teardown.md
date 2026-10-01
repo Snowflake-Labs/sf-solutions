@@ -18,6 +18,12 @@ This will permanently remove:
   - Database: <database> (and all schemas/objects within)
   - Warehouses: <list> (only if teardown.sql exists)
 
+Source of teardown.sql:
+  Repository: <REPO_URL>
+  Branch:     <REPO_BRANCH>
+  Commit:     <REPO_COMMIT>
+  <If REPO_DIRTY is true: WARNING — solutions/<SOLUTION_NAME>/ has uncommitted local changes>
+
 This action cannot be undone. Proceed?
 ```
 

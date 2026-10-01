@@ -70,7 +70,7 @@ SELECT CURRENT_ORGANIZATION_NAME() AS ORG,
 
 **CRITICAL: You MUST display the installation plan below using `ask_user_question` BEFORE proceeding. NEVER skip this step. NEVER ask "do you want to install?" without first showing this exact template filled in. If you skip this, the installation is invalid.**
 
-Fill in EVERY field from the scanned data (Section 2) and account info (Section 4). Use `ask_user_question` with the plan as the question text:
+Fill in EVERY field from the scanned data (Section 2), account info (Section 4), and the source values from `resolve-repo.md` (`$REPO_URL`, `$REPO_BRANCH`, `$REPO_COMMIT`, `$REPO_DIRTY`). Use `ask_user_question` with the plan as the question text:
 
 ```
 ============================================================
@@ -105,6 +105,12 @@ Target Account:
   Account:      <ACCOUNT>
   Region:       <REGION>
   Current Role: <ROLE>
+
+Source:
+  Repository: <REPO_URL>
+  Branch:     <REPO_BRANCH>
+  Commit:     <REPO_COMMIT>
+  <If REPO_DIRTY is true: WARNING — solutions/<SOLUTION_NAME>/ has uncommitted local changes>
 
 Snowflake objects to create (if any):
   Database: <database from manifest, or "None">

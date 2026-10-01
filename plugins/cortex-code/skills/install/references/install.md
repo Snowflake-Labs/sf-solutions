@@ -75,6 +75,12 @@ Target Account:
   Region:       <REGION>
   Current Role: <ROLE>
 
+Source:
+  Repository: <REPO_URL>
+  Branch:     <REPO_BRANCH>
+  Commit:     <REPO_COMMIT>
+  <If REPO_DIRTY is true: WARNING — solutions/<SOLUTION_NAME>/ has uncommitted local changes>
+
 Scripts to execute: <install_scripts list>
 
 Do you want to proceed with installation? (yes/no)
