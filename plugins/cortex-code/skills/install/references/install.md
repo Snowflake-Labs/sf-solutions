@@ -82,9 +82,6 @@ Do you want to proceed with installation? (yes/no)
 
 **Do NOT proceed without explicit "yes" from the user.**
 **If the user says "no" or anything other than "yes", STOP immediately.**
-```
-
-**Do NOT proceed without explicit "yes" from the user.**
 
 ## 7. Execute installation via Task subagent
 
@@ -166,4 +163,4 @@ Present:
 - Solution name and version
 - Objects created (table count, total rows)
 - Agent URL (if features include "Snowflake Intelligence" or "Cortex Agent")
-- Teardown command: `$sf-solutions:<SOLUTION_NAME> teardown`
+- Teardown command: `$sf-solutions:teardown <SOLUTION_NAME>`
