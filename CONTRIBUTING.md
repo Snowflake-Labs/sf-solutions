@@ -6,9 +6,9 @@ Thank you for contributing to Snowflake Industry Solutions!
 
 ```
 sf-solutions/
-├── skills/
-│   ├── add-solution/         # (deprecated — use convert-solution)
-│   └── convert-solution/     # (deprecated — use plugins/internal convert-solution)
+├── plugins/
+│   ├── cortex-code/          # sf-solutions plugin: list, install, teardown, next
+│   └── converter/            # sfs plugin: convert-solution (for solution authors)
 ├── templates/                # Shared config templates for industry repos
 │   ├── .github/workflows/
 │   ├── .pre-commit-config.yaml

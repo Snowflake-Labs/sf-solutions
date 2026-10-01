@@ -235,7 +235,7 @@ If not found: **FAIL — disclaimer is mandatory. The solution directory will be
 Run the conformance script:
 
 ```bash
-bash plugins/internal/skills/convert-solution/hooks/check-solution-conformance.sh <target_dir> <target_dir>/.convert-meta.json
+bash plugins/converter/skills/convert-solution/hooks/check-solution-conformance.sh <target_dir> <target_dir>/.convert-meta.json
 ```
 
 ## Phase 6: Report
