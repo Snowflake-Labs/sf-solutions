@@ -1,6 +1,6 @@
 {
   "name": "sfs",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Internal tools for Snowflake solution authors: convert source projects to public industry repos with security and conformance validation",
   "authors": ["Sho Tanaka"],
   "skills": ["skills/convert-solution"],
