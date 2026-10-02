@@ -42,16 +42,25 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ## Quick Install (via Cortex Code)
 
-<!-- TBA: Install method under development -->
+Install the `sf-solutions` plugin directly from this repository:
 
 ```bash
-# TBA
+cortex plugin install github:Snowflake-Labs/sf-solutions/plugins/cortex-code
+cortex plugin list   # confirm "sf-solutions v1.0.0 [enabled, managed]"
 ```
 
-Then run a solution by name:
+If a Cortex Code session is already running, run `/plugin reload` (or restart Cortex Code) to load the plugin. To get the latest version later, run `cortex plugin update sf-solutions`.
+
+> Cortex Code may also list an older bundled `sf-solutions` plugin as `[disabled, bundled]`. The managed plugin installed above takes precedence.
+
+Then use the plugin commands:
 
 ```
-$sf-solutions:<solution-name>
+$sf-solutions:list                          # List all available solutions
+$sf-solutions:list <industry>               # Filter by industry
+$sf-solutions:install <solution-name>       # Install a solution
+$sf-solutions:teardown <solution-name>      # Remove a solution
+$sf-solutions:next <solution-name>          # Post-install guidance
 ```
 
 ## Prerequisites

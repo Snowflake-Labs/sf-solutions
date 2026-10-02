@@ -8,9 +8,14 @@ Cortex Code plugin for Snowflake solution authors. Converts a source project int
 
 ## Install
 
+Install the `sfs` plugin directly from this repository:
+
 ```bash
-cortex plugin install git Snowflake-Labs/sf-solutions --sub-path plugins/converter
+cortex plugin install github:Snowflake-Labs/sf-solutions/plugins/converter
+cortex plugin list   # confirm "sfs" is listed as [enabled, managed]
 ```
+
+If a Cortex Code session is already running, run `/plugin reload` (or restart Cortex Code) to load the plugin. To get the latest version later, run `cortex plugin update sfs`.
 
 ---
 
