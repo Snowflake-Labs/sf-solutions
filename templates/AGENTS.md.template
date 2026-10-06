@@ -200,15 +200,20 @@ solutions/<name>/
 
 When demo data exceeds ~200 lines, extract it into a separate `data.sql` file. This prevents CoCo CLI context overflow and allows direct execution via `snow sql -f scripts/data.sql`.
 
-The installer plugin is TBA (pending public release). This repo contains only the solution source code and metadata.
+This repo contains only the solution source code and metadata. Solutions are installed by the `sf-solutions` plugin from [Snowflake-Labs/sf-solutions](https://github.com/Snowflake-Labs/sf-solutions):
+
+```bash
+cortex plugin install github:Snowflake-Labs/sf-solutions/plugins/cortex-code
+```
 
 ### Skill Invocation
 
-Solutions are installed via the `sf-solutions` skill (TBA):
-
-| Platform | Command | Example |
-|----------|---------|---------|
-| Cortex Code | `$sf-solutions:<name>` | `$sf-solutions:<example-solution>` |
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `$sf-solutions:list [industry]` | List solutions | `$sf-solutions:list {{FILTER_KEYWORD}}` |
+| `$sf-solutions:install <name>` | Install a solution | `$sf-solutions:install <example-solution>` |
+| `$sf-solutions:teardown <name>` | Remove a solution | `$sf-solutions:teardown <example-solution>` |
+| `$sf-solutions:next <name>` | Post-install guidance | `$sf-solutions:next <example-solution>` |
 
 ### Snowsight URL Patterns
 

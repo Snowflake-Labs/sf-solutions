@@ -1,10 +1,10 @@
 # Snowflake Industry Solutions
 
-Disclaimer: This application is not part of the Snowflake Service and is governed by the terms in LICENSE, unless expressly agreed to in writing. You use this application at your own risk, and Snowflake has no obligation to support your use of this application [Learn more](./LEGAL.md).
+Disclaimer: This application is not part of the Snowflake Service and is governed by the terms in LICENSE, unless expressly agreed to in writing. You use this application at your own risk, and Snowflake has no obligation to support your use of this application. [Learn more](./LEGAL.md)
 
---- 
+---
 
-End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Cortex AI, Snowflake ML, and the modern data platform.
+End-to-end solution accelerators built on Snowflake, Cortex Code, showcasing Cortex AI, Snowflake ML, and the modern data platform.
 
 ---
 
@@ -40,34 +40,69 @@ End-to-end solution accelerators built on Snowflake, Coretex Code, showcasing Co
 
 ---
 
-## Quick Install (via Cortex Code)
+## Requirements for sf-solutions plugin
 
-Install the `sf-solutions` plugin directly from this repository:
+| Requirement | Details |
+|-------------|---------|
+| CoCo | [Snowflake CoCo CLI](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli) or [Snowflake CoCo Desktop](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-desktop) |
+| Snowflake account | A non-trial account, or a trial account with AI features enabled |
+| Edition | Enterprise Edition recommended. Check each solution's README for its required edition |
+
+> AI features (CoCo, Cortex Agents, Cortex AI Functions) are disabled by default on self-service trial accounts. To enable them, add a credit card to the account.
+
+## How to Install
+
+There are two ways to install a solution. Option 1 is recommended.
+
+### Option 1: Use the sf-solutions plugin (recommended)
+
+Install the `sf-solutions` plugin into CoCo, then install any solution by name.
+
+#### Snowflake CoCo Desktop (GUI)
+
+1. Open **Settings** and select **Plugins** in the left menu.
+2. Click the **+** button at the top right, then select **Add from GitHub**.
+3. In the **Add plugin from GitHub** dialog, enter the following URL and press **Enter**:
+
+   ```
+   https://github.com/Snowflake-Labs/sf-solutions/tree/main/plugins/cortex-code
+   ```
+
+4. CoCo clones the repository and registers the plugin. Confirm that the **sf-solutions** card appears in the Plugins list with its toggle turned on.
+
+#### Snowflake CoCo CLI
 
 ```bash
 cortex plugin install github:Snowflake-Labs/sf-solutions/plugins/cortex-code
-cortex plugin list   # confirm "sf-solutions v1.0.0 [enabled, managed]"
+cortex plugin list   # confirm "sf-solutions" is listed as [enabled, managed]
 ```
 
-If a Cortex Code session is already running, run `/plugin reload` (or restart Cortex Code) to load the plugin. To get the latest version later, run `cortex plugin update sf-solutions`.
+If a CoCo session is already running, run `/plugin reload` (or restart CoCo) to load the plugin. To get the latest version later, run `cortex plugin update sf-solutions`.
 
-> Cortex Code may also list an older bundled `sf-solutions` plugin as `[disabled, bundled]`. The managed plugin installed above takes precedence.
+> CoCo may also list an older bundled `sf-solutions` plugin as `[disabled, bundled]`. The plugin installed above takes precedence.
 
-Then use the plugin commands:
+Then, in CoCo:
 
 ```
 $sf-solutions:list                          # List all available solutions
-$sf-solutions:list <industry>               # Filter by industry
+$sf-solutions:list <industry>               # Filter by industry (e.g. hcls, rcg)
 $sf-solutions:install <solution-name>       # Install a solution
 $sf-solutions:teardown <solution-name>      # Remove a solution
 $sf-solutions:next <solution-name>          # Post-install guidance
 ```
 
-## Prerequisites
+The plugin shows the disclaimer and the installation plan (target account, objects, scripts, and source commit), and waits for your confirmation before making any change.
 
-- Snowflake account (Enterprise edition recommended)
-- Appropriate role with CREATE DATABASE / SCHEMA privileges
-- Warehouse (default: `COMPUTE_WH`)
+### Option 2: Install manually from the solution folder
+
+Each solution is self-contained. Clone the industry repo that contains the solution (see the catalog above), go to the solution's folder, and follow the installation steps in that solution's `README.md`.
+
+```bash
+git clone https://github.com/Snowflake-Labs/sf-<industry>-solutions.git
+cd sf-<industry>-solutions/solutions/<solution-name>
+```
+
+Read the disclaimer and the Prerequisites in the solution's `README.md` before running anything.
 
 ---
 
@@ -77,12 +112,12 @@ $sf-solutions:next <solution-name>          # Post-install guidance
 
 - [Snowflake ML](https://www.snowflake.com/en/data-cloud/snowflake-ml/) - Integrated set of capabilities for development, MLOps and inference leading with agentic ML
 - [Snowflake Notebooks](https://www.snowflake.com/en/data-cloud/notebooks/) - Jupyter-based notebooks in Snowflake Workspaces
-- [Cortex Code](https://www.snowflake.com/en/data-cloud/cortex/cortex-code/) - Snowflake's AI native coding agent that boosts ML productivity
+- [CoCo](https://www.snowflake.com/en/data-cloud/cortex/cortex-code/) - Snowflake's AI native coding agent that boosts ML productivity
 
 ### Technical Documentation
 
-- [Cortex Code Documentation](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code) - Getting started with Cortex Code
-- [Cortex Code in Snowsight](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-snowsight) - Browser-based experience
-- [Cortex Code CLI](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli) - Command-line experience
+- [CoCo Documentation](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code) - Getting started with Cortex Code
+- [CoCo Desktop](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-desktop)
+- [CoC CLI](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli) - Command-line experience
 - [Snowflake ML Documentation](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview) - Official Snowflake ML developer guide
 - [Snowflake ML Quickstart](https://quickstarts.snowflake.com/guide/getting-started-with-snowflake-ml/) - Hands-on guides to get started with Snowflake ML

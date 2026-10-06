@@ -8,14 +8,28 @@ Cortex Code plugin for Snowflake solution authors. Converts a source project int
 
 ## Install
 
-Install the `sfs` plugin directly from this repository:
+Install the `sfs` plugin directly from this repository.
+
+#### Snowflake CoCo Desktop (GUI)
+
+1. Open **Settings** and select **Plugins** in the left menu.
+2. Click the **+** button at the top right, then select **Add from GitHub**.
+3. In the **Add plugin from GitHub** dialog, enter the following URL and press **Enter**:
+
+   ```
+   https://github.com/Snowflake-Labs/sf-solutions/tree/main/plugins/converter
+   ```
+
+4. CoCo clones the repository and registers the plugin. Confirm that the **sfs** card appears in the Plugins list with its toggle turned on.
+
+#### Snowflake CoCo CLI
 
 ```bash
 cortex plugin install github:Snowflake-Labs/sf-solutions/plugins/converter
 cortex plugin list   # confirm "sfs" is listed as [enabled, managed]
 ```
 
-If a Cortex Code session is already running, run `/plugin reload` (or restart Cortex Code) to load the plugin. To get the latest version later, run `cortex plugin update sfs`.
+If a CoCo session is already running, run `/plugin reload` (or restart CoCo) to load the plugin. To get the latest version later, run `cortex plugin update sfs`.
 
 ---
 
