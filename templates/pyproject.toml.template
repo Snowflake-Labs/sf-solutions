@@ -14,7 +14,9 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+# REPO_SPECIFIC_START: ruff-extend-exclude
 extend-exclude = ["**/*.ipynb"]
+# REPO_SPECIFIC_END: ruff-extend-exclude
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "D", "UP", "N"]

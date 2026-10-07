@@ -66,6 +66,10 @@ Optional:
 | `README.md` | Overview, usage instructions, skill invocation examples |
 | `plugins/cortex-code/` | CoCo plugin directory (skills, agents, hooks, etc.) |
 
+<!-- REPO_SPECIFIC_START: guidelines -->
+<!-- Repo-specific contribution guidelines. Content between these markers is kept by template sync. -->
+<!-- REPO_SPECIFIC_END: guidelines -->
+
 ## NEXT_ACTIONS.md Guidelines (Script Type Only)
 
 This file is read when the user asks "what next?" after installing. Structure it as progressive phases:
