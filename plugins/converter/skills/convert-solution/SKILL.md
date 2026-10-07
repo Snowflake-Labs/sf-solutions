@@ -249,10 +249,10 @@ If not found: **FAIL — disclaimer is mandatory. The solution directory will be
 
 ### Check 6: Conformance Check
 
-Run the conformance script:
+Run the conformance script from this skill's own `hooks/` directory. Resolve `<skill_dir>` to the absolute directory containing this SKILL.md (for an installed plugin, `~/.snowflake/cortex/plugins/sfs/skills/convert-solution`). Do NOT use a path relative to the current working directory.
 
 ```bash
-bash plugins/converter/skills/convert-solution/hooks/check-solution-conformance.sh <target_dir> <target_dir>/.convert-meta.json
+bash <skill_dir>/hooks/check-solution-conformance.sh <target_dir> <target_dir>/.convert-meta.json
 ```
 
 ## Phase 6: Report

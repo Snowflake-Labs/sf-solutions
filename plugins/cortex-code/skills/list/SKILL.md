@@ -31,7 +31,7 @@ Read `registry.json` from the `install` skill directory (sibling to this skill a
 ## Step 2: Filter
 
 - If `$ARGUMENTS` is empty → show all solutions
-- If `$ARGUMENTS` matches an industry name (case-insensitive partial match) → show only that industry
+- If `$ARGUMENTS` matches an industry (case-insensitive partial match against the `industry`, the `description`, or the repo name in `repo`, e.g. `hcls` matches `sf-hcls-solutions`) → show only that industry
 - Otherwise → show usage help
 
 ## Step 3: Display
