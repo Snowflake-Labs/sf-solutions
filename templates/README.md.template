@@ -19,7 +19,9 @@ This repository is part of the [Snowflake Industry Solutions](https://github.com
 
 | # | Solution | Industry | Directory | Key Snowflake Features | Status |
 |---|----------|----------|-----------|----------------------|--------|
-<!-- Add solutions here -->
+<!-- REPO_SPECIFIC_START: solution-catalog -->
+<!-- Add solutions here. Rows between these markers are kept by template sync. -->
+<!-- REPO_SPECIFIC_END: solution-catalog -->
 
 ---
 

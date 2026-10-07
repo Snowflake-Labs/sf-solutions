@@ -145,6 +145,10 @@ ALTER STREAMLIT SF_SOLUTIONS.<SCHEMA>.<APP_NAME> ADD LIVE VERSION FROM LAST;
 - If such a workflow is listed in a ruleset as a required status check, the PR gets stuck on "Waiting for status to be reported" forever.
 - **Fix:** Remove `paths:` from the workflow trigger and add an early-exit check inside the job (e.g., "No SQL files found — skipping").
 
+<!-- REPO_SPECIFIC_START: known-issues -->
+<!-- Repo-specific known issues and workarounds. Content between these markers is kept by template sync. -->
+<!-- REPO_SPECIFIC_END: known-issues -->
+
 ## Coding Conventions
 
 ### SQL Style
@@ -246,6 +250,10 @@ URL path patterns by resource type:
 | Intelligence Agent | `<BASE_URL>/#/agents/database/<DB>/schema/<SCHEMA>/agent/<AGENT_NAME>/details` |
 | Snowflake CoWork | `https://ai.snowflake.com/<org>/<account>/#/ai` (note: `ai.snowflake.com`, not `app.snowflake.com`) |
 
+<!-- REPO_SPECIFIC_START: snowsight-url-examples -->
+<!-- Repo-specific URL examples. Content between these markers is kept by template sync. -->
+<!-- REPO_SPECIFIC_END: snowsight-url-examples -->
+
 SQL for Streamlit URL:
 
 ```sql
@@ -301,6 +309,9 @@ Reference when creating new solutions to avoid schema name conflicts and to foll
 
 | Solution | Industry | Database | Schemas | Key Features |
 |----------|----------|----------|---------|--------------|
+<!-- REPO_SPECIFIC_START: existing-solutions -->
+<!-- Add one row per solution. Rows between these markers are kept by template sync. -->
+<!-- REPO_SPECIFIC_END: existing-solutions -->
 
 Notes:
 - All solutions use `SF_SOLUTIONS` database.
