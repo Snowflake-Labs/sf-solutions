@@ -307,10 +307,10 @@ chore: format files with ruff
 
 Reference when creating new solutions to avoid schema name conflicts and to follow established patterns.
 
+<!-- REPO_SPECIFIC_START: existing-solutions -->
+<!-- Add one row per solution. The whole table between these markers is kept by template sync. Keep the header row inside the markers and do not put comments between rows. -->
 | Solution | Industry | Database | Schemas | Key Features |
 |----------|----------|----------|---------|--------------|
-<!-- REPO_SPECIFIC_START: existing-solutions -->
-<!-- Add one row per solution. Rows between these markers are kept by template sync. -->
 <!-- REPO_SPECIFIC_END: existing-solutions -->
 
 Notes:
