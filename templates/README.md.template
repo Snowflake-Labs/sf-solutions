@@ -17,10 +17,10 @@ This repository is part of the [Snowflake Industry Solutions](https://github.com
 
 ## Solution Catalog
 
+<!-- REPO_SPECIFIC_START: solution-catalog -->
+<!-- Add one row per solution. The whole table between these markers is kept by template sync. Keep the header row inside the markers and do not put comments between rows. -->
 | # | Solution | Industry | Directory | Key Snowflake Features | Status |
 |---|----------|----------|-----------|----------------------|--------|
-<!-- REPO_SPECIFIC_START: solution-catalog -->
-<!-- Add solutions here. Rows between these markers are kept by template sync. -->
 <!-- REPO_SPECIFIC_END: solution-catalog -->
 
 ---
